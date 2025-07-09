@@ -154,6 +154,26 @@ body {
     100% { width: 80%; }
 }
 
+/* Rive Animation Styles */
+.rive-animation-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0; /* Add some vertical spacing */
+    min-height: 200px; /* Ensure it takes up some space */
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+#riveCanvas {
+    width: 100% !important;
+    height: auto !important;
+    max-width: 300px; /* Adjust max-width as needed for optimal display */
+    display: block; /* Remove extra space below canvas */
+}
+
 /* Transcription Area */
 .transcription-area {
     background: rgba(255, 255, 255, 0.9);

@@ -36,6 +36,11 @@ class VoiceAgentClient {
         this.silenceDuration = 2000; // 2 seconds of silence
         this.maxSpeakingDuration = 30000; // 30 seconds max speaking time
         
+        // Rive animation properties
+        this.riveInstance = null;
+        this.riveSpeakingInput = null;
+        this.riveListeningInput = null;
+        
         // DOM elements
         this.statusIndicator = document.getElementById('statusIndicator');
         this.statusText = document.getElementById('statusText');
@@ -60,12 +65,14 @@ class VoiceAgentClient {
         this.textInput = document.getElementById('textInput');
         this.sendBtn = document.getElementById('sendBtn');
         this.testBtn = document.getElementById('testBtn');
+        this.riveCanvas = document.getElementById('riveCanvas');
         
         this.init();
     }
     
     async init() {
         this.setupEventListeners();
+        this.setupRiveAnimation(); // Call the new Rive setup method
         await this.connect();
     }
     
@@ -568,23 +575,27 @@ class VoiceAgentClient {
                 }
             });
             
-            // Update user indicator
+            // Update user indicator and Rive ainput
             if (userSpeaking) {
                 this.userIndicator.classList.add('speaking');
                 console.log('User speaking detected via LiveKit events');
+                if (this.riveListeningInput) this.riveListeningInput.value = true;
             } else {
                 this.userIndicator.classList.remove('speaking');
                 console.log('User stopped speaking via LiveKit events');
+                if (this.riveListeningInput) this.riveListeningInput.value = false;
             }
             
-            // Update agent indicator using centralized method
+            // Update agent indicator and Rive input using centralized method
             if (agentSpeaking) {
                 this.setAgentSpeaking(true, 'livekit-events');
+                if (this.riveSpeakingInput) this.riveSpeakingInput.value = true;
             } else {
                 this.setAgentSpeaking(false, 'livekit-events');
+                if (this.riveSpeakingInput) this.riveSpeakingInput.value = false;
             }
         } else {
-            // Fallback: only handle user speaking
+            // Fallback: only handle user speaking and Rive input (if not using LiveKit events)
             let userSpeaking = false;
             speakers.forEach(speaker => {
                 if (speaker.identity === this.identity) {
@@ -594,8 +605,10 @@ class VoiceAgentClient {
             
             if (userSpeaking) {
                 this.userIndicator.classList.add('speaking');
+                if (this.riveListeningInput) this.riveListeningInput.value = true;
             } else {
                 this.userIndicator.classList.remove('speaking');
+                if (this.riveListeningInput) this.riveListeningInput.value = false;
             }
         }
     }
@@ -935,6 +948,7 @@ class VoiceAgentClient {
         }
         this.isConnected = false;
         this.pauseAudioLevelMonitoring();
+        if (this.riveInstance) this.riveInstance.unmount(); // Clean up Rive instance
         console.log('Disconnected from room');
     }
     
@@ -993,7 +1007,32 @@ class VoiceAgentClient {
         
         alert(`Connection Info:\n${JSON.stringify(info, null, 2)}`);
     }
+    // New method to set up Rive animation
+    setupRiveAnimation() {
+        if (!this.riveCanvas) {
+            console.warn('Rive Canvas element not found. Skipping Rive setup.');
+            return;
+        }
+
+        this.riveInstance = new rive.Rive({
+            src: '/static/danak.riv', // Assuming danak.riv is in the static folder
+            canvas: this.riveCanvas,
+            autoplay: true,
+            stateMachines: 'StateMachine', // Assuming the state machine name is 'StateMachine'
+            onLoad: () => {
+                this.riveInstance.resizeDrawingSurfaceToCanvas();
+                const inputs = this.riveInstance.stateMachineInputs('StateMachine');
+                this.riveSpeakingInput = inputs.find(i => i.name === 'isSpeaking');
+                this.riveListeningInput = inputs.find(i => i.name === 'IsListening');
+                console.log('Rive animation loaded and inputs found.');
+            },
+            onError: (error) => {
+                console.error('Rive animation failed to load:', error);
+            },
+        });
+    }
 }
+
 
 // Initialize the voice agent client when the page loads
 document.addEventListener('DOMContentLoaded', () => {
