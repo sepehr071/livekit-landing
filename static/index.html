@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiveKit Voice Agent</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>AI Voice Assistant</h1>
+            <div class="connection-status" id="connectionStatus">
+                <div class="status-indicator" id="statusIndicator"></div>
+                <span class="status-text" id="statusText">Initializing...</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="speaking-indicators">
+                <div class="indicator user-indicator" id="userIndicator">
+                    <i class="fas fa-microphone"></i>
+                    <div class="audio-level" id="userAudioLevel"></div>
+                    <span class="indicator-label">You</span>
+                </div>
+                
+                <div class="indicator agent-indicator" id="agentIndicator">
+                    <i class="fas fa-robot"></i>
+                    <div class="audio-level" id="agentAudioLevel"></div>
+                    <span class="indicator-label">AI Agent</span>
+                </div>
+            </div>
+
+            <div class="transcription-area" id="transcriptionArea">
+                <div class="transcription-message user-message" id="userTranscription" style="display: none;">
+                    <div class="message-content">
+                        <span class="speaker-label">You:</span>
+                        <span class="message-text" id="userText"></span>
+                    </div>
+                </div>
+                
+                <div class="transcription-message agent-message" id="agentTranscription" style="display: none;">
+                    <div class="message-content">
+                        <span class="speaker-label">AI Agent:</span>
+                        <span class="message-text" id="agentText"></span>
+                    </div>
+                </div>
+                
+                <div class="empty-state" id="emptyState">
+                    <i class="fas fa-comment-dots"></i>
+                    <p>Start speaking to begin your conversation with the AI agent</p>
+                </div>
+            </div>
+
+            <div class="text-input-section">
+                <div class="input-container">
+                    <input type="text" id="textInput" placeholder="Type your message..." maxlength="500" />
+                    <button class="send-btn" id="sendBtn" title="Send Message">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn mic-btn" id="micBtn" title="Toggle Microphone">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                
+                <button class="control-btn speaker-btn" id="speakerBtn" title="Toggle Speaker">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                
+                <button class="control-btn info-btn" id="infoBtn" title="Connection Info">
+                    <i class="fas fa-info-circle"></i>
+                </button>
+                
+                <button class="control-btn test-btn" id="testBtn" title="Test Text Streams">
+                    <i class="fas fa-vial"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="room-info" id="roomInfo">
+                <span class="room-label">Room:</span>
+                <span class="room-id" id="roomId">-</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Connecting to AI Agent...</p>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div class="modal" id="errorModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Connection Error</h3>
+                <button class="close-btn" id="closeErrorModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="errorMessage">Unable to connect to the voice agent. Please check your internet connection and try again.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="retryBtn">Retry Connection</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
