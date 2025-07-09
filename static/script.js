@@ -1033,13 +1033,6 @@ class VoiceAgentClient {
     }
 }
 
-
-// Initialize the voice agent client when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Initializing LiveKit Voice Agent Client...');
-    window.voiceAgentClient = new VoiceAgentClient();
-});
-
 // Add CSS for audio level visualization
 const style = document.createElement('style');
 style.textContent = `
@@ -1048,3 +1041,26 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Initialize the voice agent client when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Initializing LiveKit Voice Agent Client...');
+    window.voiceAgentClient = new VoiceAgentClient();
+
+    // Support box show/hide logic
+    const openBtn = document.getElementById('openSupportBtn');
+    const supportBox = document.querySelector('.support-box'); // Use class selector since your HTML uses class, not id
+    const closeBtn = document.getElementById('closeSupportBtn');
+
+    if (openBtn && supportBox && closeBtn) {
+        openBtn.addEventListener('click', () => {
+            supportBox.style.right = '2rem';
+            openBtn.style.right = '-10rem';
+        });
+
+        closeBtn.addEventListener('click', () => {
+            supportBox.style.right = '-30rem';
+            openBtn.style.right = '2rem';
+        });
+    }
+});
