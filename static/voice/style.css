@@ -235,11 +235,11 @@ body {
 }
 
 .agent-speech-bubble {
-    position: fixed;
-    top: 50%;
+    position: absolute;
+    top: -80px;
     left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 1000;
+    transform: translateX(-50%);
+    z-index: 10;
 }
 
 .agent-bubble {
@@ -260,11 +260,11 @@ body {
 }
 
 .user-input-bubble {
-    position: fixed;
-    bottom: 35%;
+    position: absolute;
+    bottom: -80px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 1000;
+    z-index: 10;
 }
 
 .user-bubble {
@@ -328,105 +328,20 @@ body {
     line-height: 1.4;
 }
 
-/* Mode-specific visibility */
-.chat-mode-only {
-    display: block;
-}
-
-.voice-mode-only {
-    display: none;
-}
-
-.voice-mode .chat-mode-only {
-    display: none;
-}
-
-.voice-mode .voice-mode-only {
-    display: block;
-}
-
-/* Bottom Chat Interface */
-.bottom-chat-interface {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    z-index: 100;
-    padding: 20px;
-}
-
-.chat-input-container {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-#chatInput {
-    flex: 1;
-    border: 2px solid #E8ECEF;
-    border-radius: 25px;
-    padding: 12px 20px;
-    font-size: 16px;
-    font-family: inherit;
-    color: #2C3E50;
-    outline: none;
-    transition: border-color 0.2s ease;
-    background: white;
-}
-
-#chatInput:focus {
-    border-color: #FFA500;
-}
-
-#chatInput::placeholder {
-    color: #95A5A6;
-}
-
-.voice-mode-btn {
-    width: 48px;
-    height: 48px;
-    border: none;
-    border-radius: 50%;
-    background: #FFA500;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(255, 165, 0, 0.2);
-}
-
-.voice-mode-btn:hover {
-    background: #FF8C00;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 165, 0, 0.3);
-}
-
-.voice-mode-btn:active {
-    transform: translateY(0);
-}
-
-/* Close Voice Mode Button */
-.close-voice-btn {
+/* Floating Text Input Button */
+.floating-text-btn {
     position: fixed;
     bottom: 30px;
     right: 30px;
     width: 56px;
     height: 56px;
-    background: #FF4444;
+    background: #2196F3;
     border: none;
     border-radius: 50%;
     color: white;
     font-size: 24px;
     cursor: pointer;
-    box-shadow: 0 4px 16px rgba(255, 68, 68, 0.3);
+    box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3);
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
@@ -434,12 +349,159 @@ body {
     z-index: 100;
 }
 
-.close-voice-btn:hover {
+.floating-text-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 68, 68, 0.4);
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
 }
 
-.close-voice-btn:active {
+.floating-text-btn:active {
+    transform: translateY(0);
+}
+
+/* Back to Chat Button */
+.back-to-chat-btn {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    width: 56px;
+    height: 56px;
+    background: #00C851;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(0, 200, 81, 0.3);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.back-to-chat-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 200, 81, 0.4);
+}
+
+.back-to-chat-btn:active {
+    transform: translateY(0);
+}
+
+/* Text Input Modal */
+.text-input-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    backdrop-filter: blur(5px);
+}
+
+.input-modal-content {
+    background: white;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    animation: fadeInScale 0.3s ease;
+}
+
+.input-header {
+    background: #2196F3;
+    color: white;
+    padding: 20px 24px;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.input-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.close-input-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.close-input-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.input-body {
+    padding: 24px;
+}
+
+.input-body textarea {
+    width: 100%;
+    border: 2px solid #E8ECEF;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 16px;
+    font-family: inherit;
+    color: #2C3E50;
+    outline: none;
+    resize: vertical;
+    min-height: 120px;
+    transition: border-color 0.2s ease;
+}
+
+.input-body textarea:focus {
+    border-color: #2196F3;
+}
+
+.input-body textarea::placeholder {
+    color: #95A5A6;
+}
+
+.input-footer {
+    padding: 20px 24px;
+    border-top: 1px solid #E8ECEF;
+    text-align: center;
+}
+
+.send-btn {
+    background: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.send-btn:hover {
+    background: #1976D2;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.send-btn:active {
     transform: translateY(0);
 }
 
@@ -590,6 +652,11 @@ body {
     display: none;
 }
 
+/* Audio Level Visualization */
+.audio-level::after {
+    width: var(--audio-level, 0%) !important;
+}
+
 /* Animations */
 @keyframes fadeInUp {
     from {
@@ -598,15 +665,6 @@ body {
     }
     to {
         opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideUp {
-    from {
-        transform: translateY(100%);
-    }
-    to {
         transform: translateY(0);
     }
 }
@@ -627,11 +685,6 @@ body {
     .main-area {
         margin-left: 0;
         padding: 16px;
-        padding-bottom: 100px; /* Space for bottom chat interface */
-    }
-    
-    .voice-mode .main-area {
-        padding-bottom: 16px; /* Reset padding in voice mode */
     }
     
     .left-controls {
@@ -657,22 +710,21 @@ body {
         padding: 6px 12px;
     }
     
-    .bottom-chat-interface {
-        padding: 16px;
-    }
-    
-    .voice-mode-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
-    }
-    
-    .close-voice-btn {
-        bottom: 20px;
-        right: 20px;
+    .floating-text-btn,
+    .back-to-chat-btn {
         width: 48px;
         height: 48px;
         font-size: 20px;
+    }
+    
+    .back-to-chat-btn {
+        bottom: 20px;
+        left: 20px;
+    }
+    
+    .floating-text-btn {
+        bottom: 20px;
+        right: 20px;
     }
 }
 
@@ -729,12 +781,21 @@ body {
         font-size: 14px;
     }
     
-    .floating-text-btn {
-        bottom: 16px;
-        right: 16px;
+    .floating-text-btn,
+    .back-to-chat-btn {
         width: 44px;
         height: 44px;
         font-size: 18px;
+    }
+    
+    .back-to-chat-btn {
+        bottom: 16px;
+        left: 16px;
+    }
+    
+    .floating-text-btn {
+        bottom: 16px;
+        right: 16px;
     }
     
     .connection-status {
@@ -790,12 +851,21 @@ body {
         font-size: 16px;
     }
     
-    .floating-text-btn {
-        bottom: 12px;
-        right: 12px;
+    .floating-text-btn,
+    .back-to-chat-btn {
         width: 40px;
         height: 40px;
         font-size: 16px;
+    }
+    
+    .back-to-chat-btn {
+        bottom: 12px;
+        left: 12px;
+    }
+    
+    .floating-text-btn {
+        bottom: 12px;
+        right: 12px;
     }
     
     .empty-state {
@@ -850,6 +920,7 @@ body {
 /* Focus States */
 .control-btn:focus,
 .floating-text-btn:focus,
+.back-to-chat-btn:focus,
 .close-input-btn:focus,
 .send-btn:focus,
 .retry-btn:focus,
@@ -872,7 +943,9 @@ body {
         border: 2px solid #2C3E50;
     }
     
-    .control-btn {
+    .control-btn,
+    .floating-text-btn,
+    .back-to-chat-btn {
         border: 2px solid #2C3E50;
     }
 }

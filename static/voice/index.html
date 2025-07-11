@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Voice Assistant</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/voice/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="app-container">
-        <!-- Left Control Panel (Voice Mode Only) -->
-        <div class="left-controls voice-mode-only" id="leftControls" style="display: none;">
+        <!-- Left Control Panel -->
+        <div class="left-controls" id="leftControls">
             <button class="control-btn mic-btn" id="micBtn" title="Toggle Microphone">
                 <i class="fas fa-microphone"></i>
             </button>
@@ -42,13 +42,13 @@
             <!-- Character Area -->
             <div class="character-area">
                 <div class="character-container">
-                    <!-- Placeholder for character image/animation -->
+                    <!-- Character image/animation -->
                     <div class="character-placeholder" id="characterPlaceholder">
                         <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiByeD0iMTUwIiBmaWxsPSIjRkZBNTAwIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8Y2lyY2xlIGN4PSIxNTAiIGN5PSIxNTAiIHI9IjEwMCIgZmlsbD0iI0ZGQTUwMCIgZmlsbC1vcGFjaXR5PSIwLjMiLz4KPHN2ZyB4PSI4NSIgeT0iODAiIHdpZHRoPSIxMzAiIGhlaWdodD0iMTQwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9IiNGRkE1MDAiPgo8cGF0aCBkPSJNMTIgMTJjMi4yMSAwIDQtMS43OSA0LTRzLTEuNzktNC00LTQtNCAxLjc5LTQgNCAxLjc5IDQgNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+Cjwvc3ZnPgo8L3N2Zz4K" alt="AI Assistant Character" id="characterImage" />
                     </div>
                     
-                    <!-- Agent Speaking Indicator (Voice Mode Only) -->
-                    <div class="speaking-indicator agent-indicator voice-mode-only" id="agentIndicator" style="display: none;">
+                    <!-- Agent Speaking Indicator -->
+                    <div class="speaking-indicator agent-indicator" id="agentIndicator">
                         <div class="pulse-ring"></div>
                         <div class="pulse-ring"></div>
                         <div class="pulse-ring"></div>
@@ -68,28 +68,23 @@
             <!-- Empty State -->
             <div class="empty-state" id="emptyState">
                 <div class="empty-icon">
-                    <i class="fas fa-comment-dots"></i>
-                </div>
-                <p>Start chatting with your AI assistant</p>
-            </div>
-        </div>
-
-        <!-- Bottom Chat Interface (Chat Mode) -->
-        <div class="bottom-chat-interface chat-mode-only" id="bottomChatInterface">
-            <div class="chat-input-container">
-                <input type="text" id="chatInput" placeholder="Type your message..." maxlength="500" />
-                <button class="voice-mode-btn" id="voiceModeBtn" title="Switch to Voice Mode">
                     <i class="fas fa-microphone"></i>
-                </button>
+                </div>
+                <p>Start speaking to your AI assistant</p>
             </div>
         </div>
 
-        <!-- Close Voice Mode Button (Voice Mode Only) -->
-        <div class="close-voice-btn voice-mode-only" id="closeVoiceBtn" style="display: none;">
-            <i class="fas fa-times"></i>
+        <!-- Floating Text Input Button -->
+        <div class="floating-text-btn" id="floatingTextBtn" title="Send Text Message">
+            <i class="fas fa-keyboard"></i>
         </div>
 
-        <!-- Hidden Elements for Functionality -->
+        <!-- Back to Chat Button -->
+        <div class="back-to-chat-btn" id="backToChatBtn" title="Back to Chat Mode">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+
+        <!-- Hidden Elements for Audio Analysis -->
         <div class="hidden-elements">
             <!-- User Speaking Indicator -->
             <div class="user-indicator" id="userIndicator">
@@ -107,8 +102,28 @@
             <!-- Legacy Elements for Compatibility -->
             <div id="userTranscription" style="display: none;"></div>
             <div id="agentTranscription" style="display: none;"></div>
-            <div id="infoBtn" style="display: none;"></div>
-            <div id="testBtn" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Text Input Modal -->
+    <div class="text-input-modal" id="textInputModal" style="display: none;">
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        <div class="input-modal-content">
+            <div class="input-header">
+                <h3>Send Text Message</h3>
+                <button class="close-input-btn" id="closeInputBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="input-body">
+                <textarea id="textInput" placeholder="Type your message..." maxlength="500"></textarea>
+            </div>
+            <div class="input-footer">
+                <button class="send-btn" id="sendBtn">
+                    <i class="fas fa-paper-plane"></i>
+                    <span>Send</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -144,6 +159,6 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
-    <script src="/static/script.js"></script>
+    <script src="/static/voice/script.js"></script>
 </body>
 </html>

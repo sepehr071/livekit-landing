@@ -3,28 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Voice Assistant</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>AI Chat Assistant</title>
+    <link rel="stylesheet" href="/static/chat/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="app-container">
-        <!-- Left Control Panel (Voice Mode Only) -->
-        <div class="left-controls voice-mode-only" id="leftControls" style="display: none;">
-            <button class="control-btn mic-btn" id="micBtn" title="Toggle Microphone">
-                <i class="fas fa-microphone"></i>
-            </button>
-            <button class="control-btn speaker-btn" id="speakerBtn" title="Toggle Speaker">
-                <i class="fas fa-volume-up"></i>
-            </button>
-        </div>
-
         <!-- Main Content Area -->
         <div class="main-area">
             <!-- Connection Status (Top) -->
             <div class="connection-status" id="connectionStatus">
-                <div class="status-indicator" id="statusIndicator"></div>
-                <span class="status-text" id="statusText">Initializing...</span>
+                <div class="status-indicator connected" id="statusIndicator"></div>
+                <span class="status-text" id="statusText">Chat Mode Ready</span>
             </div>
 
             <!-- Agent Speech Bubble (Above Character) -->
@@ -42,16 +32,9 @@
             <!-- Character Area -->
             <div class="character-area">
                 <div class="character-container">
-                    <!-- Placeholder for character image/animation -->
+                    <!-- Character image/animation -->
                     <div class="character-placeholder" id="characterPlaceholder">
                         <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIiByeD0iMTUwIiBmaWxsPSIjRkZBNTAwIiBmaWxsLW9wYWNpdHk9IjAuMSIvPgo8Y2lyY2xlIGN4PSIxNTAiIGN5PSIxNTAiIHI9IjEwMCIgZmlsbD0iI0ZGQTUwMCIgZmlsbC1vcGFjaXR5PSIwLjMiLz4KPHN2ZyB4PSI4NSIgeT0iODAiIHdpZHRoPSIxMzAiIGhlaWdodD0iMTQwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9IiNGRkE1MDAiPgo8cGF0aCBkPSJNMTIgMTJjMi4yMSAwIDQtMS43OSA0LTRzLTEuNzktNC00LTQtNCAxLjc5LTQgNCAxLjc5IDQgNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+Cjwvc3ZnPgo8L3N2Zz4K" alt="AI Assistant Character" id="characterImage" />
-                    </div>
-                    
-                    <!-- Agent Speaking Indicator (Voice Mode Only) -->
-                    <div class="speaking-indicator agent-indicator voice-mode-only" id="agentIndicator" style="display: none;">
-                        <div class="pulse-ring"></div>
-                        <div class="pulse-ring"></div>
-                        <div class="pulse-ring"></div>
                     </div>
                 </div>
             </div>
@@ -74,8 +57,8 @@
             </div>
         </div>
 
-        <!-- Bottom Chat Interface (Chat Mode) -->
-        <div class="bottom-chat-interface chat-mode-only" id="bottomChatInterface">
+        <!-- Bottom Chat Interface -->
+        <div class="bottom-chat-interface" id="bottomChatInterface">
             <div class="chat-input-container">
                 <input type="text" id="chatInput" placeholder="Type your message..." maxlength="500" />
                 <button class="voice-mode-btn" id="voiceModeBtn" title="Switch to Voice Mode">
@@ -83,40 +66,13 @@
                 </button>
             </div>
         </div>
-
-        <!-- Close Voice Mode Button (Voice Mode Only) -->
-        <div class="close-voice-btn voice-mode-only" id="closeVoiceBtn" style="display: none;">
-            <i class="fas fa-times"></i>
-        </div>
-
-        <!-- Hidden Elements for Functionality -->
-        <div class="hidden-elements">
-            <!-- User Speaking Indicator -->
-            <div class="user-indicator" id="userIndicator">
-                <div class="audio-level" id="userAudioLevel"></div>
-            </div>
-            
-            <!-- Agent Audio Level -->
-            <div class="agent-audio-level" id="agentAudioLevel"></div>
-            
-            <!-- Room Info -->
-            <div class="room-info" id="roomInfo">
-                <span class="room-id" id="roomId">-</span>
-            </div>
-            
-            <!-- Legacy Elements for Compatibility -->
-            <div id="userTranscription" style="display: none;"></div>
-            <div id="agentTranscription" style="display: none;"></div>
-            <div id="infoBtn" style="display: none;"></div>
-            <div id="testBtn" style="display: none;"></div>
-        </div>
     </div>
 
     <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
         <div class="loading-spinner">
             <div class="spinner"></div>
-            <p>Connecting to AI Assistant...</p>
+            <p>Processing...</p>
         </div>
     </div>
 
@@ -125,25 +81,24 @@
         <div class="modal-backdrop"></div>
         <div class="error-modal-content">
             <div class="error-header">
-                <h3>Connection Error</h3>
+                <h3>Error</h3>
                 <button class="close-btn" id="closeErrorModal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="error-body">
-                <p id="errorMessage">Unable to connect to the AI assistant. Please check your internet connection and try again.</p>
+                <p id="errorMessage">An error occurred. Please try again.</p>
             </div>
             <div class="error-footer">
                 <button class="retry-btn" id="retryBtn">
                     <i class="fas fa-redo"></i>
-                    <span>Retry Connection</span>
+                    <span>Retry</span>
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
-    <script src="/static/script.js"></script>
+    <script src="/static/chat/script.js"></script>
 </body>
 </html>

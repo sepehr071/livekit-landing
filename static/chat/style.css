@@ -23,71 +23,6 @@ body {
     background: #F5F0E8;
 }
 
-/* Left Control Panel */
-.left-controls {
-    position: fixed;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    z-index: 100;
-}
-
-.control-btn {
-    width: 56px;
-    height: 56px;
-    border: none;
-    border-radius: 50%;
-    background: #FFA500;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(255, 165, 0, 0.3);
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.control-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(255, 165, 0, 0.4);
-}
-
-.control-btn:active {
-    transform: translateY(0);
-}
-
-.control-btn.active {
-    background: #00C851;
-    box-shadow: 0 4px 12px rgba(0, 200, 81, 0.3);
-}
-
-.control-btn.muted {
-    background: #FF4444;
-    box-shadow: 0 4px 12px rgba(255, 68, 68, 0.3);
-}
-
-.control-btn.muted i {
-    position: relative;
-}
-
-.control-btn.muted i::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(45deg);
-    width: 2px;
-    height: 120%;
-    background: white;
-    border-radius: 1px;
-}
-
 /* Main Content Area */
 .main-area {
     flex: 1;
@@ -96,9 +31,9 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
-    margin-left: 96px; /* Space for left controls */
     position: relative;
     min-height: 100vh;
+    padding-bottom: 100px; /* Space for bottom chat interface */
 }
 
 /* Connection Status */
@@ -174,53 +109,6 @@ body {
     height: 100%;
     object-fit: cover;
     border-radius: 20px;
-}
-
-/* Agent Speaking Indicator */
-.speaking-indicator {
-    position: absolute;
-    bottom: -10px;
-    right: -10px;
-    width: 40px;
-    height: 40px;
-    background: #FFA500;
-    border-radius: 50%;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 12px rgba(255, 165, 0, 0.3);
-}
-
-.speaking-indicator.speaking {
-    display: flex;
-}
-
-.pulse-ring {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    border: 2px solid #FFA500;
-    border-radius: 50%;
-    animation: pulse-ring 1.5s infinite;
-}
-
-.pulse-ring:nth-child(2) {
-    animation-delay: 0.5s;
-}
-
-.pulse-ring:nth-child(3) {
-    animation-delay: 1s;
-}
-
-@keyframes pulse-ring {
-    0% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(2);
-        opacity: 0;
-    }
 }
 
 /* Speech Bubbles */
@@ -311,7 +199,7 @@ body {
     text-align: center;
     color: #7F8C8D;
     position: absolute;
-    bottom: 60px;
+    bottom: 140px;
     left: 50%;
     transform: translateX(-50%);
     width: 280px;
@@ -326,23 +214,6 @@ body {
 .empty-state p {
     font-size: 16px;
     line-height: 1.4;
-}
-
-/* Mode-specific visibility */
-.chat-mode-only {
-    display: block;
-}
-
-.voice-mode-only {
-    display: none;
-}
-
-.voice-mode .chat-mode-only {
-    display: none;
-}
-
-.voice-mode .voice-mode-only {
-    display: block;
 }
 
 /* Bottom Chat Interface */
@@ -410,36 +281,6 @@ body {
 }
 
 .voice-mode-btn:active {
-    transform: translateY(0);
-}
-
-/* Close Voice Mode Button */
-.close-voice-btn {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 56px;
-    height: 56px;
-    background: #FF4444;
-    border: none;
-    border-radius: 50%;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(255, 68, 68, 0.3);
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-}
-
-.close-voice-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 68, 68, 0.4);
-}
-
-.close-voice-btn:active {
     transform: translateY(0);
 }
 
@@ -585,11 +426,6 @@ body {
     transform: translateY(0);
 }
 
-/* Hidden Elements */
-.hidden-elements {
-    display: none;
-}
-
 /* Animations */
 @keyframes fadeInUp {
     from {
@@ -598,15 +434,6 @@ body {
     }
     to {
         opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideUp {
-    from {
-        transform: translateY(100%);
-    }
-    to {
         transform: translateY(0);
     }
 }
@@ -625,24 +452,8 @@ body {
 /* Mobile Responsive Design */
 @media (max-width: 768px) {
     .main-area {
-        margin-left: 0;
         padding: 16px;
-        padding-bottom: 100px; /* Space for bottom chat interface */
-    }
-    
-    .voice-mode .main-area {
-        padding-bottom: 16px; /* Reset padding in voice mode */
-    }
-    
-    .left-controls {
-        left: 16px;
-        gap: 16px;
-    }
-    
-    .control-btn {
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
+        padding-bottom: 100px;
     }
     
     .character-placeholder {
@@ -666,32 +477,13 @@ body {
         height: 44px;
         font-size: 18px;
     }
-    
-    .close-voice-btn {
-        bottom: 20px;
-        right: 20px;
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
-    }
 }
 
 /* Portrait Mobile Phones */
 @media (max-width: 480px) and (orientation: portrait) {
     .main-area {
         padding: 12px;
-        margin-left: 0;
-    }
-    
-    .left-controls {
-        left: 12px;
-        gap: 12px;
-    }
-    
-    .control-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
+        padding-bottom: 100px;
     }
     
     .character-placeholder {
@@ -712,16 +504,8 @@ body {
         font-size: 14px;
     }
     
-    .agent-speech-bubble {
-        top: -70px;
-    }
-    
-    .user-input-bubble {
-        bottom: -70px;
-    }
-    
     .empty-state {
-        bottom: 40px;
+        bottom: 120px;
         width: 240px;
     }
     
@@ -729,41 +513,11 @@ body {
         font-size: 14px;
     }
     
-    .floating-text-btn {
-        bottom: 16px;
-        right: 16px;
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
-    }
-    
     .connection-status {
         top: 12px;
         right: 12px;
         font-size: 11px;
         padding: 4px 8px;
-    }
-    
-    .input-modal-content {
-        margin: 0 12px;
-        border-radius: 16px 16px 0 0;
-    }
-    
-    .input-header {
-        padding: 16px 20px;
-    }
-    
-    .input-body {
-        padding: 20px;
-    }
-    
-    .input-body textarea {
-        font-size: 16px;
-        min-height: 100px;
-    }
-    
-    .input-footer {
-        padding: 16px 20px;
     }
 }
 
@@ -779,62 +533,12 @@ body {
         margin: 12px;
     }
     
-    .left-controls {
-        left: 8px;
-        gap: 10px;
-    }
-    
-    .control-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-    }
-    
-    .floating-text-btn {
-        bottom: 12px;
-        right: 12px;
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-    }
-    
     .empty-state {
         width: 200px;
     }
     
     .empty-icon {
         font-size: 40px;
-    }
-}
-
-/* Landscape Mobile */
-@media (max-width: 768px) and (orientation: landscape) {
-    .main-area {
-        margin-left: 80px;
-        padding: 12px;
-    }
-    
-    .character-placeholder {
-        width: 160px;
-        height: 200px;
-    }
-    
-    .left-controls {
-        left: 12px;
-        gap: 12px;
-    }
-    
-    .speech-bubble {
-        max-width: 240px;
-        margin: 12px;
-    }
-    
-    .agent-speech-bubble {
-        top: -60px;
-    }
-    
-    .user-input-bubble {
-        bottom: -60px;
     }
 }
 
@@ -848,10 +552,7 @@ body {
 }
 
 /* Focus States */
-.control-btn:focus,
-.floating-text-btn:focus,
-.close-input-btn:focus,
-.send-btn:focus,
+.voice-mode-btn:focus,
 .retry-btn:focus,
 .close-btn:focus {
     outline: 2px solid #FFA500;
@@ -872,7 +573,7 @@ body {
         border: 2px solid #2C3E50;
     }
     
-    .control-btn {
+    .voice-mode-btn {
         border: 2px solid #2C3E50;
     }
 }

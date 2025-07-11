@@ -1,5 +1,9 @@
 class VoiceAgentClient {
     constructor() {
+        // Mode management
+        this.currentMode = 'chat'; // 'chat' or 'voice'
+        
+        // LiveKit Voice Agent (Voice Mode)
         this.room = null;
         this.token = null;
         this.roomName = null;
@@ -36,6 +40,11 @@ class VoiceAgentClient {
         this.silenceDuration = 2000; // 2 seconds of silence
         this.maxSpeakingDuration = 30000; // 30 seconds max speaking time
         
+        // OpenRouter Chat (Chat Mode)
+        this.isStreaming = false;
+        this.streamController = null;
+        this.currentStreamingMessage = '';
+        
         // DOM elements
         this.statusIndicator = document.getElementById('statusIndicator');
         this.statusText = document.getElementById('statusText');
@@ -45,20 +54,37 @@ class VoiceAgentClient {
         this.agentAudioLevel = document.getElementById('agentAudioLevel');
         this.micBtn = document.getElementById('micBtn');
         this.speakerBtn = document.getElementById('speakerBtn');
-        this.infoBtn = document.getElementById('infoBtn');
         this.roomId = document.getElementById('roomId');
         this.loadingOverlay = document.getElementById('loadingOverlay');
         this.errorModal = document.getElementById('errorModal');
         this.errorMessage = document.getElementById('errorMessage');
         this.retryBtn = document.getElementById('retryBtn');
         this.closeErrorModal = document.getElementById('closeErrorModal');
-        this.userTranscription = document.getElementById('userTranscription');
-        this.agentTranscription = document.getElementById('agentTranscription');
-        this.userText = document.getElementById('userText');
-        this.agentText = document.getElementById('agentText');
         this.emptyState = document.getElementById('emptyState');
+        
+        // Dual-mode UI elements
+        this.agentSpeechBubble = document.getElementById('agentSpeechBubble');
+        this.userInputBubble = document.getElementById('userInputBubble');
+        this.agentText = document.getElementById('agentText');
+        this.userText = document.getElementById('userText');
+        this.leftControls = document.getElementById('leftControls');
+        this.bottomChatInterface = document.getElementById('bottomChatInterface');
+        this.chatInput = document.getElementById('chatInput');
+        this.voiceModeBtn = document.getElementById('voiceModeBtn');
+        this.closeVoiceBtn = document.getElementById('closeVoiceBtn');
+        
+        // Legacy elements (for voice mode compatibility)
+        this.floatingTextBtn = document.getElementById('floatingTextBtn');
+        this.textInputModal = document.getElementById('textInputModal');
+        this.modalBackdrop = document.getElementById('modalBackdrop');
+        this.closeInputBtn = document.getElementById('closeInputBtn');
         this.textInput = document.getElementById('textInput');
         this.sendBtn = document.getElementById('sendBtn');
+        
+        // Legacy elements for compatibility
+        this.userTranscription = document.getElementById('userTranscription');
+        this.agentTranscription = document.getElementById('agentTranscription');
+        this.infoBtn = document.getElementById('infoBtn');
         this.testBtn = document.getElementById('testBtn');
         
         this.init();
@@ -66,28 +92,76 @@ class VoiceAgentClient {
     
     async init() {
         this.setupEventListeners();
-        await this.connect();
+        this.switchToMode(this.currentMode);
+        
+        // Only connect to LiveKit if starting in voice mode
+        if (this.currentMode === 'voice') {
+            await this.connect();
+        }
     }
     
     setupEventListeners() {
-        // Control buttons
-        this.micBtn.addEventListener('click', () => this.toggleMicrophone());
-        this.speakerBtn.addEventListener('click', () => this.toggleSpeaker());
-        this.infoBtn.addEventListener('click', () => this.showConnectionInfo());
-        this.testBtn.addEventListener('click', () => this.testTextStreams());
+        // Mode switching controls
+        if (this.voiceModeBtn) {
+            this.voiceModeBtn.addEventListener('click', () => this.switchToVoiceMode());
+        }
+        if (this.closeVoiceBtn) {
+            this.closeVoiceBtn.addEventListener('click', () => this.switchToChatMode());
+        }
         
-        // Text input controls
-        this.sendBtn.addEventListener('click', () => this.handleTextInput());
-        this.textInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                this.handleTextInput();
-            }
-        });
+        // Chat mode controls
+        if (this.chatInput) {
+            this.chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.handleChatInput();
+                }
+            });
+        }
         
-        // Modal controls
+        // Voice mode control buttons
+        if (this.micBtn) {
+            this.micBtn.addEventListener('click', () => this.toggleMicrophone());
+        }
+        if (this.speakerBtn) {
+            this.speakerBtn.addEventListener('click', () => this.toggleSpeaker());
+        }
+        
+        // Legacy text input modal controls (for voice mode)
+        if (this.floatingTextBtn) {
+            this.floatingTextBtn.addEventListener('click', () => this.showTextInputModal());
+        }
+        if (this.sendBtn) {
+            this.sendBtn.addEventListener('click', () => this.handleTextInput());
+        }
+        if (this.closeInputBtn) {
+            this.closeInputBtn.addEventListener('click', () => this.hideTextInputModal());
+        }
+        if (this.modalBackdrop) {
+            this.modalBackdrop.addEventListener('click', () => this.hideTextInputModal());
+        }
+        
+        // Legacy text input controls (for voice mode)
+        if (this.textInput) {
+            this.textInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.handleTextInput();
+                }
+            });
+        }
+        
+        // Error modal controls
         this.retryBtn.addEventListener('click', () => this.retryConnection());
         this.closeErrorModal.addEventListener('click', () => this.hideErrorModal());
+        
+        // Legacy controls (for compatibility)
+        if (this.infoBtn) {
+            this.infoBtn.addEventListener('click', () => this.showConnectionInfo());
+        }
+        if (this.testBtn) {
+            this.testBtn.addEventListener('click', () => this.testTextStreams());
+        }
         
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
@@ -101,7 +175,7 @@ class VoiceAgentClient {
             }
             if (e.code === 'KeyT' && e.ctrlKey) {
                 e.preventDefault();
-                this.textInput.focus();
+                this.showTextInputModal();
             }
         });
         
@@ -118,6 +192,186 @@ class VoiceAgentClient {
         window.addEventListener('beforeunload', () => {
             this.disconnect();
         });
+    }
+    
+    // Mode Management Methods
+    switchToMode(mode) {
+        this.currentMode = mode;
+        document.body.className = `${mode}-mode`;
+        
+        if (mode === 'chat') {
+            this.switchToChatMode();
+        } else if (mode === 'voice') {
+            this.switchToVoiceMode();
+        }
+    }
+    
+    async switchToChatMode() {
+        this.currentMode = 'chat';
+        document.body.className = 'chat-mode';
+        
+        // Hide loading overlay for chat mode
+        this.hideLoadingOverlay();
+        
+        // Update status for chat mode
+        this.updateStatus('connected', 'Chat Mode Ready');
+        
+        // Disconnect from LiveKit if connected
+        if (this.isConnected) {
+            await this.disconnect();
+        }
+        
+        // Load conversation history
+        await this.loadConversation();
+        
+        // Show welcome message to test speech bubble system
+        setTimeout(() => {
+            this.displayChatMessage('Welcome to chat mode! You can start typing your messages.', false);
+        }, 500);
+        
+        console.log('Switched to chat mode');
+    }
+    
+    async switchToVoiceMode() {
+        this.currentMode = 'voice';
+        document.body.className = 'voice-mode';
+        
+        // Connect to LiveKit if not connected
+        if (!this.isConnected) {
+            await this.connect();
+        }
+        
+        console.log('Switched to voice mode');
+    }
+    
+    // OpenRouter Chat Methods
+    async handleChatInput() {
+        console.log('handleChatInput called');
+        const text = this.chatInput.value.trim();
+        console.log('Chat input text:', text);
+        if (!text) return;
+        
+        // Show user message
+        console.log('Displaying user message');
+        this.displayChatMessage(text, true);
+        
+        // Clear input
+        this.chatInput.value = '';
+        
+        // Send to OpenRouter and stream response
+        console.log('Sending to OpenRouter');
+        await this.sendChatMessage(text);
+    }
+    
+    async sendChatMessage(message) {
+        try {
+            this.isStreaming = true;
+            this.currentStreamingMessage = '';
+            
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value);
+                const lines = chunk.split('\n');
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const data = line.slice(6);
+                        if (data === '[DONE]') {
+                            this.isStreaming = false;
+                            return;
+                        }
+                        
+                        try {
+                            const parsed = JSON.parse(data);
+                            
+                            // Handle OpenRouter streaming response format
+                            if (parsed.content) {
+                                this.currentStreamingMessage += parsed.content;
+                                
+                                // Update the agent speech bubble with streaming text
+                                this.agentText.textContent = this.currentStreamingMessage;
+                                this.agentSpeechBubble.style.display = 'block';
+                                this.agentSpeechBubble.style.visibility = 'visible';
+                                this.agentSpeechBubble.style.zIndex = '1000';
+                            }
+                            
+                            // Handle completion
+                            if (parsed.done) {
+                                this.isStreaming = false;
+                                console.log('Streaming completed');
+                                return;
+                            }
+                            
+                            // Handle errors
+                            if (parsed.error) {
+                                console.error('OpenRouter error:', parsed.error);
+                                this.displayChatMessage('Sorry, I encountered an error. Please try again.', false);
+                                return;
+                            }
+                            
+                        } catch (e) {
+                            console.warn('Failed to parse streaming data:', e);
+                        }
+                    }
+                }
+            }
+            
+        } catch (error) {
+            console.error('Error sending chat message:', error);
+            this.displayChatMessage('Sorry, I encountered an error. Please try again.', false);
+        } finally {
+            this.isStreaming = false;
+        }
+    }
+    
+    displayChatMessage(text, isUser, isLoading = false) {
+        // Use the existing speech bubble system
+        this.updateTranscription(text, isUser);
+    }
+    
+    fadeOutPreviousMessages() {
+        // Use existing fade logic in updateTranscription
+    }
+    
+    async loadConversation() {
+        try {
+            const response = await fetch('/conversation');
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Display conversation history (keep it simple for now)
+                if (data.messages && data.messages.length > 0) {
+                    const lastUserMessage = data.messages.filter(m => m.role === 'user').slice(-1)[0];
+                    const lastAssistantMessage = data.messages.filter(m => m.role === 'assistant').slice(-1)[0];
+                    
+                    if (lastUserMessage) {
+                        this.displayChatMessage(lastUserMessage.content, true);
+                    }
+                    if (lastAssistantMessage) {
+                        this.displayChatMessage(lastAssistantMessage.content, false);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading conversation:', error);
+        }
     }
     
     async fetchToken() {
@@ -692,41 +946,67 @@ class VoiceAgentClient {
     
     clearTextInput() {
         this.textInput.value = '';
-        this.textInput.focus();
+        this.hideTextInputModal();
+    }
+    
+    showTextInputModal() {
+        this.textInputModal.style.display = 'flex';
+        // Focus on the text input after animation
+        setTimeout(() => {
+            this.textInput.focus();
+        }, 100);
+    }
+    
+    hideTextInputModal() {
+        this.textInputModal.style.display = 'none';
+        this.textInput.blur();
     }
     
     updateTranscription(text, isUser) {
+        console.log('updateTranscription called', { text, isUser });
+        
         // Hide empty state
-        this.emptyState.style.display = 'none';
-        
-        // Check if we need to fade previous messages (when starting a new conversation)
-        const shouldFadePrevious = this.shouldFadePreviousMessages(text, isUser);
-        
-        if (shouldFadePrevious) {
-            // Fade both previous messages
-            if (this.userTranscription.style.display === 'block') {
-                this.userTranscription.classList.add('fadeOut');
-                setTimeout(() => {
-                    this.userTranscription.style.display = 'none';
-                    this.userTranscription.classList.remove('fadeOut');
-                }, 500);
-            }
-            if (this.agentTranscription.style.display === 'block') {
-                this.agentTranscription.classList.add('fadeOut');
-                setTimeout(() => {
-                    this.agentTranscription.style.display = 'none';
-                    this.agentTranscription.classList.remove('fadeOut');
-                }, 500);
-            }
-            
-            // Wait for fade out before showing new message
-            setTimeout(() => {
-                this.displayMessage(text, isUser);
-            }, 500);
-        } else {
-            // Show message immediately (conversation continues)
-            this.displayMessage(text, isUser);
+        if (this.emptyState) {
+            this.emptyState.style.display = 'none';
         }
+        
+        // Update the appropriate speech bubble
+        if (isUser) {
+            console.log('Showing user message bubble');
+            if (this.userText) {
+                this.userText.textContent = text;
+            }
+            if (this.userInputBubble) {
+                this.userInputBubble.style.display = 'block';
+                this.userInputBubble.style.visibility = 'visible';
+                this.userInputBubble.style.zIndex = '1000';
+                console.log('User bubble should be visible now');
+                
+                // Auto-hide user bubble after 4 seconds
+                setTimeout(() => {
+                    this.userInputBubble.style.display = 'none';
+                }, 4000);
+            }
+        } else {
+            console.log('Showing agent message bubble');
+            if (this.agentText) {
+                this.agentText.textContent = text;
+            }
+            if (this.agentSpeechBubble) {
+                this.agentSpeechBubble.style.display = 'block';
+                this.agentSpeechBubble.style.visibility = 'visible';
+                this.agentSpeechBubble.style.zIndex = '1000';
+                console.log('Agent bubble should be visible now');
+                
+                // Auto-hide agent bubble after 6 seconds
+                setTimeout(() => {
+                    this.agentSpeechBubble.style.display = 'none';
+                }, 6000);
+            }
+        }
+        
+        // Update legacy elements for compatibility
+        this.displayMessage(text, isUser);
     }
     
     shouldFadePreviousMessages(text, isUser) {
@@ -942,15 +1222,40 @@ class VoiceAgentClient {
         this.statusIndicator.className = `status-indicator ${status}`;
         this.statusText.textContent = text;
         
-        // Enable/disable text input based on connection status
-        if (status === 'connected') {
-            this.textInput.disabled = false;
-            this.sendBtn.disabled = false;
-            this.textInput.placeholder = 'Type your message...';
-        } else {
-            this.textInput.disabled = true;
-            this.sendBtn.disabled = true;
-            this.textInput.placeholder = 'Connecting...';
+        // Enable/disable chat input based on connection status (for chat mode)
+        if (this.chatInput) {
+            if (status === 'connected') {
+                this.chatInput.disabled = false;
+                this.chatInput.placeholder = 'Type your message...';
+            } else {
+                this.chatInput.disabled = true;
+                this.chatInput.placeholder = 'Connecting...';
+            }
+        }
+        
+        // Enable/disable legacy text input based on connection status (for voice mode)
+        if (this.textInput) {
+            if (status === 'connected') {
+                this.textInput.disabled = false;
+                this.textInput.placeholder = 'Type your message...';
+            } else {
+                this.textInput.disabled = true;
+                this.textInput.placeholder = 'Connecting...';
+            }
+        }
+        
+        if (this.sendBtn) {
+            this.sendBtn.disabled = status !== 'connected';
+        }
+        
+        if (this.floatingTextBtn) {
+            if (status === 'connected') {
+                this.floatingTextBtn.style.opacity = '1';
+                this.floatingTextBtn.style.pointerEvents = 'auto';
+            } else {
+                this.floatingTextBtn.style.opacity = '0.5';
+                this.floatingTextBtn.style.pointerEvents = 'none';
+            }
         }
     }
     
@@ -988,10 +1293,16 @@ class VoiceAgentClient {
             agentDetectionMethods: this.agentDetectionMethods,
             agentAudioAnalyser: !!this.agentAudioAnalyser,
             remoteAudioTrack: !!this.remoteAudioTrack,
-            globalAudioMonitor: !!this.globalAudioMonitor
+            globalAudioMonitor: !!this.globalAudioMonitor,
+            newUIElements: {
+                agentSpeechBubble: !!this.agentSpeechBubble,
+                userInputBubble: !!this.userInputBubble,
+                floatingTextBtn: !!this.floatingTextBtn,
+                textInputModal: !!this.textInputModal
+            }
         };
         
-        alert(`Connection Info:\n${JSON.stringify(info, null, 2)}`);
+        alert(`AI Assistant Connection Info:\n${JSON.stringify(info, null, 2)}`);
     }
 }
 
