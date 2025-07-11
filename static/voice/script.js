@@ -45,7 +45,6 @@ class VoiceAgentClient {
         this.userAudioLevel = document.getElementById('userAudioLevel');
         this.agentAudioLevel = document.getElementById('agentAudioLevel');
         this.micBtn = document.getElementById('micBtn');
-        this.speakerBtn = document.getElementById('speakerBtn');
         this.roomId = document.getElementById('roomId');
         this.loadingOverlay = document.getElementById('loadingOverlay');
         this.errorModal = document.getElementById('errorModal');
@@ -57,13 +56,8 @@ class VoiceAgentClient {
         this.userInputBubble = document.getElementById('userInputBubble');
         this.agentText = document.getElementById('agentText');
         this.userText = document.getElementById('userText');
-        this.floatingTextBtn = document.getElementById('floatingTextBtn');
-        this.textInputModal = document.getElementById('textInputModal');
-        this.modalBackdrop = document.getElementById('modalBackdrop');
-        this.closeInputBtn = document.getElementById('closeInputBtn');
-        this.textInput = document.getElementById('textInput');
-        this.sendBtn = document.getElementById('sendBtn');
         this.backToChatBtn = document.getElementById('backToChatBtn');
+        this.fullscreenBtn = document.getElementById('fullscreenBtn');
         
         // Legacy elements for compatibility
         this.userTranscription = document.getElementById('userTranscription');
@@ -74,6 +68,7 @@ class VoiceAgentClient {
     
     async init() {
         this.setupEventListeners();
+        this.showWelcomeMessage();
         await this.connect();
     }
     
@@ -81,23 +76,6 @@ class VoiceAgentClient {
         // Control buttons
         if (this.micBtn) {
             this.micBtn.addEventListener('click', () => this.toggleMicrophone());
-        }
-        if (this.speakerBtn) {
-            this.speakerBtn.addEventListener('click', () => this.toggleSpeaker());
-        }
-        
-        // Text input modal controls
-        if (this.floatingTextBtn) {
-            this.floatingTextBtn.addEventListener('click', () => this.showTextInputModal());
-        }
-        if (this.sendBtn) {
-            this.sendBtn.addEventListener('click', () => this.handleTextInput());
-        }
-        if (this.closeInputBtn) {
-            this.closeInputBtn.addEventListener('click', () => this.hideTextInputModal());
-        }
-        if (this.modalBackdrop) {
-            this.modalBackdrop.addEventListener('click', () => this.hideTextInputModal());
         }
         
         // Back to chat navigation
@@ -107,14 +85,9 @@ class VoiceAgentClient {
             });
         }
         
-        // Text input controls
-        if (this.textInput) {
-            this.textInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    this.handleTextInput();
-                }
-            });
+        // Fullscreen button
+        if (this.fullscreenBtn) {
+            this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
         }
         
         // Error modal controls
@@ -131,14 +104,15 @@ class VoiceAgentClient {
                 e.preventDefault();
                 this.toggleMicrophone();
             }
-            if (e.code === 'KeyM' && e.ctrlKey) {
+            if (e.code === 'F11') {
                 e.preventDefault();
-                this.toggleSpeaker();
+                this.toggleFullscreen();
             }
-            if (e.code === 'KeyT' && e.ctrlKey) {
-                e.preventDefault();
-                this.showTextInputModal();
-            }
+        });
+        
+        // Handle fullscreen change
+        document.addEventListener('fullscreenchange', () => {
+            this.updateFullscreenButton();
         });
         
         // Handle page visibility changes
@@ -357,35 +331,28 @@ class VoiceAgentClient {
         }
     }
     
-    toggleSpeaker() {
-        if (this.isSpeakerMuted) {
-            this.room.remoteParticipants.forEach(participant => {
-                participant.audioTrackPublications.forEach(pub => {
-                    if (pub.track) {
-                        pub.track.setVolume(1.0);
-                    }
-                });
+    toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error('Error attempting to enable fullscreen:', err);
             });
-            this.speakerBtn.classList.remove('muted');
-            if (this.agentIndicator) {
-                this.agentIndicator.classList.remove('muted');
-            }
-            this.isSpeakerMuted = false;
-            console.log('Speaker unmuted');
         } else {
-            this.room.remoteParticipants.forEach(participant => {
-                participant.audioTrackPublications.forEach(pub => {
-                    if (pub.track) {
-                        pub.track.setVolume(0.0);
-                    }
-                });
+            document.exitFullscreen().catch(err => {
+                console.error('Error attempting to exit fullscreen:', err);
             });
-            this.speakerBtn.classList.add('muted');
-            if (this.agentIndicator) {
-                this.agentIndicator.classList.add('muted');
+        }
+    }
+    
+    updateFullscreenButton() {
+        if (this.fullscreenBtn) {
+            const icon = this.fullscreenBtn.querySelector('i');
+            if (document.fullscreenElement) {
+                icon.className = 'fas fa-compress';
+                this.fullscreenBtn.title = 'Exit Fullscreen';
+            } else {
+                icon.className = 'fas fa-expand';
+                this.fullscreenBtn.title = 'Toggle Fullscreen';
             }
-            this.isSpeakerMuted = true;
-            console.log('Speaker muted');
         }
     }
     
@@ -495,88 +462,32 @@ class VoiceAgentClient {
         console.log('Text stream handlers registered');
     }
     
-    handleTextInput() {
-        if (!this.textInput) return;
-        
-        const text = this.textInput.value.trim();
-        if (!text || !this.isConnected) return;
-        
-        this.sendTextMessage(text);
-        this.updateTranscription(text, true);
-        this.clearTextInput();
-    }
-    
-    async sendTextMessage(text) {
-        try {
-            if (!this.room || !this.isConnected) {
-                console.warn('Cannot send text message: not connected to room');
-                return;
-            }
-            
-            const info = await this.room.localParticipant.sendText(text, {
-                topic: 'lk.chat',
-            });
-            
-            console.log('Text message sent:', text, 'info:', info);
-            
-        } catch (error) {
-            console.error('Failed to send text message:', error);
-            this.showErrorModal('Failed to send message. Please try again.');
-        }
-    }
-    
-    clearTextInput() {
-        if (this.textInput) {
-            this.textInput.value = '';
-        }
-        this.hideTextInputModal();
-    }
-    
-    showTextInputModal() {
-        if (this.textInputModal) {
-            this.textInputModal.style.display = 'flex';
-            setTimeout(() => {
-                if (this.textInput) {
-                    this.textInput.focus();
-                }
-            }, 100);
-        }
-    }
-    
-    hideTextInputModal() {
-        if (this.textInputModal) {
-            this.textInputModal.style.display = 'none';
-        }
-        if (this.textInput) {
-            this.textInput.blur();
-        }
-    }
+    // Text input methods removed - voice mode only
     
     updateTranscription(text, isUser) {
         if (this.emptyState) {
             this.emptyState.style.display = 'none';
         }
         
-        if (isUser) {
-            if (this.userText) {
-                this.userText.textContent = text;
-            }
-            if (this.userInputBubble) {
-                this.userInputBubble.style.display = 'block';
-                setTimeout(() => {
-                    this.userInputBubble.style.display = 'none';
-                }, 4000);
-            }
-        } else {
+        if (!isUser) {
             if (this.agentText) {
                 this.agentText.textContent = text;
             }
             if (this.agentSpeechBubble) {
                 this.agentSpeechBubble.style.display = 'block';
-                setTimeout(() => {
-                    this.agentSpeechBubble.style.display = 'none';
-                }, 6000);
             }
+        }
+    }
+    
+    showWelcomeMessage() {
+        if (this.agentText) {
+            this.agentText.textContent = 'Hello! I\'m your AI assistant. Start speaking to begin our conversation.';
+        }
+        if (this.agentSpeechBubble) {
+            this.agentSpeechBubble.style.display = 'block';
+        }
+        if (this.emptyState) {
+            this.emptyState.style.display = 'none';
         }
     }
     
@@ -754,30 +665,6 @@ class VoiceAgentClient {
         }
         if (this.statusText) {
             this.statusText.textContent = text;
-        }
-        
-        if (this.textInput) {
-            if (status === 'connected') {
-                this.textInput.disabled = false;
-                this.textInput.placeholder = 'Type your message...';
-            } else {
-                this.textInput.disabled = true;
-                this.textInput.placeholder = 'Connecting...';
-            }
-        }
-        
-        if (this.sendBtn) {
-            this.sendBtn.disabled = status !== 'connected';
-        }
-        
-        if (this.floatingTextBtn) {
-            if (status === 'connected') {
-                this.floatingTextBtn.style.opacity = '1';
-                this.floatingTextBtn.style.pointerEvents = 'auto';
-            } else {
-                this.floatingTextBtn.style.opacity = '0.5';
-                this.floatingTextBtn.style.pointerEvents = 'none';
-            }
         }
     }
     

@@ -23,14 +23,13 @@ body {
     background: #F5F0E8;
 }
 
-/* Left Control Panel */
-.left-controls {
+/* Bottom Controls */
+.bottom-controls {
     position: fixed;
-    left: 20px;
-    top: 50%;
-    transform: translateY(-50%);
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    flex-direction: column;
     gap: 20px;
     z-index: 100;
 }
@@ -96,7 +95,6 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
-    margin-left: 96px; /* Space for left controls */
     position: relative;
     min-height: 100vh;
 }
@@ -157,8 +155,8 @@ body {
 }
 
 .character-placeholder {
-    width: 280px;
-    height: 350px;
+    width: 320px;
+    height: 400px;
     background: white;
     border-radius: 20px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -225,7 +223,8 @@ body {
 
 /* Speech Bubbles */
 .speech-bubble {
-    max-width: 320px;
+    max-width: 550px;
+    width: 90%;
     background: white;
     border-radius: 20px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -236,7 +235,7 @@ body {
 
 .agent-speech-bubble {
     position: absolute;
-    top: -80px;
+    top: -200px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
@@ -259,31 +258,6 @@ body {
     border-top: 10px solid white;
 }
 
-.user-input-bubble {
-    position: absolute;
-    bottom: -80px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-}
-
-.user-bubble {
-    background: #E8F4FD;
-    border-left: 4px solid #2196F3;
-}
-
-.user-bubble::after {
-    content: '';
-    position: absolute;
-    top: -10px;
-    left: 30px;
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 10px solid #E8F4FD;
-}
-
 .bubble-content {
     padding: 16px 20px;
     display: flex;
@@ -291,16 +265,10 @@ body {
     align-items: flex-start;
 }
 
-.bubble-icon {
-    color: #FFA500;
-    font-size: 16px;
-    margin-top: 2px;
-    flex-shrink: 0;
-}
-
 .bubble-text {
     flex: 1;
-    font-size: 15px;
+    font-size: 16px;
+    font-weight: 600;
     line-height: 1.5;
     color: #2C3E50;
     word-wrap: break-word;
@@ -328,10 +296,21 @@ body {
     line-height: 1.4;
 }
 
-/* Floating Text Input Button */
-.floating-text-btn {
+/* Back Button in Bottom Controls */
+.back-btn {
+    background: #00C851;
+    box-shadow: 0 4px 12px rgba(0, 200, 81, 0.3);
+}
+
+.back-btn:hover {
+    background: #00A844;
+    box-shadow: 0 6px 16px rgba(0, 200, 81, 0.4);
+}
+
+/* Fullscreen Button */
+.fullscreen-btn {
     position: fixed;
-    bottom: 30px;
+    top: 30px;
     right: 30px;
     width: 56px;
     height: 56px;
@@ -349,161 +328,15 @@ body {
     z-index: 100;
 }
 
-.floating-text-btn:hover {
+.fullscreen-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
 }
 
-.floating-text-btn:active {
+.fullscreen-btn:active {
     transform: translateY(0);
 }
 
-/* Back to Chat Button */
-.back-to-chat-btn {
-    position: fixed;
-    bottom: 30px;
-    left: 30px;
-    width: 56px;
-    height: 56px;
-    background: #00C851;
-    border: none;
-    border-radius: 50%;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(0, 200, 81, 0.3);
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-}
-
-.back-to-chat-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 200, 81, 0.4);
-}
-
-.back-to-chat-btn:active {
-    transform: translateY(0);
-}
-
-/* Text Input Modal */
-.text-input-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-    backdrop-filter: blur(5px);
-}
-
-.input-modal-content {
-    background: white;
-    border-radius: 20px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    animation: fadeInScale 0.3s ease;
-}
-
-.input-header {
-    background: #2196F3;
-    color: white;
-    padding: 20px 24px;
-    border-radius: 20px 20px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.input-header h3 {
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0;
-}
-
-.close-input-btn {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: background-color 0.2s ease;
-}
-
-.close-input-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.input-body {
-    padding: 24px;
-}
-
-.input-body textarea {
-    width: 100%;
-    border: 2px solid #E8ECEF;
-    border-radius: 12px;
-    padding: 16px;
-    font-size: 16px;
-    font-family: inherit;
-    color: #2C3E50;
-    outline: none;
-    resize: vertical;
-    min-height: 120px;
-    transition: border-color 0.2s ease;
-}
-
-.input-body textarea:focus {
-    border-color: #2196F3;
-}
-
-.input-body textarea::placeholder {
-    color: #95A5A6;
-}
-
-.input-footer {
-    padding: 20px 24px;
-    border-top: 1px solid #E8ECEF;
-    text-align: center;
-}
-
-.send-btn {
-    background: #2196F3;
-    color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
-}
-
-.send-btn:hover {
-    background: #1976D2;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
-}
-
-.send-btn:active {
-    transform: translateY(0);
-}
 
 /* Loading Overlay */
 .loading-overlay {
@@ -683,12 +516,12 @@ body {
 /* Mobile Responsive Design */
 @media (max-width: 768px) {
     .main-area {
-        margin-left: 0;
         padding: 16px;
+        padding-bottom: 120px; /* Space for bottom controls */
     }
     
-    .left-controls {
-        left: 16px;
+    .bottom-controls {
+        bottom: 20px;
         gap: 16px;
     }
     
@@ -699,32 +532,32 @@ body {
     }
     
     .character-placeholder {
-        width: 240px;
-        height: 300px;
+        width: 280px;
+        height: 350px;
     }
     
     .connection-status {
         top: 16px;
-        right: 16px;
+        right: 70px; /* Space for fullscreen button */
         font-size: 12px;
         padding: 6px 12px;
     }
     
-    .floating-text-btn,
-    .back-to-chat-btn {
+    .fullscreen-btn {
+        top: 20px;
+        right: 20px;
         width: 48px;
         height: 48px;
         font-size: 20px;
     }
     
-    .back-to-chat-btn {
-        bottom: 20px;
-        left: 20px;
+    .speech-bubble {
+        max-width: 450px;
+        width: 95%;
     }
     
-    .floating-text-btn {
-        bottom: 20px;
-        right: 20px;
+    .agent-speech-bubble {
+        top: -180px;
     }
 }
 
@@ -732,11 +565,11 @@ body {
 @media (max-width: 480px) and (orientation: portrait) {
     .main-area {
         padding: 12px;
-        margin-left: 0;
+        padding-bottom: 110px; /* Space for bottom controls */
     }
     
-    .left-controls {
-        left: 12px;
+    .bottom-controls {
+        bottom: 16px;
         gap: 12px;
     }
     
@@ -747,12 +580,13 @@ body {
     }
     
     .character-placeholder {
-        width: 200px;
-        height: 250px;
+        width: 240px;
+        height: 300px;
     }
     
     .speech-bubble {
-        max-width: 280px;
+        max-width: 400px;
+        width: 95%;
         margin: 16px;
     }
     
@@ -761,15 +595,12 @@ body {
     }
     
     .bubble-text {
-        font-size: 14px;
+        font-size: 15px;
+        font-weight: 600;
     }
     
     .agent-speech-bubble {
-        top: -70px;
-    }
-    
-    .user-input-bubble {
-        bottom: -70px;
+        top: -160px;
     }
     
     .empty-state {
@@ -781,67 +612,37 @@ body {
         font-size: 14px;
     }
     
-    .floating-text-btn,
-    .back-to-chat-btn {
+    .fullscreen-btn {
+        top: 16px;
+        right: 16px;
         width: 44px;
         height: 44px;
         font-size: 18px;
     }
     
-    .back-to-chat-btn {
-        bottom: 16px;
-        left: 16px;
-    }
-    
-    .floating-text-btn {
-        bottom: 16px;
-        right: 16px;
-    }
-    
     .connection-status {
         top: 12px;
-        right: 12px;
+        right: 70px; /* Space for fullscreen button */
         font-size: 11px;
         padding: 4px 8px;
-    }
-    
-    .input-modal-content {
-        margin: 0 12px;
-        border-radius: 16px 16px 0 0;
-    }
-    
-    .input-header {
-        padding: 16px 20px;
-    }
-    
-    .input-body {
-        padding: 20px;
-    }
-    
-    .input-body textarea {
-        font-size: 16px;
-        min-height: 100px;
-    }
-    
-    .input-footer {
-        padding: 16px 20px;
     }
 }
 
 /* Small Mobile Phones */
 @media (max-width: 375px) {
     .character-placeholder {
-        width: 180px;
-        height: 220px;
+        width: 220px;
+        height: 280px;
     }
     
     .speech-bubble {
-        max-width: 250px;
+        max-width: 350px;
+        width: 95%;
         margin: 12px;
     }
     
-    .left-controls {
-        left: 8px;
+    .bottom-controls {
+        bottom: 12px;
         gap: 10px;
     }
     
@@ -851,23 +652,6 @@ body {
         font-size: 16px;
     }
     
-    .floating-text-btn,
-    .back-to-chat-btn {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-    }
-    
-    .back-to-chat-btn {
-        bottom: 12px;
-        left: 12px;
-    }
-    
-    .floating-text-btn {
-        bottom: 12px;
-        right: 12px;
-    }
-    
     .empty-state {
         width: 200px;
     }
@@ -875,13 +659,17 @@ body {
     .empty-icon {
         font-size: 40px;
     }
+    
+    .agent-speech-bubble {
+        top: -140px;
+    }
 }
 
 /* Landscape Mobile */
 @media (max-width: 768px) and (orientation: landscape) {
     .main-area {
-        margin-left: 80px;
         padding: 12px;
+        padding-bottom: 100px; /* Space for bottom controls */
     }
     
     .character-placeholder {
@@ -889,8 +677,8 @@ body {
         height: 200px;
     }
     
-    .left-controls {
-        left: 12px;
+    .bottom-controls {
+        bottom: 12px;
         gap: 12px;
     }
     
@@ -900,11 +688,7 @@ body {
     }
     
     .agent-speech-bubble {
-        top: -60px;
-    }
-    
-    .user-input-bubble {
-        bottom: -60px;
+        top: -80px;
     }
 }
 

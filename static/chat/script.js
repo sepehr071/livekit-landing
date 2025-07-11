@@ -12,7 +12,9 @@ class ChatClient {
         this.agentText = document.getElementById('agentText');
         this.userText = document.getElementById('userText');
         this.chatInput = document.getElementById('chatInput');
+        this.sendBtn = document.getElementById('sendBtn');
         this.voiceModeBtn = document.getElementById('voiceModeBtn');
+        this.fullscreenBtn = document.getElementById('fullscreenBtn');
         this.emptyState = document.getElementById('emptyState');
         this.loadingOverlay = document.getElementById('loadingOverlay');
         this.errorModal = document.getElementById('errorModal');
@@ -25,7 +27,7 @@ class ChatClient {
     
     init() {
         this.setupEventListeners();
-        this.loadConversation();
+        this.showWelcomeMessage();
     }
     
     setupEventListeners() {
@@ -37,6 +39,18 @@ class ChatClient {
                     this.handleChatInput();
                 }
             });
+            
+            // Handle input changes to enable/disable send button
+            this.chatInput.addEventListener('input', () => {
+                this.updateSendButton();
+            });
+        }
+        
+        // Send button handling
+        if (this.sendBtn) {
+            this.sendBtn.addEventListener('click', () => {
+                this.handleChatInput();
+            });
         }
         
         // Voice mode navigation
@@ -45,6 +59,18 @@ class ChatClient {
                 window.location.href = '/voice';
             });
         }
+        
+        // Fullscreen button
+        if (this.fullscreenBtn) {
+            this.fullscreenBtn.addEventListener('click', () => {
+                this.toggleFullscreen();
+            });
+        }
+        
+        // Handle fullscreen change
+        document.addEventListener('fullscreenchange', () => {
+            this.updateFullscreenButton();
+        });
         
         // Error modal controls
         if (this.retryBtn) {
@@ -58,17 +84,23 @@ class ChatClient {
         if (this.chatInput) {
             this.chatInput.focus();
         }
+        
+        // Initialize send button state
+        this.updateSendButton();
     }
     
     async handleChatInput() {
         const text = this.chatInput.value.trim();
         if (!text || this.isStreaming) return;
         
-        // Show user message
-        this.displayMessage(text, true);
-        
         // Clear input
         this.chatInput.value = '';
+        
+        // Update send button state
+        this.updateSendButton();
+        
+        // Show thinking animation IMMEDIATELY
+        this.showThinkingAnimation();
         
         // Send to OpenRouter API
         await this.sendChatMessage(text);
@@ -78,7 +110,6 @@ class ChatClient {
         try {
             this.isStreaming = true;
             this.currentStreamingMessage = '';
-            this.showLoadingOverlay();
             
             const response = await fetch('/chat', {
                 method: 'POST',
@@ -94,9 +125,6 @@ class ChatClient {
             
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            
-            // Hide loading and prepare for streaming
-            this.hideLoadingOverlay();
             
             while (true) {
                 const { done, value } = await reader.read();
@@ -118,6 +146,11 @@ class ChatClient {
                             
                             // Handle OpenRouter streaming response
                             if (parsed.content) {
+                                // On first content, hide thinking animation
+                                if (this.currentStreamingMessage === '') {
+                                    this.hideThinkingAnimation();
+                                }
+                                
                                 this.currentStreamingMessage += parsed.content;
                                 this.updateAgentMessage(this.currentStreamingMessage);
                             }
@@ -132,6 +165,7 @@ class ChatClient {
                             // Handle errors
                             if (parsed.error) {
                                 console.error('OpenRouter error:', parsed.error);
+                                this.hideThinkingAnimation();
                                 this.showErrorModal('Sorry, I encountered an error. Please try again.');
                                 return;
                             }
@@ -145,10 +179,11 @@ class ChatClient {
             
         } catch (error) {
             console.error('Error sending chat message:', error);
+            this.hideThinkingAnimation();
             this.showErrorModal('Sorry, I encountered an error. Please try again.');
         } finally {
             this.isStreaming = false;
-            this.hideLoadingOverlay();
+            this.updateSendButton();
         }
     }
     
@@ -201,15 +236,47 @@ class ChatClient {
     }
     
     finalizeAgentMessage(text) {
-        // Final update of agent message
+        // Final update of agent message - no auto-hide, bubble stays visible
         this.updateAgentMessage(text);
+    }
+    
+    showWelcomeMessage() {
+        // Hide empty state and show welcome message
+        if (this.emptyState) {
+            this.emptyState.style.display = 'none';
+        }
         
-        // Auto-hide after longer delay for final message
-        setTimeout(() => {
-            if (this.agentSpeechBubble) {
-                this.agentSpeechBubble.style.display = 'none';
-            }
-        }, 10000);
+        if (this.agentText) {
+            this.agentText.textContent = 'Hello! I\'m your AI assistant. How can I help you today?';
+        }
+        if (this.agentSpeechBubble) {
+            this.agentSpeechBubble.style.display = 'block';
+            this.agentSpeechBubble.style.visibility = 'visible';
+        }
+    }
+    
+    showThinkingAnimation() {
+        if (this.agentText) {
+            this.agentText.innerHTML = 'thinking<span class="dots">...</span>';
+        }
+        if (this.agentSpeechBubble) {
+            this.agentSpeechBubble.style.display = 'block';
+            this.agentSpeechBubble.style.visibility = 'visible';
+        }
+    }
+
+    hideThinkingAnimation() {
+        // This will be called when real response starts
+        if (this.agentText) {
+            this.agentText.innerHTML = '';
+        }
+    }
+    
+    updateSendButton() {
+        if (this.sendBtn && this.chatInput) {
+            const hasText = this.chatInput.value.trim().length > 0;
+            this.sendBtn.disabled = !hasText || this.isStreaming;
+        }
     }
     
     async loadConversation() {
@@ -264,12 +331,36 @@ class ChatClient {
         if (this.errorModal) {
             this.errorModal.style.display = 'flex';
         }
-        this.hideLoadingOverlay();
     }
     
     hideErrorModal() {
         if (this.errorModal) {
             this.errorModal.style.display = 'none';
+        }
+    }
+    
+    toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error('Error attempting to enable fullscreen:', err);
+            });
+        } else {
+            document.exitFullscreen().catch(err => {
+                console.error('Error attempting to exit fullscreen:', err);
+            });
+        }
+    }
+    
+    updateFullscreenButton() {
+        if (this.fullscreenBtn) {
+            const icon = this.fullscreenBtn.querySelector('i');
+            if (document.fullscreenElement) {
+                icon.className = 'fas fa-compress';
+                this.fullscreenBtn.title = 'Exit Fullscreen';
+            } else {
+                icon.className = 'fas fa-expand';
+                this.fullscreenBtn.title = 'Toggle Fullscreen';
+            }
         }
     }
 }

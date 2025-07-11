@@ -40,7 +40,7 @@ body {
 .connection-status {
     position: fixed;
     top: 20px;
-    right: 20px;
+    right: 80px; /* Space for fullscreen button */
     display: flex;
     align-items: center;
     gap: 8px;
@@ -51,6 +51,36 @@ body {
     font-weight: 500;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     z-index: 100;
+}
+
+/* Fullscreen Button */
+.fullscreen-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    background: #2196F3;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(33, 150, 243, 0.3);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.fullscreen-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+}
+
+.fullscreen-btn:active {
+    transform: translateY(0);
 }
 
 .status-indicator {
@@ -92,8 +122,8 @@ body {
 }
 
 .character-placeholder {
-    width: 280px;
-    height: 350px;
+    width: 320px;
+    height: 400px;
     background: white;
     border-radius: 20px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -113,21 +143,24 @@ body {
 
 /* Speech Bubbles */
 .speech-bubble {
-    max-width: 320px;
+    max-width: 550px;
+    width: 90%;
     background: white;
     border-radius: 20px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     position: relative;
-    margin: 20px;
+    margin: 20px auto;
     animation: fadeInUp 0.5s ease;
 }
 
 .agent-speech-bubble {
-    position: fixed;
-    top: 50%;
+    position: absolute;
+    top: -200px;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translateX(-50%);
     z-index: 1000;
+    width: 100%;
+    max-width: 550px;
 }
 
 .agent-bubble {
@@ -188,7 +221,8 @@ body {
 
 .bubble-text {
     flex: 1;
-    font-size: 15px;
+    font-size: 16px;
+    font-weight: 600;
     line-height: 1.5;
     color: #2C3E50;
     word-wrap: break-word;
@@ -231,7 +265,7 @@ body {
 
 .chat-input-container {
     display: flex;
-    gap: 12px;
+    gap: 8px;
     align-items: center;
     max-width: 600px;
     margin: 0 auto;
@@ -258,14 +292,12 @@ body {
     color: #95A5A6;
 }
 
-.voice-mode-btn {
+.send-btn {
     width: 48px;
     height: 48px;
     border: none;
     border-radius: 50%;
     background: #FFA500;
-    color: white;
-    font-size: 20px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -274,14 +306,55 @@ body {
     box-shadow: 0 2px 8px rgba(255, 165, 0, 0.2);
 }
 
-.voice-mode-btn:hover {
+.send-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(255, 165, 0, 0.1);
+}
+
+.send-btn:not(:disabled):hover {
     background: #FF8C00;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(255, 165, 0, 0.3);
 }
 
+.send-btn:not(:disabled):active {
+    transform: translateY(0);
+}
+
+.send-btn img {
+    width: 24px;
+    height: 24px;
+}
+
+.voice-mode-btn {
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 50%;
+    background: #2196F3;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
+}
+
+.voice-mode-btn:hover {
+    background: #1976D2;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
 .voice-mode-btn:active {
     transform: translateY(0);
+}
+
+.voice-mode-btn img {
+    width: 24px;
+    height: 24px;
 }
 
 /* Loading Overlay */
@@ -457,25 +530,50 @@ body {
     }
     
     .character-placeholder {
-        width: 240px;
-        height: 300px;
+        width: 280px;
+        height: 350px;
+    }
+    
+    .speech-bubble {
+        max-width: 450px;
+        width: 95%;
+    }
+    
+    .agent-speech-bubble {
+        top: -180px;
+        max-width: 450px;
+        width: 98%;
     }
     
     .connection-status {
         top: 16px;
-        right: 16px;
+        right: 70px; /* Space for fullscreen button */
         font-size: 12px;
         padding: 6px 12px;
+    }
+    
+    .fullscreen-btn {
+        top: 16px;
+        right: 16px;
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
     }
     
     .bottom-chat-interface {
         padding: 16px;
     }
     
+    .send-btn,
     .voice-mode-btn {
         width: 44px;
         height: 44px;
-        font-size: 18px;
+    }
+    
+    .send-btn img,
+    .voice-mode-btn img {
+        width: 20px;
+        height: 20px;
     }
 }
 
@@ -487,13 +585,20 @@ body {
     }
     
     .character-placeholder {
-        width: 200px;
-        height: 250px;
+        width: 240px;
+        height: 300px;
     }
     
     .speech-bubble {
-        max-width: 280px;
-        margin: 16px;
+        max-width: 400px;
+        width: 95%;
+        margin: 16px auto;
+    }
+    
+    .agent-speech-bubble {
+        top: -160px;
+        max-width: 400px;
+        width: 98%;
     }
     
     .bubble-content {
@@ -501,7 +606,9 @@ body {
     }
     
     .bubble-text {
-        font-size: 14px;
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.4;
     }
     
     .empty-state {
@@ -515,22 +622,35 @@ body {
     
     .connection-status {
         top: 12px;
-        right: 12px;
+        right: 60px; /* Space for fullscreen button */
         font-size: 11px;
         padding: 4px 8px;
+    }
+    
+    .fullscreen-btn {
+        top: 12px;
+        right: 12px;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
     }
 }
 
 /* Small Mobile Phones */
 @media (max-width: 375px) {
     .character-placeholder {
-        width: 180px;
-        height: 220px;
+        width: 220px;
+        height: 280px;
     }
     
     .speech-bubble {
-        max-width: 250px;
+        max-width: 350px;
+        width: 95%;
         margin: 12px;
+    }
+    
+    .agent-speech-bubble {
+        top: -140px;
     }
     
     .empty-state {
@@ -576,4 +696,25 @@ body {
     .voice-mode-btn {
         border: 2px solid #2C3E50;
     }
+}
+
+/* Thinking Animation */
+.dots {
+    animation: thinking 1.5s infinite;
+}
+
+@keyframes thinking {
+    0%, 20% { opacity: 0; }
+    50% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+.dots::after {
+    content: '..';
+    animation: thinking 1.5s infinite 0.5s;
+}
+
+.dots::before {
+    content: '.';
+    animation: thinking 1.5s infinite 1s;
 }
