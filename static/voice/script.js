@@ -80,6 +80,15 @@ class VoiceAgentClient {
 
         this.showWelcomeMessage();
         
+        // Request microphone permission first on mobile
+        const hasPermission = await this.requestMicrophonePermission();
+        
+        if (!hasPermission) {
+            console.log('Microphone permission denied - stopping initialization');
+            this.hideLoadingOverlay();
+            return;
+        }
+        
         await this.connect();
     }
     
@@ -171,6 +180,54 @@ class VoiceAgentClient {
         });
     }
     
+    async requestMicrophonePermission() {
+        try {
+            console.log('Requesting microphone permission...');
+            
+            // Check if permission is already granted
+            if (navigator.permissions) {
+                const permissionStatus = await navigator.permissions.query({ name: 'microphone' });
+                if (permissionStatus.state === 'granted') {
+                    console.log('Microphone permission already granted');
+                    return true;
+                }
+            }
+            
+            // Request permission through getUserMedia
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
+            });
+            
+            // Stop the stream immediately - we just needed permission
+            stream.getTracks().forEach(track => track.stop());
+            
+            console.log('Microphone permission granted');
+            return true;
+            
+        } catch (error) {
+            console.error('Microphone permission denied or failed:', error);
+            
+            let errorMessage = 'Microphone access is required for voice chat. ';
+            
+            if (error.name === 'NotAllowedError') {
+                errorMessage += 'Please allow microphone access and refresh the page.';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage += 'No microphone found. Please connect a microphone and refresh.';
+            } else if (error.name === 'NotSupportedError') {
+                errorMessage += 'Your browser does not support microphone access.';
+            } else {
+                errorMessage += 'Please check your microphone settings and try again.';
+            }
+            
+            this.showErrorModal(errorMessage);
+            return false;
+        }
+    }
+
     async fetchToken() {
         try {
             const response = await fetch('/get-token');
@@ -344,6 +401,15 @@ class VoiceAgentClient {
     async toggleMicrophone() {
         try {
             if (this.isMicMuted) {
+                // Check if we need to re-request permission
+                try {
+                    await navigator.mediaDevices.getUserMedia({ audio: true });
+                } catch (permissionError) {
+                    console.error('Microphone permission needed:', permissionError);
+                    this.handleMediaDeviceError(permissionError);
+                    return;
+                }
+                
                 await this.room.localParticipant.setMicrophoneEnabled(true);
                 this.micBtn.classList.remove('muted');
                 this.micBtn.classList.add('active');
@@ -369,6 +435,7 @@ class VoiceAgentClient {
             }
         } catch (error) {
             console.error('Failed to toggle microphone:', error);
+            this.handleMediaDeviceError(error);
         }
     }
     
@@ -707,6 +774,15 @@ class VoiceAgentClient {
     async retryConnection() {
         this.hideErrorModal();
         this.reconnectAttempts = 0;
+        
+        // Re-request microphone permission on retry
+        const hasPermission = await this.requestMicrophonePermission();
+        
+        if (!hasPermission) {
+            console.log('Microphone permission denied on retry');
+            return;
+        }
+        
         await this.connect();
     }
     
