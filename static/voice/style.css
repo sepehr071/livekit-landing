@@ -35,13 +35,13 @@ body {
 }
 
 .control-btn {
-    width: 56px;
-    height: 56px;
+    width: 80px;
+    height: 80px;
     border: none;
     border-radius: 50%;
     background: #FFA500;
     color: white;
-    font-size: 24px;
+    font-size: 32px;
     cursor: pointer;
     box-shadow: 0 4px 12px rgba(255, 165, 0, 0.3);
     transition: all 0.3s ease;
@@ -99,21 +99,9 @@ body {
     min-height: 100vh;
 }
 
-/* Connection Status */
+/* Connection Status - Hidden */
 .connection-status {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 500;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 100;
+    display: none;
 }
 
 .status-indicator {
@@ -143,20 +131,23 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 40px 0;
+    margin: 120px 0 60px 0;
     z-index: 1;
+    overflow: visible;
 }
 
 .character-container {
+    margin-top: 170px !important;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: visible;
 }
 
 .character-placeholder {
-    width: 320px;
-    height: 400px;
+    width: 500px;
+    height: 600px;
     background: white;
     border-radius: 20px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -164,13 +155,22 @@ body {
     align-items: center;
     justify-content: center;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .character-placeholder img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: 20px;
+}
+
+/* Rive Canvas Styling */
+#riveCanvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+    object-fit: contain;
     border-radius: 20px;
 }
 
@@ -223,22 +223,24 @@ body {
 
 /* Speech Bubbles */
 .speech-bubble {
-    max-width: 550px;
-    width: 90%;
+    max-width: 800px;
+    width: 98%;
     background: white;
     border-radius: 20px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
     position: relative;
-    margin: 20px;
+    margin: 20px auto;
     animation: fadeInUp 0.5s ease;
 }
 
 .agent-speech-bubble {
     position: absolute;
-    top: -200px;
+    top: -140px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
+    width: 100%;
+    max-width: 800px;
 }
 
 .agent-bubble {
@@ -263,6 +265,10 @@ body {
     display: flex;
     gap: 12px;
     align-items: flex-start;
+}
+
+.bubble-icon {
+    display: none;
 }
 
 .bubble-text {
@@ -298,13 +304,13 @@ body {
 
 /* Back Button in Bottom Controls */
 .back-btn {
-    background: #00C851;
-    box-shadow: 0 4px 12px rgba(0, 200, 81, 0.3);
+    background: #FFA500;
+    box-shadow: 0 4px 12px rgba(255, 165, 0, 0.3);
 }
 
 .back-btn:hover {
-    background: #00A844;
-    box-shadow: 0 6px 16px rgba(0, 200, 81, 0.4);
+    background: #FF8C00;
+    box-shadow: 0 6px 16px rgba(255, 165, 0, 0.4);
 }
 
 /* Fullscreen Button */
@@ -526,38 +532,33 @@ body {
     }
     
     .control-btn {
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
+        width: 64px;
+        height: 64px;
+        font-size: 24px;
     }
     
     .character-placeholder {
-        width: 280px;
-        height: 350px;
-    }
-    
-    .connection-status {
-        top: 16px;
-        right: 70px; /* Space for fullscreen button */
-        font-size: 12px;
-        padding: 6px 12px;
+        width: 420px;
+        height: 500px;
     }
     
     .fullscreen-btn {
         top: 20px;
         right: 20px;
-        width: 48px;
-        height: 48px;
-        font-size: 20px;
+        width: 56px;
+        height: 56px;
+        font-size: 24px;
     }
     
     .speech-bubble {
-        max-width: 450px;
-        width: 95%;
+        max-width: 85vw;
+        width: 98%;
     }
     
     .agent-speech-bubble {
-        top: -180px;
+        top: -90px;
+        max-width: 85vw;
+        width: 98%;
     }
 }
 
@@ -565,42 +566,45 @@ body {
 @media (max-width: 480px) and (orientation: portrait) {
     .main-area {
         padding: 12px;
-        padding-bottom: 110px; /* Space for bottom controls */
+        padding-bottom: 120px; /* Space for bottom controls */
     }
     
     .bottom-controls {
         bottom: 16px;
-        gap: 12px;
+        gap: 16px;
     }
     
     .control-btn {
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
+        width: 64px;
+        height: 64px;
+        font-size: 24px;
     }
     
     .character-placeholder {
-        width: 240px;
-        height: 300px;
+        width: 380px;
+        height: 480px;
     }
     
     .speech-bubble {
-        max-width: 400px;
-        width: 95%;
-        margin: 16px;
+        max-width: 90vw;
+        width: 98%;
+        margin: 16px auto;
     }
     
     .bubble-content {
-        padding: 12px 16px;
+        padding: 14px 18px;
     }
     
     .bubble-text {
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 600;
+        line-height: 1.5;
     }
     
     .agent-speech-bubble {
-        top: -160px;
+        top: -60px;
+        max-width: 90vw;
+        width: 98%;
     }
     
     .empty-state {
@@ -615,16 +619,9 @@ body {
     .fullscreen-btn {
         top: 16px;
         right: 16px;
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
-    }
-    
-    .connection-status {
-        top: 12px;
-        right: 70px; /* Space for fullscreen button */
-        font-size: 11px;
-        padding: 4px 8px;
+        width: 56px;
+        height: 56px;
+        font-size: 22px;
     }
 }
 

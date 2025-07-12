@@ -36,21 +36,9 @@ body {
     padding-bottom: 100px; /* Space for bottom chat interface */
 }
 
-/* Connection Status */
+/* Connection Status - Hidden */
 .connection-status {
-    position: fixed;
-    top: 20px;
-    right: 80px; /* Space for fullscreen button */
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.9);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 500;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 100;
+    display: none;
 }
 
 /* Fullscreen Button */
@@ -110,20 +98,23 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 40px 0;
+    margin: 120px 0 60px 0;
     z-index: 1;
+    overflow: visible;
 }
 
 .character-container {
+    margin-top: 170px;
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: visible;
 }
 
 .character-placeholder {
-    width: 320px;
-    height: 400px;
+    width: 500px;
+    height: 600px;
     background: white;
     border-radius: 20px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -131,7 +122,7 @@ body {
     align-items: center;
     justify-content: center;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .character-placeholder img {
@@ -141,10 +132,19 @@ body {
     border-radius: 20px;
 }
 
+/* Rive Canvas Styling */
+#riveCanvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+    object-fit: contain;
+    border-radius: 20px;
+}
+
 /* Speech Bubbles */
 .speech-bubble {
-    max-width: 550px;
-    width: 90%;
+    max-width: 800px;
+    width: 98%;
     background: white;
     border-radius: 20px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -155,12 +155,12 @@ body {
 
 .agent-speech-bubble {
     position: absolute;
-    top: -200px;
+    top: -140px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 1000;
     width: 100%;
-    max-width: 550px;
+    max-width: 800px;
 }
 
 .agent-bubble {
@@ -213,10 +213,7 @@ body {
 }
 
 .bubble-icon {
-    color: #FFA500;
-    font-size: 16px;
-    margin-top: 2px;
-    flex-shrink: 0;
+    display: none;
 }
 
 .bubble-text {
@@ -293,8 +290,8 @@ body {
 }
 
 .send-btn {
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
     border: none;
     border-radius: 50%;
     background: #FFA500;
@@ -329,8 +326,8 @@ body {
 }
 
 .voice-mode-btn {
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
     border: none;
     border-radius: 50%;
     background: #2196F3;
@@ -530,34 +527,27 @@ body {
     }
     
     .character-placeholder {
-        width: 280px;
-        height: 350px;
+        width: 420px;
+        height: 500px;
     }
     
     .speech-bubble {
-        max-width: 450px;
-        width: 95%;
-    }
-    
-    .agent-speech-bubble {
-        top: -180px;
-        max-width: 450px;
+        max-width: 85vw;
         width: 98%;
     }
     
-    .connection-status {
-        top: 16px;
-        right: 70px; /* Space for fullscreen button */
-        font-size: 12px;
-        padding: 6px 12px;
+    .agent-speech-bubble {
+        top: -90px;
+        max-width: 85vw;
+        width: 98%;
     }
     
     .fullscreen-btn {
         top: 16px;
         right: 16px;
-        width: 44px;
-        height: 44px;
-        font-size: 18px;
+        width: 56px;
+        height: 56px;
+        font-size: 22px;
     }
     
     .bottom-chat-interface {
@@ -566,14 +556,18 @@ body {
     
     .send-btn,
     .voice-mode-btn {
-        width: 44px;
-        height: 44px;
+        width: 56px;
+        height: 56px;
     }
     
-    .send-btn img,
+    .send-btn img {
+        width: 24px;
+        height: 24px;
+    }
+    
     .voice-mode-btn img {
-        width: 20px;
-        height: 20px;
+        width: 32px;
+        height: 32px;
     }
 }
 
@@ -585,30 +579,30 @@ body {
     }
     
     .character-placeholder {
-        width: 240px;
-        height: 300px;
+        width: 380px;
+        height: 480px;
     }
     
     .speech-bubble {
-        max-width: 400px;
-        width: 95%;
+        max-width: 90vw;
+        width: 98%;
         margin: 16px auto;
     }
     
     .agent-speech-bubble {
-        top: -160px;
-        max-width: 400px;
+        top: -70px;
+        max-width: 90vw;
         width: 98%;
     }
     
     .bubble-content {
-        padding: 12px 16px;
+        padding: 14px 18px;
     }
     
     .bubble-text {
-        font-size: 15px;
+        font-size: 16px;
         font-weight: 600;
-        line-height: 1.4;
+        line-height: 1.5;
     }
     
     .empty-state {
@@ -620,37 +614,30 @@ body {
         font-size: 14px;
     }
     
-    .connection-status {
-        top: 12px;
-        right: 60px; /* Space for fullscreen button */
-        font-size: 11px;
-        padding: 4px 8px;
-    }
-    
     .fullscreen-btn {
         top: 12px;
         right: 12px;
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
+        width: 48px;
+        height: 48px;
+        font-size: 18px;
     }
 }
 
 /* Small Mobile Phones */
 @media (max-width: 375px) {
     .character-placeholder {
-        width: 220px;
-        height: 280px;
+        width: 280px;
+        height: 350px;
     }
     
     .speech-bubble {
-        max-width: 350px;
+        max-width: 450px;
         width: 95%;
         margin: 12px;
     }
     
     .agent-speech-bubble {
-        top: -140px;
+        top: -180px;
     }
     
     .empty-state {

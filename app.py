@@ -365,4 +365,4 @@ if __name__ == '__main__':
     if os.getenv('FLASK_ENV') == 'production':
         app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000)), debug=False)
     else:
-        app.run(host='localhost', port=5000, debug=True)
+        app.run(host='127.0.0.1', port=5050, debug=True)

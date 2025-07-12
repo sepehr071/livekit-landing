@@ -290,7 +290,7 @@ class ChatClient {
     
     showThinkingAnimation() {
         if (this.agentText) {
-            this.agentText.innerHTML = 'thinking<span class="dots">...</span>';
+            this.agentText.innerHTML = '<span class="dots">...</span>';
         }
         if (this.agentSpeechBubble) {
             this.agentSpeechBubble.style.display = 'block';
