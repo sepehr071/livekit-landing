@@ -20,6 +20,10 @@ class VoiceAgentClient {
         this.agentAudioAnalyser = null;
         this.agentAudioSource = null;
         this.outputAudioAnalyser = null;
+        // Rive animation properties
+        this.riveInstance = null;
+        this.riveSpeakingInput = null;
+        this.riveListeningInput = null;
         
         // Agent detection configuration
         this.agentDetectionMethods = {
@@ -63,14 +67,51 @@ class VoiceAgentClient {
         this.userTranscription = document.getElementById('userTranscription');
         this.agentTranscription = document.getElementById('agentTranscription');
         
+        // rive
+        this.riveCanvas = document.getElementById('riveCanvas');
+
         this.init();
     }
     
     async init() {
         this.setupEventListeners();
+        
+        this.setupRiveAnimation(); // Call the new Rive setup method
+
         this.showWelcomeMessage();
+        
         await this.connect();
     }
+    
+    // New method to set up Rive animation
+    setupRiveAnimation() {
+        if (typeof rive === 'undefined') {
+            console.error('Rive JS library not loaded. Please check the script tag in your HTML.');
+            return;
+        }
+        if (!this.riveCanvas) {
+            console.warn('Rive Canvas element not found. Skipping Rive setup.');
+            return;
+        }
+
+        this.riveInstance = new rive.Rive({
+            src: '/static/danak.riv', // Assuming danak.riv is in the static folder
+            canvas: this.riveCanvas,
+            autoplay: true,
+            stateMachines: 'StateMachine', // Assuming the state machine name is 'StateMachine'
+            onLoad: () => {
+                this.riveInstance.resizeDrawingSurfaceToCanvas();
+                const inputs = this.riveInstance.stateMachineInputs('StateMachine');
+                this.riveSpeakingInput = inputs.find(i => i.name === 'isSpeaking');
+                this.riveListeningInput = inputs.find(i => i.name === 'IsListening');
+                console.log('Rive animation loaded and inputs found.');
+            },
+            onError: (error) => {
+                console.error('Rive animation failed to load:', error);
+            },
+        });
+    }
+
     
     setupEventListeners() {
         // Control buttons
@@ -414,15 +455,35 @@ class VoiceAgentClient {
             if (this.userIndicator) {
                 if (userSpeaking) {
                     this.userIndicator.classList.add('speaking');
+                    if (this.riveListeningInput) this.riveListeningInput.value = true;
                 } else {
                     this.userIndicator.classList.remove('speaking');
+                    if (this.riveListeningInput) this.riveListeningInput.value = false;
                 }
             }
             
             if (agentSpeaking) {
                 this.setAgentSpeaking(true, 'livekit-events');
+                if (this.riveSpeakingInput) this.riveSpeakingInput.value = true;
             } else {
                 this.setAgentSpeaking(false, 'livekit-events');
+                if (this.riveSpeakingInput) this.riveSpeakingInput.value = false;
+            }
+        } else {
+            // Fallback: only handle user speaking
+            let userSpeaking = false;
+            speakers.forEach(speaker => {
+                if (speaker.identity === this.identity) {
+                    userSpeaking = true;
+                }
+            });
+            
+            if (userSpeaking) {
+                this.userIndicator.classList.add('speaking');
+                if (this.riveListeningInput) this.riveListeningInput.value = true;
+            } else {
+                this.userIndicator.classList.remove('speaking');
+                if (this.riveListeningInput) this.riveListeningInput.value = false;
             }
         }
     }
@@ -656,6 +717,7 @@ class VoiceAgentClient {
         }
         this.isConnected = false;
         this.pauseAudioLevelMonitoring();
+        if (this.riveInstance) this.riveInstance.unmount(); // Clean up Rive instance
         console.log('Disconnected from room');
     }
     

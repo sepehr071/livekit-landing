@@ -3,6 +3,8 @@ class ChatClient {
         // Chat mode properties
         this.isStreaming = false;
         this.currentStreamingMessage = '';
+        // Rive animation properties
+        this.riveInstance = null;
         
         // DOM elements
         this.statusIndicator = document.getElementById('statusIndicator');
@@ -22,13 +24,44 @@ class ChatClient {
         this.retryBtn = document.getElementById('retryBtn');
         this.closeErrorModal = document.getElementById('closeErrorModal');
         
+        // rive
+        this.riveCanvas = document.getElementById('riveCanvas');
+
         this.init();
     }
     
     init() {
         this.setupEventListeners();
+        this.setupRiveAnimation(); // Call the new Rive setup method
         this.showWelcomeMessage();
     }
+    
+    // New method to set up Rive animation
+    setupRiveAnimation() {
+        if (typeof rive === 'undefined') {
+            console.error('Rive JS library not loaded. Please check the script tag in your HTML.');
+            return;
+        }
+        if (!this.riveCanvas) {
+            console.warn('Rive Canvas element not found. Skipping Rive setup.');
+            return;
+        }
+
+        this.riveInstance = new rive.Rive({
+            src: '/static/danak.riv', // Assuming danak.riv is in the static folder
+            canvas: this.riveCanvas,
+            autoplay: true,
+            stateMachines: 'StateMachine', // Assuming the state machine name is 'StateMachine'
+            onLoad: () => {
+                this.riveInstance.resizeDrawingSurfaceToCanvas();
+                console.log('Rive animation loaded and inputs found.');
+            },
+            onError: (error) => {
+                console.error('Rive animation failed to load:', error);
+            },
+        });
+    }
+
     
     setupEventListeners() {
         // Chat input handling

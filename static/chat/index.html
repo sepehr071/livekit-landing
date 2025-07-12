@@ -39,7 +39,7 @@
                 <div class="character-container">
                     <!-- Character image/animation -->
                     <div class="character-placeholder" id="characterPlaceholder">
-                        <img src="/static/images/happy.webp" alt="AI Assistant Character" id="characterImage" />
+                        <canvas id="riveCanvas" width="400" height="400"></canvas>
                     </div>
                 </div>
             </div>
@@ -99,6 +99,7 @@
     </div>
 
     <!-- Scripts -->
+    <script src="https://unpkg.com/@rive-app/canvas@2.7.3/rive.js"></script>
     <script src="/static/chat/script.js"></script>
 </body>
 </html>

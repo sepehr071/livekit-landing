@@ -23,6 +23,10 @@ class VoiceAgentClient {
         this.agentAudioAnalyser = null;
         this.agentAudioSource = null;
         this.outputAudioAnalyser = null;
+        // Rive animation properties
+        this.riveInstance = null;
+        this.riveSpeakingInput = null;
+        this.riveListeningInput = null;
         
         // Agent detection configuration - use only LiveKit events since they work perfectly
         this.agentDetectionMethods = {
@@ -87,18 +91,54 @@ class VoiceAgentClient {
         this.infoBtn = document.getElementById('infoBtn');
         this.testBtn = document.getElementById('testBtn');
         
+        // rive
+        this.riveCanvas = document.getElementById('riveCanvas');
+
         this.init();
     }
     
     async init() {
         this.setupEventListeners();
         this.switchToMode(this.currentMode);
+
+        this.setupRiveAnimation(); // Call the new Rive setup method
         
         // Only connect to LiveKit if starting in voice mode
         if (this.currentMode === 'voice') {
             await this.connect();
         }
     }
+    
+    // New method to set up Rive animation
+    setupRiveAnimation() {
+        if (typeof rive === 'undefined') {
+            console.error('Rive JS library not loaded. Please check the script tag in your HTML.');
+            return;
+        }
+        if (!this.riveCanvas) {
+            console.warn('Rive Canvas element not found. Skipping Rive setup.');
+            return;
+        }
+
+        this.riveInstance = new rive.Rive({
+            src: '/static/danak.riv', // Assuming danak.riv is in the static folder
+            canvas: this.riveCanvas,
+            autoplay: true,
+            stateMachines: 'StateMachine', // Assuming the state machine name is 'StateMachine'
+            onLoad: () => {
+                this.riveInstance.resizeDrawingSurfaceToCanvas();
+                const inputs = this.riveInstance.stateMachineInputs('StateMachine');
+                this.riveSpeakingInput = inputs.find(i => i.name === 'isSpeaking');
+                this.riveListeningInput = inputs.find(i => i.name === 'IsListening');
+                console.log('Rive animation loaded and inputs found.');
+            },
+            onError: (error) => {
+                console.error('Rive animation failed to load:', error);
+            },
+        });
+    }
+
+
     
     setupEventListeners() {
         // Mode switching controls
@@ -826,16 +866,20 @@ class VoiceAgentClient {
             if (userSpeaking) {
                 this.userIndicator.classList.add('speaking');
                 console.log('User speaking detected via LiveKit events');
+                if (this.riveListeningInput) this.riveListeningInput.value = true;
             } else {
                 this.userIndicator.classList.remove('speaking');
                 console.log('User stopped speaking via LiveKit events');
+                if (this.riveListeningInput) this.riveListeningInput.value = false;
             }
             
             // Update agent indicator using centralized method
             if (agentSpeaking) {
                 this.setAgentSpeaking(true, 'livekit-events');
+                if (this.riveSpeakingInput) this.riveSpeakingInput.value = true;
             } else {
                 this.setAgentSpeaking(false, 'livekit-events');
+                if (this.riveSpeakingInput) this.riveSpeakingInput.value = false;
             }
         } else {
             // Fallback: only handle user speaking
@@ -848,8 +892,10 @@ class VoiceAgentClient {
             
             if (userSpeaking) {
                 this.userIndicator.classList.add('speaking');
+                if (this.riveListeningInput) this.riveListeningInput.value = true;
             } else {
                 this.userIndicator.classList.remove('speaking');
+                if (this.riveListeningInput) this.riveListeningInput.value = false;
             }
         }
     }
@@ -1215,6 +1261,7 @@ class VoiceAgentClient {
         }
         this.isConnected = false;
         this.pauseAudioLevelMonitoring();
+        if (this.riveInstance) this.riveInstance.unmount(); // Clean up Rive instance
         console.log('Disconnected from room');
     }
     

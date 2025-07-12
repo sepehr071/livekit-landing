@@ -31,7 +31,7 @@
                 <div class="character-container">
                     <!-- Character image/animation -->
                     <div class="character-placeholder" id="characterPlaceholder">
-                        <img src="/static/images/happy.webp" alt="AI Assistant Character" id="characterImage" />
+                        <canvas id="riveCanvas" width="320" height="400"></canvas>
                     </div>
                     
                     <!-- Agent Speaking Indicator -->
@@ -121,6 +121,7 @@
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/livekit-client/dist/livekit-client.umd.min.js"></script>
+    <script src="https://unpkg.com/@rive-app/canvas@2.7.3/rive.js"></script>
     <script src="/static/voice/script.js"></script>
 </body>
 </html>
