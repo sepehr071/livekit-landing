@@ -265,6 +265,8 @@ body {
     display: flex;
     gap: 12px;
     align-items: flex-start;
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 .bubble-icon {
@@ -278,6 +280,25 @@ body {
     line-height: 1.5;
     color: #2C3E50;
     word-wrap: break-word;
+}
+
+/* Custom Scrollbar for Speech Bubbles */
+.bubble-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.bubble-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+}
+
+.bubble-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.bubble-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
 }
 
 /* Empty State */
@@ -593,6 +614,7 @@ body {
     
     .bubble-content {
         padding: 14px 18px;
+        max-height: 200px;
     }
     
     .bubble-text {
