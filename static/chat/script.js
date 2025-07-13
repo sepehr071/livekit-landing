@@ -100,8 +100,17 @@ class ChatClient {
             });
         }
         
-        // Handle fullscreen change
+        // Handle fullscreen change events (cross-browser)
         document.addEventListener('fullscreenchange', () => {
+            this.updateFullscreenButton();
+        });
+        document.addEventListener('webkitfullscreenchange', () => {
+            this.updateFullscreenButton();
+        });
+        document.addEventListener('mozfullscreenchange', () => {
+            this.updateFullscreenButton();
+        });
+        document.addEventListener('MSFullscreenChange', () => {
             this.updateFullscreenButton();
         });
         
@@ -280,7 +289,7 @@ class ChatClient {
         }
         
         if (this.agentText) {
-            this.agentText.textContent = 'Hello! I\'m your AI assistant. How can I help you today?';
+            this.agentText.textContent = 'Hallo! Ich bin Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?';
         }
         if (this.agentSpeechBubble) {
             this.agentSpeechBubble.style.display = 'block';
@@ -332,7 +341,7 @@ class ChatClient {
                 } else {
                     // Show welcome message for new conversations
                     setTimeout(() => {
-                        this.displayMessage('Hello! I\'m your AI assistant. How can I help you today?', false);
+                        this.displayMessage('Hallo! Ich bin Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?', false);
                     }, 1000);
                 }
             }
@@ -340,7 +349,7 @@ class ChatClient {
             console.error('Error loading conversation:', error);
             // Show default welcome message on error
             setTimeout(() => {
-                this.displayMessage('Hello! I\'m your AI assistant. How can I help you today?', false);
+                this.displayMessage('Hallo! Ich bin Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?', false);
             }, 1000);
         }
     }
@@ -373,26 +382,137 @@ class ChatClient {
     }
     
     toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.error('Error attempting to enable fullscreen:', err);
+        try {
+            if (!this.isFullscreen()) {
+                this.enterFullscreen();
+            } else {
+                this.exitFullscreen();
+            }
+        } catch (error) {
+            console.error('Fullscreen operation failed:', error);
+            this.showErrorModal('Fullscreen is not supported on this device or browser.');
+        }
+    }
+    
+    isFullscreen() {
+        return !!(
+            document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement
+        );
+    }
+    
+    enterFullscreen() {
+        const element = document.documentElement;
+        
+        if (element.requestFullscreen) {
+            element.requestFullscreen().catch(err => {
+                console.error('Standard fullscreen failed:', err);
+                this.handleFullscreenError(err);
+            });
+        } else if (element.webkitRequestFullscreen) {
+            element.webkitRequestFullscreen().catch(err => {
+                console.error('Webkit fullscreen failed:', err);
+                this.handleFullscreenError(err);
+            });
+        } else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen().catch(err => {
+                console.error('Mozilla fullscreen failed:', err);
+                this.handleFullscreenError(err);
+            });
+        } else if (element.msRequestFullscreen) {
+            element.msRequestFullscreen().catch(err => {
+                console.error('MS fullscreen failed:', err);
+                this.handleFullscreenError(err);
             });
         } else {
+            // iOS Safari fallback - try to simulate fullscreen
+            this.simulateFullscreenForIOS();
+        }
+    }
+    
+    exitFullscreen() {
+        if (document.exitFullscreen) {
             document.exitFullscreen().catch(err => {
-                console.error('Error attempting to exit fullscreen:', err);
+                console.error('Standard exit fullscreen failed:', err);
             });
+        } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+        } else {
+            // iOS fallback
+            this.exitSimulatedFullscreen();
+        }
+    }
+    
+    simulateFullscreenForIOS() {
+        // For iOS, we can't truly go fullscreen, but we can hide browser UI
+        if (window.navigator.standalone !== undefined) {
+            // Already in standalone mode (PWA)
+            this.setFullscreenVisualState(true);
+            return;
+        }
+        
+        // Try to scroll to hide address bar and show instructions
+        window.scrollTo(0, 1);
+        this.setFullscreenVisualState(true);
+        
+        // Show iOS-specific message
+        if (this.agentText && this.agentSpeechBubble) {
+            const originalText = this.agentText.textContent;
+            this.agentText.textContent = 'Auf iOS tippen Sie auf die Teilen-Taste und wählen Sie "Zum Home-Bildschirm" für eine Vollbild-Erfahrung.';
+            this.agentSpeechBubble.style.display = 'block';
+            
+            // Restore original text after 5 seconds
+            setTimeout(() => {
+                this.agentText.textContent = originalText;
+            }, 5000);
+        }
+    }
+    
+    exitSimulatedFullscreen() {
+        this.setFullscreenVisualState(false);
+    }
+    
+    setFullscreenVisualState(isFullscreen) {
+        if (this.fullscreenBtn) {
+            if (isFullscreen) {
+                this.fullscreenBtn.classList.add('fullscreen-active');
+            } else {
+                this.fullscreenBtn.classList.remove('fullscreen-active');
+            }
+        }
+    }
+    
+    handleFullscreenError(error) {
+        console.error('Fullscreen error:', error);
+        
+        if (error.name === 'NotAllowedError') {
+            // User gesture required or permission denied
+            this.simulateFullscreenForIOS();
+        } else {
+            // Other errors - still provide visual feedback
+            this.setFullscreenVisualState(true);
         }
     }
     
     updateFullscreenButton() {
         if (this.fullscreenBtn) {
             const icon = this.fullscreenBtn.querySelector('i');
-            if (document.fullscreenElement) {
+            const isFullscreen = this.isFullscreen();
+            
+            if (isFullscreen) {
                 icon.className = 'fas fa-compress';
                 this.fullscreenBtn.title = 'Exit Fullscreen';
+                this.fullscreenBtn.classList.add('fullscreen-active');
             } else {
                 icon.className = 'fas fa-expand';
                 this.fullscreenBtn.title = 'Toggle Fullscreen';
+                this.fullscreenBtn.classList.remove('fullscreen-active');
             }
         }
     }

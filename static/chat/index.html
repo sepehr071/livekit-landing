@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Chat Assistant</title>
+    <title>KI-Chat-Assistent</title>
     <link rel="stylesheet" href="/static/chat/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -14,11 +14,11 @@
             <!-- Connection Status (Top) -->
             <div class="connection-status" id="connectionStatus">
                 <div class="status-indicator connected" id="statusIndicator"></div>
-                <span class="status-text" id="statusText">Chat Mode Ready</span>
+                <span class="status-text" id="statusText">Chat-Modus bereit</span>
             </div>
 
             <!-- Fullscreen Button -->
-            <div class="fullscreen-btn" id="fullscreenBtn" title="Toggle Fullscreen">
+            <div class="fullscreen-btn" id="fullscreenBtn" title="Vollbild umschalten">
                 <i class="fas fa-expand"></i>
             </div>
 
@@ -50,19 +50,19 @@
                 <div class="empty-icon">
                     <i class="fas fa-comment-dots"></i>
                 </div>
-                <p>Start chatting with your AI assistant</p>
+                <p>Beginnen Sie zu chatten mit Ihrem KI-Assistenten</p>
             </div>
         </div>
 
         <!-- Bottom Chat Interface -->
         <div class="bottom-chat-interface" id="bottomChatInterface">
             <div class="chat-input-container">
-                <input type="text" id="chatInput" placeholder="Type your message..." maxlength="500" />
-                <button class="send-btn" id="sendBtn" title="Send Message" disabled>
-                    <img src="/static/images/send.png" alt="Send" />
+                <input type="text" id="chatInput" placeholder="Geben Sie Ihre Nachricht ein..." maxlength="500" />
+                <button class="send-btn" id="sendBtn" title="Nachricht senden" disabled>
+                    <img src="/static/images/send.png" alt="Senden" />
                 </button>
-                <button class="voice-mode-btn" id="voiceModeBtn" title="Switch to Voice Mode">
-                    <img src="/static/images/voice.png" alt="Voice Mode" />
+                <button class="voice-mode-btn" id="voiceModeBtn" title="Zum Sprachmodus wechseln">
+                    <img src="/static/images/voice.png" alt="Sprachmodus" />
                 </button>
             </div>
         </div>
@@ -72,7 +72,7 @@
     <div class="loading-overlay" id="loadingOverlay" style="display: none;">
         <div class="loading-spinner">
             <div class="spinner"></div>
-            <p>Processing...</p>
+            <p>Verarbeitung...</p>
         </div>
     </div>
 
@@ -92,7 +92,7 @@
             <div class="error-footer">
                 <button class="retry-btn" id="retryBtn">
                     <i class="fas fa-redo"></i>
-                    <span>Retry</span>
+                    <span>Wiederholen</span>
                 </button>
             </div>
         </div>

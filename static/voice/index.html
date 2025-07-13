@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Voice Assistant</title>
+    <title>KI-Sprachassistent</title>
     <link rel="stylesheet" href="/static/voice/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -14,7 +14,7 @@
             <!-- Connection Status (Top) -->
             <div class="connection-status" id="connectionStatus">
                 <div class="status-indicator" id="statusIndicator"></div>
-                <span class="status-text" id="statusText">Initializing...</span>
+                <span class="status-text" id="statusText">Initialisierung...</span>
             </div>
 
             <!-- Character Area -->
@@ -48,22 +48,22 @@
                 <div class="empty-icon">
                     <i class="fas fa-microphone"></i>
                 </div>
-                <p>Start speaking to your AI assistant</p>
+                <p>Sprechen Sie mit Ihrem KI-Assistenten</p>
             </div>
         </div>
 
         <!-- Bottom Controls -->
         <div class="bottom-controls">
-            <button class="control-btn mic-btn" id="micBtn" title="Toggle Microphone">
+            <button class="control-btn mic-btn" id="micBtn" title="Mikrofon umschalten">
                 <i class="fas fa-microphone"></i>
             </button>
-            <button class="control-btn back-btn" id="backToChatBtn" title="Back to Chat Mode">
-                <img src="/static/images/back.png" alt="Back" style="width: 32px; height: 32px;" />
+            <button class="control-btn back-btn" id="backToChatBtn" title="Zurück zum Chat-Modus">
+                <img src="/static/images/back.png" alt="Zurück" style="width: 32px; height: 32px;" />
             </button>
         </div>
 
         <!-- Fullscreen Button -->
-        <div class="fullscreen-btn" id="fullscreenBtn" title="Toggle Fullscreen">
+        <div class="fullscreen-btn" id="fullscreenBtn" title="Vollbild umschalten">
             <i class="fas fa-expand"></i>
         </div>
 
@@ -93,7 +93,7 @@
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner">
             <div class="spinner"></div>
-            <p>Connecting to AI Assistant...</p>
+            <p>Verbindung zum KI-Assistenten...</p>
         </div>
     </div>
 
@@ -113,7 +113,7 @@
             <div class="error-footer">
                 <button class="retry-btn" id="retryBtn">
                     <i class="fas fa-redo"></i>
-                    <span>Retry Connection</span>
+                    <span>Verbindung wiederholen</span>
                 </button>
             </div>
         </div>
