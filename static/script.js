@@ -73,7 +73,6 @@ class VoiceAgentClient {
   async init() {
     this.setupEventListeners();
     this.setupRiveAnimation(); // Call the new Rive setup method
-    await this.connect();
   }
 
   setupEventListeners() {
@@ -1039,11 +1038,13 @@ class VoiceAgentClient {
   }
 
   showLoadingOverlay() {
-    this.loadingOverlay.style.display = "flex";
+    this.loadingOverlay.classList.add("active");
+    document.body.classList.add("no-scroll");
   }
 
   hideLoadingOverlay() {
-    this.loadingOverlay.style.display = "none";
+    this.loadingOverlay.classList.remove("active");
+    document.body.classList.remove("no-scroll");
   }
 
   showErrorModal(message) {
@@ -1132,17 +1133,27 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 const connect_livekit = async () => {
-  //   try {
-  //     await window.voiceAgentClient.connect();
-  //   } catch (error) {
-  //     console.error("Error connecting to LiveKit:", error);
-  //   }
+  try {
+    if (!window.voiceAgentClient.isConnected) {
+      await window.voiceAgentClient.connect();
+    } else {
+      // If already connected, just unmute the speaker
+      if (window.voiceAgentClient.isSpeakerMuted) {
+        window.voiceAgentClient.toggleSpeaker();
+      }
+    }
+  } catch (error) {
+    console.error("Error connecting to LiveKit:", error);
+  }
 };
 
 const disconnect_livekit = async () => {
-  //   try {
-  //     await window.voiceAgentClient.disconnect();
-  //   } catch (error) {
-  //     console.error("Error disconnecting from LiveKit:", error);
-  //   }
+  try {
+    // Mute the speaker instead of full disconnect
+    if (!window.voiceAgentClient.isSpeakerMuted) {
+      window.voiceAgentClient.toggleSpeaker();
+    }
+  } catch (error) {
+    console.error("Error disconnecting from LiveKit:", error);
+  }
 };
