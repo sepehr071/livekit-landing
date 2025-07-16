@@ -83,3 +83,7 @@ docs/_build/
 *.bak
 *.backup
 *.old
+
+node_modules
+dist
+.env

@@ -1,0 +1,140 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.character-area {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 60px 0 40px 0;
+    z-index: 1;
+    overflow: visible;
+}
+
+.character-container {
+    margin-top: 2rem !important;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+}
+
+.character-placeholder {
+    width: 500px;
+    height: 600px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: visible;
+}
+
+.character-placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+/* Rive Canvas Styling */
+#riveCanvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+    object-fit: contain;
+    border-radius: 20px;
+}
+
+/* Speech Bubbles */
+.speech-bubble {
+    max-width: 800px;
+    width: 98%;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    position: relative;
+    margin: 20px auto;
+    animation: fadeInUp 0.5s ease;
+}
+
+.agent-speech-bubble {
+    position: absolute;
+    top: -120px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    width: 100%;
+    max-width: 800px;
+}
+
+.agent-bubble {
+    background: white;
+    border-left: 4px solid #FFA500;
+}
+
+.agent-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 30px;
+    width: 0;
+    height: 0;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid white;
+}
+
+.bubble-content {
+    padding: 16px 20px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.bubble-icon {
+    display: none;
+}
+
+.bubble-text {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #2C3E50;
+    word-wrap: break-word;
+}
+
+/* Custom Scrollbar for Speech Bubbles */
+.bubble-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.bubble-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+}
+
+.bubble-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.bubble-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
