@@ -138,3 +138,25 @@ body {
 .bubble-content::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.3);
 }
+
+/* Custom Scrollbar for agentSpeechBubble */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px; /* Adjust as needed for thinness */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* Make track transparent */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2); /* Thin bar color */
+  border-radius: 10px; /* Rounded corners for the thumb */
+  border: 2px solid transparent; /* Space around the thumb */
+  background-clip: padding-box; /* Ensures border doesn't cover thumb */
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin; /* "auto" or "thin" */
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* thumb and track color */
+}

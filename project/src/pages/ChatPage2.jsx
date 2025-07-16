@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mic, RotateCcw, X } from "lucide-react";
+import { Mic, MicOff, X } from "lucide-react";
 import ChatAvatar from "../components/ChatAvatar";
 
 const ChatPage2 = () => {
   const navigate = useNavigate();
   const [isHidden, setIsHidden] = useState(true);
+  const [isMute, setIsMute] = useState(false);
   // Removed message and Aimessage states as they are not used with the original buttons
 
   useEffect(() => {
@@ -20,6 +21,10 @@ const ChatPage2 = () => {
     setTimeout(() => {
       navigate(url);
     }, 700); // Adjust delay as needed, should be less than or equal to CSS transition duration
+  };
+
+  const handelMuteButton = () => {
+    setIsMute(!isMute);
   };
 
   return (
@@ -46,14 +51,19 @@ const ChatPage2 = () => {
       {/* Bottom voice controls */}
       <div className="relative bg-gray-50 p-4 py-6">
         <div className="max-w-2xl mx-auto flex justify-center gap-6">
-          <button className="w-16 h-16 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center shadow-lg transition-colors duration-200">
-            <Mic size={28} />
+          <button
+            onClick={handelMuteButton}
+            className={`w-16 h-16 text-white border-orange-400 border-2 border-spacing  rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1 ${
+              isMute ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
+            }`}
+          >
+            {isMute ? <MicOff size={28} /> : <Mic size={28} />}
           </button>
           <button
             onClick={() => handleClick("/chat1")}
-            className="w-16 h-16 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center shadow-lg transition-colors duration-200"
+            className="w-16 h-16 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1"
           >
-            <RotateCcw size={28} />
+            <img src="/images/back.png" alt="voice" width={25} />
           </button>
         </div>
       </div>

@@ -51,6 +51,7 @@ const ChatPage1 = () => {
         <div className="flex items-center gap-3">
           <div className="flex-1 relative">
             <input
+              id="emptyState"
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
