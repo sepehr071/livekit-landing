@@ -2,12 +2,23 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mic, MicOff, X } from "lucide-react";
 import ChatAvatar from "../components/ChatAvatar";
+import { useLiveKit } from "../hooks/useLiveKit";
 
 const ChatPage2 = () => {
   const navigate = useNavigate();
   const [isHidden, setIsHidden] = useState(true);
-  const [isMute, setIsMute] = useState(false);
-  // Removed message and Aimessage states as they are not used with the original buttons
+  
+  // Use the LiveKit hook directly
+  const {
+    connect,
+    disconnect,
+    toggleMicrophone,
+    isConnected,
+    isConnecting,
+    isMuted,
+    error,
+    transcription
+  } = useLiveKit();
 
   useEffect(() => {
     setTimeout(() => {
@@ -15,17 +26,48 @@ const ChatPage2 = () => {
     }, 150);
   }, []);
 
+  // Auto-connect when component mounts
+  useEffect(() => {
+    let mounted = true;
+    
+    // Small delay to prevent double connections in StrictMode
+    const timer = setTimeout(() => {
+      if (mounted && !isConnected && !isConnecting) {
+        connect();
+      }
+    }, 100);
+    
+    // Cleanup on unmount
+    return () => {
+      mounted = false;
+      clearTimeout(timer);
+      disconnect();
+    };
+  }, []); // Remove dependencies to prevent re-runs
+
   const handleClick = (url) => {
     setIsHidden(true);
-    // Give a small delay for the animation to play before navigating
+    disconnect(); // Disconnect when leaving
     setTimeout(() => {
       navigate(url);
-    }, 700); // Adjust delay as needed, should be less than or equal to CSS transition duration
+    }, 700);
   };
 
-  const handelMuteButton = () => {
-    setIsMute(!isMute);
+  const getStatusMessage = () => {
+    if (isConnecting) return "Verbindung zum KI-Assistenten...";
+    if (!isConnected && !error) return "Nicht verbunden";
+    if (error) return `Fehler: ${error}`;
+    return "Mit KI-Assistant verbunden";
   };
+
+  const getStatusColor = () => {
+    if (isConnected) return "text-green-600";
+    if (isConnecting) return "text-yellow-600";
+    if (error) return "text-red-600";
+    return "text-gray-600";
+  };
+
+  const defaultMessage = "Hallo! Ich bin Ihr KI-Assistent. Sprechen Sie, um unser Gespräch zu beginnen.";
 
   return (
     <div
@@ -43,27 +85,66 @@ const ChatPage2 = () => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 overflow-y-auto p-4  h-[80%]">
-        {/* Avatar */}
-        <ChatAvatar />
+      <div className="flex-1 overflow-y-auto p-4 h-[80%]">
+        {/* Connection Status */}
+        <div className={`text-xs mb-3 text-center ${getStatusColor()}`}>
+          <div className="flex items-center justify-center">
+            <div className={`w-2 h-2 rounded-full mr-2 ${
+              isConnected ? 'bg-green-500' :
+              isConnecting ? 'bg-yellow-500 animate-pulse' :
+              'bg-red-500'
+            }`} />
+            {getStatusMessage()}
+          </div>
+        </div>
+
+        {/* Avatar with voice integration */}
+        <ChatAvatar
+          agentMessage={transcription || defaultMessage}
+          isUserSpeaking={!isMuted && isConnected}
+          isAgentSpeaking={false} // Will be updated when agent speaks
+        />
+
+        {/* Error Display */}
+        {error && (
+          <div className="mt-3 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+            <div className="flex items-center">
+              <span className="text-red-500 mr-2">⚠️</span>
+              <span>{error}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Connection Loading */}
+        {isConnecting && (
+          <div className="mt-3 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg text-sm">
+            <div className="flex items-center">
+              <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2" />
+              <span>Verbindung wird hergestellt...</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom voice controls */}
       <div className="relative bg-gray-50 p-4 py-6">
         <div className="max-w-2xl mx-auto flex justify-center gap-6">
           <button
-            onClick={handelMuteButton}
-            className={`w-16 h-16 text-white border-orange-400 border-2 border-spacing  rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1 ${
-              isMute ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
+            onClick={toggleMicrophone}
+            disabled={!isConnected}
+            className={`w-16 h-16 text-white border-orange-400 border-2 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed ${
+              isMuted ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
             }`}
+            title={isMuted ? "Mikrofon aktivieren" : "Mikrofon deaktivieren"}
           >
-            {isMute ? <MicOff size={28} /> : <Mic size={28} />}
+            {isMuted ? <MicOff size={28} /> : <Mic size={28} />}
           </button>
           <button
             onClick={() => handleClick("/chat1")}
             className="w-16 h-16 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1"
+            title="Zurück zum Chat-Modus"
           >
-            <img src="/images/back.png" alt="voice" width={25} />
+            <img src="/static/images/back.png" alt="back" width={25} />
           </button>
         </div>
       </div>
