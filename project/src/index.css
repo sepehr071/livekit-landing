@@ -160,3 +160,29 @@ body {
   scrollbar-width: thin; /* "auto" or "thin" */
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* thumb and track color */
 }
+
+.animated-border {
+}
+
+/* The border "pseudo-element": */
+.animated-border::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px; /* same as rounded-full */
+  border: 2px solid #f87171; /* Orange-400. Adjust if desired */
+  opacity: 0;
+  transform: scale(0.95);
+  transition:
+    opacity 0.4s,
+    transform 0.4s,
+    border-color 0.4s;
+  pointer-events: none;
+}
+
+/* Animate on hover: */
+.animated-border:hover::after {
+  opacity: 1;
+  transform: scale(1.15);
+  border-color: #ea580c; /* Orange-500 on hover */
+}
