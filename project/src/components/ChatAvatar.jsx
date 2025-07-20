@@ -25,10 +25,10 @@ const ChatAvatar = ({
   }, [isLoaded, availableInputs]);
 
   return (
-    <div className="flex flex-col items-center justify-center max-h-full py-2 overflow-y-auto h-[100%]">
+    <div className="flex flex-col items-center justify-center max-h-full py-2 overflow-y-auto h-[100%] drop-shadow-md">
       {/* Speech Bubble */}
       <div
-        className="relative bg-gray-100 p-4 rounded-lg shadow-md mb-4 max-w-xs sm:max-w-sm md:max-w-md max-h-[35%] overflow-y-auto custom-scrollbar"
+        className="relative bg-gradient-to-r from-gray-100 via-white to-orange-50/80 p-4 rounded-lg shadow-md mb-4 max-w-xs sm:max-w-sm md:max-w-md max-h-[35%] overflow-y-auto custom-scrollbar"
         id="agentSpeechBubble"
       >
         <div className="flex items-start">
@@ -53,10 +53,11 @@ const ChatAvatar = ({
       </div>
 
       {/* Rive Animation Container */}
-      <div className="relative rounded bg-gray-300 flex items-center justify-center max-h-[22rem] h-[100%]">
+      <div className="relative 
+      .0 flex items-center justify-center max-h-[22rem] h-[100%]">
         <canvas
           ref={canvasRef}
-          className="w-full h-full rounded"
+          className="w-full h-full rounded shadow-lg"
           style={{ maxWidth: '100%', maxHeight: '100%' }}
         />
         {/* Fallback UI when Rive fails to load */}
