@@ -98,11 +98,7 @@ const ChatPage1 = () => {
               disabled={isStreaming}
               maxLength={500}
             />
-            {isStreaming && (
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <div className="w-4 h-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            )}
+             
           </div>
           
           <button
@@ -114,7 +110,7 @@ const ChatPage1 = () => {
             {isStreaming ? (
               <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
-              <img src="/static/images/send.png" alt="send" width={25} />
+              <img src="/images/send.png" alt="send" width={25} />
             )}
           </button>
           
@@ -124,7 +120,7 @@ const ChatPage1 = () => {
             className="p-3 bg-sky-600 hover:bg-sky-700 text-white rounded-full transition-colors duration-300 shadow-md"
             title="Zum Sprachmodus wechseln"
           >
-            <img src="/static/images/voice.png" alt="voice" width={25} />
+            <img src="/images/voice.png" alt="voice" width={25} />
           </button>
         </form>
       </div>

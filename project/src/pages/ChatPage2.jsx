@@ -144,7 +144,7 @@ const ChatPage2 = () => {
             className="w-16 h-16 bg-amber-500 hover:bg-amber-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1"
             title="Zurück zum Chat-Modus"
           >
-            <img src="/static/images/back.png" alt="back" width={25} />
+            <img src="/images/back.png" alt="back" width={25} />
           </button>
         </div>
       </div>

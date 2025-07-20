@@ -53,7 +53,7 @@ const ChatAvatar = ({
       </div>
 
       {/* Rive Animation Container */}
-      <div className="relative 
+      <div className="relative bg-white/40 backdrop-blur-xl shadow-sm rounded-lg
       .0 flex items-center justify-center max-h-[22rem] h-[100%]">
         <canvas
           ref={canvasRef}

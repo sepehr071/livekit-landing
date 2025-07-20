@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 
-export const useRive = (src = '/static/danak.riv') => {
+export const useRive = (src = '/danak.riv') => {
   const canvasRef = useRef(null);
   const [riveInstance, setRiveInstance] = useState(null);
   const [isLoaded, setIsLoaded] = useState(false);
