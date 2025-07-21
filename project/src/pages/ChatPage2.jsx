@@ -17,7 +17,9 @@ const ChatPage2 = () => {
     isConnecting,
     isMuted,
     error,
-    transcription
+    transcription,
+    isAgentSpeaking,
+    isUserSpeaking
   } = useLiveKit();
 
   useEffect(() => {
@@ -100,9 +102,10 @@ const ChatPage2 = () => {
 
         {/* Avatar with voice integration */}
         <ChatAvatar
+          mode="voice"
           agentMessage={transcription || defaultMessage}
-          isUserSpeaking={!isMuted && isConnected}
-          isAgentSpeaking={false} // Will be updated when agent speaks
+          isUserSpeaking={isUserSpeaking && !isMuted && isConnected}
+          isAgentSpeaking={isAgentSpeaking}
         />
 
         {/* Error Display */}

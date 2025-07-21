@@ -5,24 +5,25 @@ const ChatAvatar = ({
   isAgentSpeaking = false,
   isUserSpeaking = false,
   agentMessage = "Hallo! Ich bin Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?",
-  showLoadingDots = false
+  showLoadingDots = false,
+  mode = 'chat' // 'chat' or 'voice'
 }) => {
   const { canvasRef, setAnimationState, isLoaded, availableInputs, error } = useRive();
 
-  // Update animation states when props change
+  // Update animation states based on mode
   useEffect(() => {
     if (isLoaded && !error) {
-      setAnimationState('isSpeaking', isAgentSpeaking);
-      setAnimationState('IsListening', isUserSpeaking);
+      if (mode === 'voice') {
+        // In voice mode: control animation based on speaking states
+        setAnimationState('isSpeaking', isAgentSpeaking);
+        setAnimationState('IsListening', isUserSpeaking);
+      } else {
+        // In chat mode: keep animation idle (no active states)
+        setAnimationState('isSpeaking', false);
+        setAnimationState('IsListening', false);
+      }
     }
-  }, [isAgentSpeaking, isUserSpeaking, isLoaded, setAnimationState, error]);
-
-  // Debug: log available animation inputs
-  useEffect(() => {
-    if (isLoaded && availableInputs.length > 0) {
-      console.log('Available Rive animation inputs:', availableInputs);
-    }
-  }, [isLoaded, availableInputs]);
+  }, [isAgentSpeaking, isUserSpeaking, isLoaded, setAnimationState, error, mode]);
 
   return (
     <div className="flex flex-col items-center justify-center max-h-full py-2 overflow-y-auto h-[100%]">
@@ -81,16 +82,6 @@ const ChatAvatar = ({
         )}
       </div>
 
-      {/* Animation State Debug Info (only in development) */}
-      {process.env.NODE_ENV === 'development' && isLoaded && (
-        <div className="mt-2 text-xs text-gray-500 text-center">
-          <div>Loaded: {isLoaded ? '✅' : '❌'}</div>
-          <div>Speaking: {isAgentSpeaking ? '🗣️' : '😊'} | Listening: {isUserSpeaking ? '👂' : '💭'}</div>
-          {availableInputs.length > 0 && (
-            <div>Inputs: {availableInputs.join(', ')}</div>
-          )}
-        </div>
-      )}
     </div>
   );
 };
