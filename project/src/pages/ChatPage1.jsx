@@ -68,6 +68,7 @@ const ChatPage1 = () => {
       <div className="flex-1 overflow-y-auto p-4 h-[80%] drop-shadow-md">
         {/* Avatar with chat integration */}
         <ChatAvatar
+          mode="chat"
           agentMessage={currentAgentMessage}
           isAgentSpeaking={isStreaming}
           showLoadingDots={isStreaming && !agentMessage}

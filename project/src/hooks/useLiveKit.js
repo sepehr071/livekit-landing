@@ -8,9 +8,13 @@ export const useLiveKit = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [error, setError] = useState(null);
   const [transcription, setTranscription] = useState('');
+  const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
+  const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   const roomRef = useRef(null);
   const connectionInProgressRef = useRef(false);
   const mountedRef = useRef(true);
+  const identityRef = useRef(null);
+  const agentSpeakingTimeoutRef = useRef(null);
 
   // Fetch LiveKit token from Flask backend
   const fetchToken = useCallback(async () => {
@@ -43,7 +47,8 @@ export const useLiveKit = () => {
       if (!mountedRef.current) return;
 
       // Get token from backend
-      const { token, url } = await fetchToken();
+      const { token, url, identity } = await fetchToken();
+      identityRef.current = identity;
 
       // Check again if component is still mounted after async operation
       if (!mountedRef.current) return;
@@ -61,13 +66,19 @@ export const useLiveKit = () => {
       newRoom
         .on(RoomEvent.Connected, () => {
           console.log('Connected to room');
-          setIsConnected(true);
-          setIsConnecting(false);
+          if (mountedRef.current) {
+            setIsConnected(true);
+            setIsConnecting(false);
+            connectionInProgressRef.current = false;
+          }
         })
         .on(RoomEvent.Disconnected, (reason) => {
           console.log('Disconnected from room:', reason);
-          setIsConnected(false);
-          setError(reason ? `Disconnected: ${reason}` : 'Disconnected');
+          connectionInProgressRef.current = false;
+          if (mountedRef.current) {
+            setIsConnected(false);
+            setError(reason ? `Disconnected: ${reason}` : 'Disconnected');
+          }
         })
         .on(RoomEvent.Reconnecting, () => {
           console.log('Reconnecting...');
@@ -91,6 +102,31 @@ export const useLiveKit = () => {
         .on(RoomEvent.LocalTrackPublished, (publication, participant) => {
           console.log('Local track published:', publication.source);
         })
+        .on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
+          if (!mountedRef.current) return;
+          
+          let userSpeaking = false;
+          let agentSpeaking = false;
+          
+          speakers.forEach(speaker => {
+            if (speaker.identity === identityRef.current) {
+              userSpeaking = true;
+            } else {
+              agentSpeaking = true;
+            }
+          });
+          
+          setIsUserSpeaking(userSpeaking);
+          setIsAgentSpeaking(agentSpeaking);
+          
+          // Clear any existing timeout if agent starts speaking
+          if (agentSpeaking && agentSpeakingTimeoutRef.current) {
+            clearTimeout(agentSpeakingTimeoutRef.current);
+            agentSpeakingTimeoutRef.current = null;
+          }
+          
+          console.log('Speaker states updated:', { userSpeaking, agentSpeaking });
+        })
         .on(RoomEvent.MediaDevicesError, (error) => {
           console.error('Media device error:', error);
           setError(`Media error: ${error.message}`);
@@ -102,6 +138,23 @@ export const useLiveKit = () => {
           const message = await reader.readAll();
           console.log('Transcription received:', message);
           setTranscription(message);
+          
+          // Use transcription as fallback agent speaking detection
+          if (participantInfo.identity !== identityRef.current && mountedRef.current) {
+            setIsAgentSpeaking(true);
+            
+            // Clear any existing timeout
+            if (agentSpeakingTimeoutRef.current) {
+              clearTimeout(agentSpeakingTimeoutRef.current);
+            }
+            
+            // Set timeout to stop agent speaking after 2 seconds of no new transcription
+            agentSpeakingTimeoutRef.current = setTimeout(() => {
+              if (mountedRef.current) {
+                setIsAgentSpeaking(false);
+              }
+            }, 2000);
+          }
         } catch (error) {
           console.error('Error handling transcription:', error);
         }
@@ -124,22 +177,38 @@ export const useLiveKit = () => {
 
     } catch (err) {
       console.error('Connection failed:', err);
-      setError(err.message);
-      setIsConnecting(false);
+      connectionInProgressRef.current = false;
+      if (mountedRef.current) {
+        setError(err.message);
+        setIsConnecting(false);
+      }
     }
   }, [fetchToken]);
 
   // Disconnect from room
   const disconnect = useCallback(() => {
+    connectionInProgressRef.current = false;
+    
+    // Clear any timeouts
+    if (agentSpeakingTimeoutRef.current) {
+      clearTimeout(agentSpeakingTimeoutRef.current);
+      agentSpeakingTimeoutRef.current = null;
+    }
+    
     if (roomRef.current) {
       roomRef.current.disconnect();
       roomRef.current = null;
       setRoom(null);
     }
-    setIsConnected(false);
-    setIsConnecting(false);
-    setTranscription('');
-    setError(null);
+    
+    if (mountedRef.current) {
+      setIsConnected(false);
+      setIsConnecting(false);
+      setTranscription('');
+      setError(null);
+      setIsAgentSpeaking(false);
+      setIsUserSpeaking(false);
+    }
   }, []);
 
   // Toggle microphone
@@ -158,10 +227,21 @@ export const useLiveKit = () => {
 
   // Cleanup on unmount
   useEffect(() => {
+    mountedRef.current = true;
+    
     return () => {
-      disconnect();
+      mountedRef.current = false;
+      connectionInProgressRef.current = false;
+      if (agentSpeakingTimeoutRef.current) {
+        clearTimeout(agentSpeakingTimeoutRef.current);
+        agentSpeakingTimeoutRef.current = null;
+      }
+      if (roomRef.current) {
+        roomRef.current.disconnect();
+        roomRef.current = null;
+      }
     };
-  }, [disconnect]);
+  }, []);
 
   return {
     // Connection methods
@@ -176,6 +256,10 @@ export const useLiveKit = () => {
     // Audio controls
     toggleMicrophone,
     isMuted,
+    
+    // Speaking states
+    isAgentSpeaking,
+    isUserSpeaking,
     
     // Data
     transcription,
