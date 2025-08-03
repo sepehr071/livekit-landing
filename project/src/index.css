@@ -184,5 +184,5 @@ body {
 .animated-border:hover::after {
   opacity: 1;
   transform: scale(1.15);
-  border-color: #ea580c; /* Orange-500 on hover */
+  border-color: #d6a211; /* Orange-500 on hover */
 }

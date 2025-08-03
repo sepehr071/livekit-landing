@@ -77,7 +77,7 @@ const ChatPage2 = () => {
       className="fixed bottom-4 right-4 w-96 h-[800px] max-h-[90vh] bg-gradient-to-b from-[#fcf4e7]/30  to-gray-300/30 backdrop-blur-md rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%]"
     >
       {/* Header with delete button */}
-      <div className="flex justify-end p-4 bg-gradient-to-br to-[#fcf4e7] from-[#dbbe9b] drop-shadow-md">
+      <div className="flex justify-end p-4 bg-gradient-to-br to-[#fcf4e7] from-[#eebe41] drop-shadow-md">
         <button
           onClick={() => handleClick("/")}
           className="p-2 bg-gray-50 rounded-full shadow text-gray-600 hover:text-red-500 transition-colors duration-200 text-2xl sm:text-3xl md:text-4xl"
@@ -89,7 +89,7 @@ const ChatPage2 = () => {
       {/* Main content */}
       <div className="flex-1 overflow-y-auto p-4 h-[80%] drop-shadow-md">
         {/* Connection Status */}
-        <div className={`text-xs mb-3 text-center ${getStatusColor()}`}>
+        {/* <div className={`text-xs mb-3 text-center ${getStatusColor()}`}>
           <div className="flex items-center justify-center">
             <div className={`w-2 h-2 rounded-full mr-2 ${
               isConnected ? 'bg-green-500' :
@@ -98,7 +98,7 @@ const ChatPage2 = () => {
             }`} />
             {getStatusMessage()}
           </div>
-        </div>
+        </div> */}
 
         {/* Avatar with voice integration */}
         <ChatAvatar
@@ -130,7 +130,7 @@ const ChatPage2 = () => {
       </div>
 
       {/* Bottom voice controls */}
-      <div className="relative bg-gray-50 p-4 py-6 bg-gradient-to-br from-gray-300  to-gray-200 [box-shadow:rgba(14,30,37,0.12)_0px_2px_4px_0px,rgba(14,30,37,0.32)_0px_2px_16px_0px]">
+      <div className="relative   p-4 py-6 bg-gradient-to-b from-[#fcf4e7]  to-[#bde2f7] [box-shadow:rgba(14,30,37,0.12)_0px_2px_4px_0px,rgba(14,30,37,0.32)_0px_2px_16px_0px]">
         <div className="max-w-2xl mx-auto flex justify-center gap-6">
           <button
             onClick={toggleMicrophone}

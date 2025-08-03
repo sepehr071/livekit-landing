@@ -55,7 +55,7 @@ const ChatPage1 = () => {
       className="fixed bg-gradient-to-b from-[#fcf4e7]/30  to-gray-300/30 backdrop-blur-md bottom-4 right-4 w-96 h-[800px] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%]"
     >
       {/* Header with delete button */}
-      <div className="flex justify-end p-4 bg-gradient-to-br to-[#fcf4e7] from-[#dbbe9b] drop-shadow-md">
+      <div className="flex justify-end p-4 bg-gradient-to-bl to-[#fcf4e7] from-[#eebe41] drop-shadow-md">
         <button
           onClick={() => handleClick("/")}
           className="p-2 bg-gray-50 rounded-full shadow text-gray-600 hover:text-red-500 transition-colors duration-200 text-2xl sm:text-3xl md:text-4xl"
@@ -86,7 +86,7 @@ const ChatPage1 = () => {
       </div>
 
       {/* Bottom input area */}
-      <div className="relative bg-gradient-to-br from-gray-300  to-gray-200  p-4 py-6 [box-shadow:rgba(14,30,37,0.12)_0px_2px_4px_0px,rgba(14,30,37,0.32)_0px_2px_16px_0px]">
+      <div className="relative bg-gradient-to-b from-[#fcf4e7]  to-[#bde2f7]  p-4 py-6 [box-shadow:rgba(14,30,37,0.12)_0px_2px_4px_0px,rgba(14,30,37,0.32)_0px_2px_16px_0px]">
         <form onSubmit={handleSendMessage} className="flex items-center gap-3">
           <div className="flex-1 relative">
             <input
