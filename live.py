@@ -104,17 +104,27 @@ class RDLeuchtenAssistant(Agent):
         super().__init__(instructions=SYSTEM_INSTRUCTIONS)
 
 
+
 async def entrypoint(ctx: agents.JobContext):
     session = AgentSession(
-        llm=google.beta.realtime.RealtimeModel(
-            model="gemini-2.5-flash-preview-native-audio-dialog",
-            voice="Sulafat",  # Enhanced voice for German
-            temperature=0.6,  # Slightly lower for more consistent professional responses
-            instructions=SYSTEM_INSTRUCTIONS,
-            # Enable affective dialog for more natural/emotional speech
-            enable_affective_dialog=True,
+        llm=openai.realtime.RealtimeModel(
+            voice="shimmer",
+            model="gpt-4o-realtime-preview-2025-06-03",
+            temperature=0.60
         )
     )
+
+# async def entrypoint(ctx: agents.JobContext):
+#     session = AgentSession(
+#         llm=google.beta.realtime.RealtimeModel(
+#             model="gemini-2.5-flash-preview-native-audio-dialog",
+#             voice="Sulafat",  # Enhanced voice for German
+#             temperature=0.6,  # Slightly lower for more consistent professional responses
+#             instructions=SYSTEM_INSTRUCTIONS,
+#             # Enable affective dialog for more natural/emotional speech
+#             enable_affective_dialog=True,
+#         )
+#     )
 
     await session.start(
         room=ctx.room,
