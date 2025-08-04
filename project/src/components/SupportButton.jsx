@@ -17,7 +17,7 @@ const SupportButton = () => {
     setIsHidden(true);
     // Give a small delay for the animation to play before navigating
     setTimeout(() => {
-      navigate('/chat1');
+      navigate('/chat');
     }, 400); // Adjust delay as needed, should be less than or equal to CSS transition duration
   };
   

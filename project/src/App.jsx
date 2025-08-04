@@ -1,16 +1,21 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import MainPage from './pages/MainPage';
-import ChatPage1 from './pages/ChatPage1';
-import ChatPage2 from './pages/ChatPage2';
+import UnifiedChatPage from './pages/UnifiedChatPage';
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<MainPage />} />
-        <Route path="/chat1" element={<ChatPage1 />} />
-        <Route path="/chat2" element={<ChatPage2 />} />
+        <Route path="/chat" element={<UnifiedChatPage />} />
+        
+        {/* Legacy route redirects for backward compatibility */}
+        <Route path="/chat1" element={<Navigate to="/chat" replace />} />
+        <Route path="/chat2" element={<Navigate to="/chat" replace />} />
+        
+        {/* Redirect any unknown routes to home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

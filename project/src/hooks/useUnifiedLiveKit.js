@@ -1,15 +1,23 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Room, RoomEvent, Track } from 'livekit-client';
 
-export const useLiveKit = () => {
+export const useUnifiedLiveKit = () => {
+  // Connection state
   const [room, setRoom] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
   const [error, setError] = useState(null);
-  const [transcription, setTranscription] = useState('');
+  
+  // Audio/Mode state
+  const [audioEnabled, setAudioEnabled] = useState(false); // Default OFF (text mode)
+  const [isMuted, setIsMuted] = useState(false);
+  
+  // Communication state
+  const [agentMessage, setAgentMessage] = useState('');
   const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
+  
+  // Refs for cleanup and state management
   const roomRef = useRef(null);
   const connectionInProgressRef = useRef(false);
   const mountedRef = useRef(true);
@@ -30,11 +38,122 @@ export const useLiveKit = () => {
     }
   }, []);
 
+  // Helper function to find agent participant
+  const findAgentIdentity = useCallback(() => {
+    if (!roomRef.current) return null;
+    
+    // Find any participant that's not the local participant (should be the agent)
+    const participants = Array.from(roomRef.current.remoteParticipants.values());
+    return participants.length > 0 ? participants[0].identity : null;
+  }, []);
+
+  // RPC: Toggle Audio Mode
+  const toggleAudio = useCallback(async () => {
+    if (!roomRef.current || !isConnected) {
+      setError('Not connected to room');
+      return;
+    }
+
+    try {
+      const agentIdentity = findAgentIdentity();
+      if (!agentIdentity) {
+        setError('Agent not found in room');
+        return;
+      }
+
+      const newAudioState = !audioEnabled;
+      
+      // Call RPC method on agent to toggle audio
+      const result = await roomRef.current.localParticipant.performRpc({
+        destinationIdentity: agentIdentity,
+        method: 'toggle_audio',
+        payload: newAudioState.toString(),
+        timeout: 5000
+      });
+
+      console.log('Audio toggle result:', result);
+      
+      // Update local state
+      setAudioEnabled(newAudioState);
+      
+      // Handle microphone if enabling audio
+      if (newAudioState) {
+        try {
+          await roomRef.current.localParticipant.setMicrophoneEnabled(true);
+          setIsMuted(false);
+        } catch (micError) {
+          console.warn('Failed to enable microphone:', micError);
+          setError('Microphone access failed');
+        }
+      } else {
+        // Disable microphone when switching to text mode
+        await roomRef.current.localParticipant.setMicrophoneEnabled(false);
+        setIsMuted(true);
+      }
+
+    } catch (err) {
+      console.error('Failed to toggle audio:', err);
+      setError(`Failed to toggle audio: ${err.message}`);
+    }
+  }, [audioEnabled, isConnected, findAgentIdentity]);
+
+  // RPC: Send Text Message (when in text mode)
+  const sendTextMessage = useCallback(async (message) => {
+    if (!roomRef.current || !isConnected || !message.trim()) {
+      return;
+    }
+
+    try {
+      const agentIdentity = findAgentIdentity();
+      if (!agentIdentity) {
+        setError('Agent not found in room');
+        return;
+      }
+
+      await roomRef.current.localParticipant.performRpc({
+        destinationIdentity: agentIdentity,
+        method: 'send_text',
+        payload: message,
+        timeout: 30000
+      });
+      
+      console.log('Text message sent successfully');
+    } catch (err) {
+      console.error('Failed to send text message:', err);
+      setError(`Failed to send message: ${err.message}`);
+    }
+  }, [isConnected, findAgentIdentity]);
+
+  // RPC: Get Agent Status
+  const getAgentStatus = useCallback(async () => {
+    if (!roomRef.current || !isConnected) {
+      return null;
+    }
+
+    try {
+      const agentIdentity = findAgentIdentity();
+      if (!agentIdentity) {
+        return null;
+      }
+
+      const result = await roomRef.current.localParticipant.performRpc({
+        destinationIdentity: agentIdentity,
+        method: 'get_status',
+        timeout: 5000
+      });
+      
+      return JSON.parse(result);
+    } catch (err) {
+      console.warn('Failed to get agent status:', err);
+      return null;
+    }
+  }, [isConnected, findAgentIdentity]);
+
   // Connect to LiveKit room
   const connect = useCallback(async () => {
-    // Guard against multiple simultaneous connections
-    if (connectionInProgressRef.current || roomRef.current?.state === 'connected') {
-      console.log('Connection already in progress or already connected, skipping...');
+    // Enhanced guard against multiple simultaneous connections
+    if (connectionInProgressRef.current || roomRef.current?.state === 'connected' || roomRef.current?.state === 'connecting') {
+      console.log('Connection already in progress or already connected, state:', roomRef.current?.state);
       return;
     }
 
@@ -43,29 +162,36 @@ export const useLiveKit = () => {
       setIsConnecting(true);
       setError(null);
 
-      // Check if component is still mounted
-      if (!mountedRef.current) return;
+      if (!mountedRef.current) {
+        connectionInProgressRef.current = false;
+        return;
+      }
 
       // Get token from backend
       const { token, url, identity } = await fetchToken();
       identityRef.current = identity;
 
-      // Check again if component is still mounted after async operation
       if (!mountedRef.current) return;
 
-      // Create new room instance
+      // Create new room instance with optimized config
       const newRoom = new Room({
         adaptiveStream: true,
         dynacast: true,
+        reconnectPolicy: {
+          maxRetries: 5,
+          initialDelay: 1000,
+          maxDelay: 5000
+        },
         publishDefaults: {
-          microphone: true,
+          microphone: false,  // Start disabled
+          camera: false
         }
       });
 
       // Setup event listeners
       newRoom
         .on(RoomEvent.Connected, () => {
-          console.log('Connected to room');
+          console.log('Connected to LiveKit room');
           if (mountedRef.current) {
             setIsConnected(true);
             setIsConnecting(false);
@@ -86,7 +212,7 @@ export const useLiveKit = () => {
           setIsConnecting(true);
         })
         .on(RoomEvent.Reconnected, () => {
-          console.log('Reconnected');
+          console.log('Reconnected to room');
           setIsConnecting(false);
           setError(null);
         })
@@ -99,11 +225,11 @@ export const useLiveKit = () => {
             document.body.appendChild(audioElement);
           }
         })
-        .on(RoomEvent.LocalTrackPublished, (publication, participant) => {
-          console.log('Local track published:', publication.source);
-        })
         .on(RoomEvent.ActiveSpeakersChanged, (speakers) => {
-          if (!mountedRef.current) return;
+          if (!mountedRef.current) {
+            connectionInProgressRef.current = false;
+            return;
+          }
           
           let userSpeaking = false;
           let agentSpeaking = false;
@@ -119,36 +245,34 @@ export const useLiveKit = () => {
           setIsUserSpeaking(userSpeaking);
           setIsAgentSpeaking(agentSpeaking);
           
-          // Clear any existing timeout if agent starts speaking
+          // Clear timeout if agent starts speaking
           if (agentSpeaking && agentSpeakingTimeoutRef.current) {
             clearTimeout(agentSpeakingTimeoutRef.current);
             agentSpeakingTimeoutRef.current = null;
           }
-          
-          console.log('Speaker states updated:', { userSpeaking, agentSpeaking });
         })
         .on(RoomEvent.MediaDevicesError, (error) => {
           console.error('Media device error:', error);
           setError(`Media error: ${error.message}`);
         });
 
-      // Setup text stream handlers for transcription
+      // Register text stream handler for transcriptions
       newRoom.registerTextStreamHandler('lk.transcription', async (reader, participantInfo) => {
         try {
           const message = await reader.readAll();
           console.log('Transcription received:', message);
-          setTranscription(message);
+          setAgentMessage(message);
           
           // Use transcription as fallback agent speaking detection
           if (participantInfo.identity !== identityRef.current && mountedRef.current) {
             setIsAgentSpeaking(true);
             
-            // Clear any existing timeout
+            // Clear existing timeout
             if (agentSpeakingTimeoutRef.current) {
               clearTimeout(agentSpeakingTimeoutRef.current);
             }
             
-            // Set timeout to stop agent speaking after 2 seconds of no new transcription
+            // Set timeout to stop agent speaking after no new transcription
             agentSpeakingTimeoutRef.current = setTimeout(() => {
               if (mountedRef.current) {
                 setIsAgentSpeaking(false);
@@ -160,20 +284,25 @@ export const useLiveKit = () => {
         }
       });
 
+      // Register text stream handler for chat messages
+      newRoom.registerTextStreamHandler('lk.chat', async (reader, participantInfo) => {
+        try {
+          const message = await reader.readAll();
+          console.log('Chat message received:', message);
+          // Chat messages are handled by the agent, we just log them here
+        } catch (error) {
+          console.error('Error handling chat message:', error);
+        }
+      });
+
       // Connect to room
       await newRoom.connect(url, token);
 
-      // Enable microphone
-      try {
-        await newRoom.localParticipant.setMicrophoneEnabled(true);
-        setIsMuted(false);
-      } catch (micError) {
-        console.warn('Failed to enable microphone:', micError);
-        setError('Microphone access failed');
-      }
-
+      // Set room references
       setRoom(newRoom);
       roomRef.current = newRoom;
+
+      console.log('LiveKit room connection established');
 
     } catch (err) {
       console.error('Connection failed:', err);
@@ -182,6 +311,9 @@ export const useLiveKit = () => {
         setError(err.message);
         setIsConnecting(false);
       }
+    } finally {
+      // Always reset connection flag
+      connectionInProgressRef.current = false;
     }
   }, [fetchToken]);
 
@@ -189,7 +321,7 @@ export const useLiveKit = () => {
   const disconnect = useCallback(() => {
     connectionInProgressRef.current = false;
     
-    // Clear any timeouts
+    // Clear timeouts
     if (agentSpeakingTimeoutRef.current) {
       clearTimeout(agentSpeakingTimeoutRef.current);
       agentSpeakingTimeoutRef.current = null;
@@ -204,16 +336,17 @@ export const useLiveKit = () => {
     if (mountedRef.current) {
       setIsConnected(false);
       setIsConnecting(false);
-      setTranscription('');
+      setAgentMessage('');
       setError(null);
       setIsAgentSpeaking(false);
       setIsUserSpeaking(false);
+      setAudioEnabled(false);
     }
   }, []);
 
-  // Toggle microphone
+  // Toggle microphone (when in voice mode)
   const toggleMicrophone = useCallback(async () => {
-    if (!roomRef.current) return;
+    if (!roomRef.current || !audioEnabled) return;
 
     try {
       const currentlyEnabled = roomRef.current.localParticipant.isMicrophoneEnabled;
@@ -223,7 +356,7 @@ export const useLiveKit = () => {
       console.error('Failed to toggle microphone:', error);
       setError('Failed to toggle microphone');
     }
-  }, []);
+  }, [audioEnabled]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -253,59 +386,24 @@ export const useLiveKit = () => {
     isConnecting,
     error,
     
-    // Audio controls
+    // Audio controls and state
+    audioEnabled,
+    toggleAudio,
     toggleMicrophone,
     isMuted,
+    
+    // Communication methods
+    sendTextMessage,
+    getAgentStatus,
     
     // Speaking states
     isAgentSpeaking,
     isUserSpeaking,
     
-    // Data
-    transcription,
-    room
-  };
-};
-
-// Standalone hook for fetching connection data
-export const useLiveKitConnection = () => {
-  const [connectionData, setConnectionData] = useState({
-    token: null,
-    serverUrl: null,
-    error: null,
-    isLoading: false
-  });
-
-  const fetchConnectionData = useCallback(async () => {
-    setConnectionData(prev => ({ ...prev, isLoading: true, error: null }));
+    // Messages
+    agentMessage,
     
-    try {
-      const response = await fetch('/get-token');
-      if (!response.ok) {
-        throw new Error('Failed to get LiveKit token');
-      }
-
-      const { token, url } = await response.json();
-      setConnectionData({
-        token,
-        serverUrl: url,
-        error: null,
-        isLoading: false
-      });
-
-      return { token, url };
-    } catch (err) {
-      setConnectionData(prev => ({
-        ...prev,
-        error: err.message,
-        isLoading: false
-      }));
-      throw err;
-    }
-  }, []);
-
-  return {
-    ...connectionData,
-    fetchConnectionData
+    // Room reference
+    room
   };
 };
