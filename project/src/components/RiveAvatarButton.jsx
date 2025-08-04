@@ -1,16 +1,41 @@
-import React, { useEffect } from "react";
-import { useRive } from "../hooks/useRive";
 
-const RiveAvatarButton = ({ onClick, className, isAgentSpeaking = false, isUserSpeaking = false, mode = 'chat' }) => {
+
+import React, { useEffect, useState } from "react";
+import { useRive } from "../hooks/useRive";
+import { useNavigate } from "react-router-dom";
+
+const RiveAvatarButton = ({
+  className,
+  isAgentSpeaking = false,
+  isUserSpeaking = false,
+  mode = "chat",
+}) => {
   const { canvasRef, setAnimationState, isLoaded, error } = useRive();
+  const [isHidden, setIsHidden] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsHidden(false);
+    }, 150);
+  }, []);
+
+  const handleClick = () => {
+    setIsHidden(true);
+    // Give a small delay for the animation to play before navigating
+    setTimeout(() => {
+      navigate("/chat1");
+    }, 400); // Adjust delay as needed, should be less than or equal to CSS transition duration
+  };
 
   return (
-    <button onClick={onClick} className={className}>
+    <button
+      onClick={handleClick}
+      className={className}
+      style={isHidden ? { transform: "translateX(10rem)" } : {}}
+    >
       <div className="relative w-full h-full flex items-center justify-center">
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full rounded-full"
-        />
+        <canvas ref={canvasRef} className="w-full h-full rounded-full" />
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-400 to-pink-500 rounded-full">
             <div className="text-white text-center">
