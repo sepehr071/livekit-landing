@@ -1,0 +1,9 @@
+{
+  "product-a": {
+    "name": "Product A",
+    "description": "Blue product with advanced features",
+    "image": "blue.jpg",
+    "link": "product-a.txt",
+    "category": "electronics"
+  }
+}

@@ -17,6 +17,10 @@ export const useUnifiedLiveKit = () => {
   const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   
+  // Product display state
+  const [productImageData, setProductImageData] = useState(null);
+  const [productLinkData, setProductLinkData] = useState(null);
+  
   // Refs for cleanup and state management
   const roomRef = useRef(null);
   const connectionInProgressRef = useRef(false);
@@ -295,6 +299,58 @@ export const useUnifiedLiveKit = () => {
         }
       });
 
+      // Register RPC handlers for product display
+      newRoom.localParticipant.registerRpcMethod(
+        'display_product_image',
+        async (data) => {
+          try {
+            const imageData = JSON.parse(data.payload);
+            console.log('Received product image display request:', imageData);
+            if (mountedRef.current) {
+              setProductImageData(imageData);
+            }
+            return 'image_displayed';
+          } catch (error) {
+            console.error('Error handling product image display:', error);
+            return 'error';
+          }
+        }
+      );
+
+      newRoom.localParticipant.registerRpcMethod(
+        'display_product_link',
+        async (data) => {
+          try {
+            const linkData = JSON.parse(data.payload);
+            console.log('Received product link display request:', linkData);
+            if (mountedRef.current) {
+              setProductLinkData(linkData);
+            }
+            return 'link_displayed';
+          } catch (error) {
+            console.error('Error handling product link display:', error);
+            return 'error';
+          }
+        }
+      );
+
+      newRoom.localParticipant.registerRpcMethod(
+        'dismiss_overlays',
+        async (data) => {
+          try {
+            console.log('Received dismiss overlays request');
+            if (mountedRef.current) {
+              setProductImageData(null);
+              setProductLinkData(null);
+            }
+            return 'overlays_dismissed';
+          } catch (error) {
+            console.error('Error handling dismiss overlays:', error);
+            return 'error';
+          }
+        }
+      );
+
       // Connect to room
       await newRoom.connect(url, token);
 
@@ -341,6 +397,8 @@ export const useUnifiedLiveKit = () => {
       setIsAgentSpeaking(false);
       setIsUserSpeaking(false);
       setAudioEnabled(false);
+      setProductImageData(null);
+      setProductLinkData(null);
     }
   }, []);
 
@@ -357,6 +415,12 @@ export const useUnifiedLiveKit = () => {
       setError('Failed to toggle microphone');
     }
   }, [audioEnabled]);
+
+  // Dismiss product overlays manually
+  const dismissProductOverlays = useCallback(() => {
+    setProductImageData(null);
+    setProductLinkData(null);
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -402,6 +466,11 @@ export const useUnifiedLiveKit = () => {
     
     // Messages
     agentMessage,
+    
+    // Product display state and controls
+    productImageData,
+    productLinkData,
+    dismissProductOverlays,
     
     // Room reference
     room

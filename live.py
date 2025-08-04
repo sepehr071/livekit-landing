@@ -3,7 +3,7 @@ import json
 import logging
 from dotenv import load_dotenv
 from livekit import rtc
-from livekit.agents import Agent, AgentSession, JobContext, RoomIO, WorkerOptions, cli
+from livekit.agents import Agent, AgentSession, JobContext, RoomIO, WorkerOptions, cli, function_tool, RunContext
 from livekit.plugins import openai
 
 # Configure logging
@@ -34,6 +34,65 @@ def load_rd_leuchten_data():
 
 # Load company data
 rd_leuchten_data = load_rd_leuchten_data()
+
+# Load product catalog
+def load_product_catalog():
+    """Load product catalog from JSON file"""
+    try:
+        if os.path.exists('data/products.json'):
+            with open('data/products.json', 'r', encoding='utf-8') as file:
+                return json.load(file)
+        return {}
+    except Exception as e:
+        logger.error(f"Error loading product catalog: {str(e)}")
+        return {}
+
+product_catalog = load_product_catalog()
+
+# Helper function for flexible product name lookup
+def find_product_by_name(input_name):
+    """
+    Flexible product lookup that supports various naming formats.
+    
+    Args:
+        input_name: User input like "a", "A", "product-a", etc.
+    
+    Returns:
+        tuple: (product_key, product_data) if found, (None, None) if not found
+    """
+    if not input_name:
+        return None, None
+    
+    # Normalize input: lowercase and strip whitespace
+    normalized_input = input_name.lower().strip()
+    
+    # Strategy 1: Try exact match first
+    if normalized_input in product_catalog:
+        return normalized_input, product_catalog[normalized_input]
+    
+    # Strategy 2: Try with "product-" prefix
+    prefixed_name = f"product-{normalized_input}"
+    if prefixed_name in product_catalog:
+        return prefixed_name, product_catalog[prefixed_name]
+    
+    # Strategy 3: Try removing "product-" prefix if present
+    if normalized_input.startswith("product-"):
+        short_name = normalized_input.replace("product-", "")
+        if short_name in product_catalog:
+            return short_name, product_catalog[short_name]
+    
+    # Strategy 4: Case-insensitive search through all keys
+    for key in product_catalog.keys():
+        if key.lower() == normalized_input:
+            return key, product_catalog[key]
+        # Also check if removing "product-" from key matches input
+        if key.lower().startswith("product-"):
+            short_key = key.lower().replace("product-", "")
+            if short_key == normalized_input:
+                return key, product_catalog[key]
+    
+    # Not found
+    return None, None
 
 # Enhanced German system instructions for unified RD Leuchten assistant
 
@@ -110,6 +169,203 @@ WICHTIGE REGELN:
 class EnhancedRDLeuchtenAgent(Agent):
     def __init__(self) -> None:
         super().__init__(instructions=SYSTEM_INSTRUCTIONS)
+        self._room = None
+    
+    def set_room(self, room):
+        """Set the room reference for RPC calls"""
+        self._room = room
+    
+    @function_tool()
+    async def show_product_image(
+        self,
+        context: RunContext,
+        product_name: str
+    ) -> str:
+        """Display a product image in the frontend with smooth overlay transition.
+        
+        Args:
+            product_name: Product identifier (supports: 'a', 'A', 'product-a', 'Product A', etc.)
+            
+        Examples:
+            - User: "show me product a" -> product_name: "a"
+            - User: "zeig mir Produkt A" -> product_name: "A"
+            - User: "display product-a" -> product_name: "product-a"
+        """
+        try:
+            logger.info(f"show_product_image called with product_name: '{product_name}'")
+            
+            # Use flexible product lookup
+            product_key, product = find_product_by_name(product_name)
+            if not product_key or not product:
+                available_products = list(product_catalog.keys())
+                logger.warning(f"Product '{product_name}' not found. Available: {available_products}")
+                return f"Product '{product_name}' not found in catalog. Available products: {', '.join(available_products)}"
+            
+            logger.info(f"Found product: '{product_key}' -> {product.get('name', 'Unknown')}")
+            image_path = f"data/{product['image']}"
+            
+            # Check if image file exists
+            if not os.path.exists(image_path):
+                logger.error(f"Image file not found: {image_path}")
+                return f"Image file '{product['image']}' not found for product '{product_name}'"
+            
+            # Create image URL instead of base64 encoding (eliminates payload size issues)
+            image_url = f"/data/{product['image']}"
+            
+            # Prepare payload for RPC (much smaller payload without base64 data)
+            payload = {
+                "type": "image",
+                "product_name": product_key,  # Use the actual key found
+                "product_title": product['name'],
+                "description": product.get('description', ''),
+                "image_url": image_url,  # Send URL instead of base64 data
+                "category": product.get('category', '')
+            }
+            
+            logger.info(f"Sending RPC display_product_image for {product['name']}")
+            
+            # Send RPC to frontend
+            if not self._room:
+                logger.error("Room not available for RPC communication")
+                return "Room not available for RPC communication"
+            
+            participants = list(self._room.remote_participants.values())
+            if participants:
+                participant = participants[0]  # Get first participant (user)
+                
+                response = await self._room.local_participant.perform_rpc(
+                    destination_identity=participant.identity,
+                    method="display_product_image",
+                    payload=json.dumps(payload),
+                    response_timeout=10.0  # Increased timeout
+                )
+                
+                logger.info(f"RPC response: {response}")
+                return f"Showing image for {product['name']} on your screen."
+            else:
+                logger.warning("No participants found for RPC")
+                return "No participants found to display image to."
+                
+        except Exception as e:
+            logger.error(f"Error showing product image: {str(e)}")
+            return f"Error displaying image: {str(e)}"
+    
+    @function_tool()
+    async def show_product_link(
+        self,
+        context: RunContext,
+        product_name: str
+    ) -> str:
+        """Display a product link in the frontend with a styled link box.
+        
+        Args:
+            product_name: Product identifier (supports: 'a', 'A', 'product-a', 'Product A', etc.)
+            
+        Examples:
+            - User: "show me product a link" -> product_name: "a"
+            - User: "zeig mir Produkt A Link" -> product_name: "A"
+            - User: "get product-a url" -> product_name: "product-a"
+        """
+        try:
+            logger.info(f"show_product_link called with product_name: '{product_name}'")
+            
+            # Use flexible product lookup
+            product_key, product = find_product_by_name(product_name)
+            if not product_key or not product:
+                available_products = list(product_catalog.keys())
+                logger.warning(f"Product '{product_name}' not found. Available: {available_products}")
+                return f"Product '{product_name}' not found in catalog. Available products: {', '.join(available_products)}"
+            
+            logger.info(f"Found product: '{product_key}' -> {product.get('name', 'Unknown')}")
+            link_path = f"data/{product['link']}"
+            
+            # Check if link file exists
+            if not os.path.exists(link_path):
+                logger.error(f"Link file not found: {link_path}")
+                return f"Link file '{product['link']}' not found for product '{product_name}'"
+            
+            # Read link content
+            with open(link_path, 'r', encoding='utf-8') as link_file:
+                link_url = link_file.read().strip()
+            
+            # Prepare payload for RPC
+            payload = {
+                "type": "link",
+                "product_name": product_key,  # Use the actual key found
+                "product_title": product['name'],
+                "description": product.get('description', ''),
+                "link_url": link_url,
+                "category": product.get('category', '')
+            }
+            
+            logger.info(f"Sending RPC display_product_link for {product['name']}")
+            
+            # Send RPC to frontend
+            if not self._room:
+                logger.error("Room not available for RPC communication")
+                return "Room not available for RPC communication"
+            
+            participants = list(self._room.remote_participants.values())
+            if participants:
+                participant = participants[0]  # Get first participant (user)
+                
+                response = await self._room.local_participant.perform_rpc(
+                    destination_identity=participant.identity,
+                    method="display_product_link",
+                    payload=json.dumps(payload),
+                    response_timeout=10.0  # Increased timeout
+                )
+                
+                logger.info(f"RPC response: {response}")
+                return f"Showing link for {product['name']} on your screen."
+            else:
+                logger.warning("No participants found for RPC")
+                return "No participants found to display link to."
+                
+        except Exception as e:
+            logger.error(f"Error showing product link: {str(e)}")
+            return f"Error displaying link: {str(e)}"
+    
+    @function_tool()
+    async def dismiss_overlays(
+        self,
+        context: RunContext
+    ) -> str:
+        """Dismiss all product overlays (images and links) from the frontend.
+        
+        Examples:
+            - User: "close overlay" -> dismiss all overlays
+            - User: "hide products" -> dismiss all overlays
+            - User: "dismiss" -> dismiss all overlays
+        """
+        try:
+            logger.info("dismiss_overlays called")
+            
+            # Send RPC to frontend
+            if not self._room:
+                logger.error("Room not available for RPC communication")
+                return "Room not available for RPC communication"
+            
+            participants = list(self._room.remote_participants.values())
+            if participants:
+                participant = participants[0]  # Get first participant (user)
+                
+                response = await self._room.local_participant.perform_rpc(
+                    destination_identity=participant.identity,
+                    method="dismiss_overlays",
+                    payload="",
+                    response_timeout=10.0  # Increased timeout
+                )
+                
+                logger.info(f"RPC response: {response}")
+                return "All overlays have been dismissed."
+            else:
+                logger.warning("No participants found for RPC")
+                return "No participants found to send dismiss command to."
+                
+        except Exception as e:
+            logger.error(f"Error dismissing overlays: {str(e)}")
+            return f"Error dismissing overlays: {str(e)}"
 
 
 async def entrypoint(ctx: JobContext):
@@ -123,7 +379,9 @@ async def entrypoint(ctx: JobContext):
                 voice="shimmer",
                 model="gpt-4o-realtime-preview-2025-06-03",
                 temperature=0.7,
-                modalities=["text", "audio"]  # Support both modalities
+                modalities=["text", "audio"],
+                tool_choice="auto"
+                # Support both modalities
             ),
             preemptive_generation=False,  # Disable to reduce race conditions
             use_tts_aligned_transcript=True  # Better transcription sync
@@ -140,9 +398,13 @@ async def entrypoint(ctx: JobContext):
         
         logger.info("Session created, starting with agent...")
         
+        # Create and configure the agent
+        agent = EnhancedRDLeuchtenAgent()
+        agent.set_room(ctx.room)
+        
         # Start the agent session (this handles connection automatically)
         await session.start(
-            agent=EnhancedRDLeuchtenAgent(),
+            agent=agent,
             room=ctx.room
         )
         

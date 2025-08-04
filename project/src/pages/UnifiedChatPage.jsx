@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mic, MicOff, X, MessageSquare, Volume2, Loader2 } from 'lucide-react';
 import ChatAvatar from '../components/ChatAvatar';
+import ProductImageOverlay from '../components/ProductImageOverlay';
+import ProductLinkBox from '../components/ProductLinkBox';
 import { useUnifiedLiveKit } from '../hooks/useUnifiedLiveKit';
 
 const UnifiedChatPage = () => {
@@ -23,7 +25,10 @@ const UnifiedChatPage = () => {
     agentMessage,
     isAgentSpeaking,
     isUserSpeaking,
-    error
+    error,
+    productImageData,
+    productLinkData,
+    dismissProductOverlays
   } = useUnifiedLiveKit();
   
   // Auto-connect and show widget on mount
@@ -95,11 +100,18 @@ const UnifiedChatPage = () => {
 
   const currentAgentMessage = agentMessage || defaultMessage;
 
+  // Check if any overlay is active for fade effect
+  const hasActiveOverlay = productImageData || productLinkData;
+
   return (
-    <div
-      style={isHidden ? { transform: "translateX(30rem)" } : {}}
-      className="fixed bg-gradient-to-b from-[#fcf4e7]/30 to-gray-300/30 backdrop-blur-md bottom-4 right-4 w-96 h-[800px] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%]"
-    >
+    <>
+      {/* Main Chat Widget */}
+      <div
+        style={isHidden ? { transform: "translateX(30rem)" } : {}}
+        className={`fixed bg-gradient-to-b from-[#fcf4e7]/30 to-gray-300/30 backdrop-blur-md bottom-4 right-4 w-96 h-[800px] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%] transition-all ${
+          hasActiveOverlay ? 'opacity-30 blur-sm' : 'opacity-100 blur-0'
+        }`}
+      >
       {/* Header with mode indicators and close button */}
       <div className="flex justify-between items-center p-4 bg-gradient-to-br to-[#fcf4e7] from-[#dbbe9b] drop-shadow-md">
         {/* Mode Indicators */}
@@ -246,7 +258,19 @@ const UnifiedChatPage = () => {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+
+      {/* Product Display Overlays */}
+      <ProductImageOverlay
+        productData={productImageData}
+        onClose={dismissProductOverlays}
+      />
+      
+      <ProductLinkBox
+        productData={productLinkData}
+        onClose={dismissProductOverlays}
+      />
+    </>
   );
 };
 

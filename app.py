@@ -1,7 +1,7 @@
 import os
 import uuid
 from datetime import datetime, timedelta
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 from livekit import api
 import logging
@@ -66,6 +66,29 @@ def get_token():
 
 # Note: All chat functionality is now handled by the LiveKit agent
 # via RPC methods and text streams. No separate endpoints needed.
+
+@app.route('/data/<path:filename>', methods=['GET'])
+def serve_data_file(filename):
+    """Serve files from the data directory (images, documents, etc.)."""
+    try:
+        # Security: Only allow files from the data directory
+        data_dir = os.path.abspath('data')
+        if not os.path.exists(data_dir):
+            logger.error("Data directory not found")
+            return jsonify({'error': 'Data directory not found'}), 404
+            
+        # Check if file exists and is within data directory
+        file_path = os.path.join(data_dir, filename)
+        if not os.path.exists(file_path) or not file_path.startswith(data_dir):
+            logger.warning(f"File not found or access denied: {filename}")
+            return jsonify({'error': 'File not found'}), 404
+            
+        logger.info(f"Serving data file: {filename}")
+        return send_from_directory(data_dir, filename)
+        
+    except Exception as e:
+        logger.error(f"Error serving data file {filename}: {str(e)}")
+        return jsonify({'error': 'Failed to serve file'}), 500
 
 @app.route('/health', methods=['GET'])
 def health_check():
