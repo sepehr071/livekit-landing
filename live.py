@@ -209,8 +209,8 @@ class EnhancedRDLeuchtenAgent(Agent):
                 logger.error(f"Image file not found: {image_path}")
                 return f"Image file '{product['image']}' not found for product '{product_name}'"
             
-            # Create image URL instead of base64 encoding (eliminates payload size issues)
-            image_url = f"/data/{product['image']}"
+            # Create absolute image URL pointing to Flask backend (eliminates payload size issues)
+            image_url = f"http://localhost:5050/data/{product['image']}"
             
             # Prepare payload for RPC (much smaller payload without base64 data)
             payload = {
@@ -284,9 +284,13 @@ class EnhancedRDLeuchtenAgent(Agent):
                 logger.error(f"Link file not found: {link_path}")
                 return f"Link file '{product['link']}' not found for product '{product_name}'"
             
-            # Read link content
+            # Read link content and ensure proper URL format
             with open(link_path, 'r', encoding='utf-8') as link_file:
                 link_url = link_file.read().strip()
+            
+            # Ensure URL has proper protocol
+            if link_url and not link_url.startswith(('http://', 'https://', 'mailto:', 'tel:')):
+                link_url = f"https://{link_url}"
             
             # Prepare payload for RPC
             payload = {
@@ -374,14 +378,15 @@ async def entrypoint(ctx: JobContext):
     
     try:
         # Create AgentSession with OpenAI Realtime Model
+        # Note: APIConnectOptions not available in current LiveKit version
         session = AgentSession(
             llm=openai.realtime.RealtimeModel(
                 voice="shimmer",
                 model="gpt-4o-realtime-preview-2025-06-03",
                 temperature=0.7,
                 modalities=["text", "audio"],
-                tool_choice="auto"
-                # Support both modalities
+                tool_choice="auto",
+                max_session_duration=1800.0  # 30 minutes instead of default 20 minutes
             ),
             preemptive_generation=False,  # Disable to reduce race conditions
             use_tts_aligned_transcript=True  # Better transcription sync
@@ -413,7 +418,7 @@ async def entrypoint(ctx: JobContext):
         await asyncio.sleep(2)
         
         logger.info("Agent session started, registering RPC methods...")
-    
+        
         # RPC Method: Toggle Audio Mode
         @ctx.room.local_participant.register_rpc_method("toggle_audio")
         async def on_toggle_audio(data: rtc.RpcInvocationData) -> str:
@@ -428,25 +433,32 @@ async def entrypoint(ctx: JobContext):
                 mode = "voice" if enabled else "text"
                 logger.info(f"Audio toggled by {data.caller_identity}: {mode} mode")
                 
-                # Generate appropriate confirmation message with timeout protection
-                try:
-                    if enabled:
-                        await asyncio.wait_for(
-                            session.generate_reply(
-                                instructions="Bestätige freundlich auf Deutsch dass der Sprachmodus jetzt aktiviert ist und du sowohl sprechen als auch hören kannst. Halte es kurz."
-                            ),
-                            timeout=15.0
-                        )
-                    else:
-                        await asyncio.wait_for(
-                            session.generate_reply(
-                                instructions="Bestätige freundlich auf Deutsch dass du jetzt im Textmodus bist und weiterhin per Text kommunizierst. Halte es kurz."
-                            ),
-                            timeout=15.0
-                        )
-                except asyncio.TimeoutError:
-                    logger.warning("Audio toggle confirmation timed out")
+                # Generate confirmation message asynchronously (non-blocking)
+                async def send_confirmation():
+                    try:
+                        if enabled:
+                            await asyncio.wait_for(
+                                session.generate_reply(
+                                    instructions="Bestätige freundlich auf Deutsch dass der Sprachmodus jetzt aktiviert ist und du sowohl sprechen als auch hören kannst. Halte es kurz."
+                                ),
+                                timeout=15.0
+                            )
+                        else:
+                            await asyncio.wait_for(
+                                session.generate_reply(
+                                    instructions="Bestätige freundlich auf Deutsch dass du jetzt im Textmodus bist und weiterhin per Text kommunizierst. Halte es kurz."
+                                ),
+                                timeout=15.0
+                            )
+                    except asyncio.TimeoutError:
+                        logger.warning("Audio toggle confirmation timed out")
+                    except Exception as e:
+                        logger.error(f"Error generating audio toggle confirmation: {str(e)}")
                 
+                # Start confirmation task in background (don't await it)
+                asyncio.create_task(send_confirmation())
+                
+                # Return immediately to prevent frontend timeout
                 return f"audio_{mode}"
             except Exception as e:
                 logger.error(f"Error toggling audio: {str(e)}")
@@ -513,6 +525,18 @@ async def entrypoint(ctx: JobContext):
             except Exception as e:
                 logger.error(f"Error clearing conversation: {str(e)}")
                 return f"error_{str(e)}"
+
+        logger.info("RPC methods registered successfully")
+        
+        # Send ready signal to frontend via data channel
+        try:
+            await ctx.room.local_participant.publish_data(
+                payload=json.dumps({"type": "agent_ready", "timestamp": asyncio.get_event_loop().time()}),
+                reliable=True
+            )
+            logger.info("Agent ready signal sent to frontend")
+        except Exception as e:
+            logger.warning(f"Failed to send agent ready signal: {str(e)}")
 
         # Don't send initial greeting - let agent respond to first user message
         # This prevents the timeout errors we were seeing

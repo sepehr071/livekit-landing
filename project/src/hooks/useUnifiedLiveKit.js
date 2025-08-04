@@ -17,6 +17,9 @@ export const useUnifiedLiveKit = () => {
   const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   
+  // Agent readiness state
+  const [isAgentReady, setIsAgentReady] = useState(false);
+  
   // Product display state
   const [productImageData, setProductImageData] = useState(null);
   const [productLinkData, setProductLinkData] = useState(null);
@@ -27,6 +30,7 @@ export const useUnifiedLiveKit = () => {
   const mountedRef = useRef(true);
   const identityRef = useRef(null);
   const agentSpeakingTimeoutRef = useRef(null);
+  const agentReadyTimeoutRef = useRef(null);
 
   // Fetch LiveKit token from Flask backend
   const fetchToken = useCallback(async () => {
@@ -51,6 +55,60 @@ export const useUnifiedLiveKit = () => {
     return participants.length > 0 ? participants[0].identity : null;
   }, []);
 
+  // Helper function for RPC calls with agent readiness check and retry
+  const performAgentRpc = useCallback(async (method, payload, options = {}) => {
+    const { timeout = 10000, maxRetries = 3, retryDelay = 1000 } = options;
+    
+    if (!roomRef.current || !isConnected) {
+      throw new Error('Not connected to room');
+    }
+
+    const agentIdentity = findAgentIdentity();
+    if (!agentIdentity) {
+      throw new Error('Agent not found in room');
+    }
+
+    // Wait for agent to be ready (up to 10 seconds)
+    if (!isAgentReady) {
+      console.log('Waiting for agent to be ready...');
+      await new Promise((resolve, reject) => {
+        const checkReady = () => {
+          if (isAgentReady) {
+            resolve();
+          } else {
+            setTimeout(checkReady, 500);
+          }
+        };
+        
+        // Timeout after 10 seconds
+        setTimeout(() => reject(new Error('Agent not ready timeout')), 10000);
+        checkReady();
+      });
+    }
+
+    // Retry logic for RPC calls
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await roomRef.current.localParticipant.performRpc({
+          destinationIdentity: agentIdentity,
+          method,
+          payload,
+          timeout
+        });
+        return result;
+      } catch (error) {
+        console.warn(`RPC ${method} attempt ${attempt}/${maxRetries} failed:`, error.message);
+        
+        if (attempt === maxRetries) {
+          throw error;
+        }
+        
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+      }
+    }
+  }, [roomRef, isConnected, findAgentIdentity, isAgentReady]);
+
   // RPC: Toggle Audio Mode
   const toggleAudio = useCallback(async () => {
     if (!roomRef.current || !isConnected) {
@@ -59,20 +117,13 @@ export const useUnifiedLiveKit = () => {
     }
 
     try {
-      const agentIdentity = findAgentIdentity();
-      if (!agentIdentity) {
-        setError('Agent not found in room');
-        return;
-      }
-
       const newAudioState = !audioEnabled;
       
-      // Call RPC method on agent to toggle audio
-      const result = await roomRef.current.localParticipant.performRpc({
-        destinationIdentity: agentIdentity,
-        method: 'toggle_audio',
-        payload: newAudioState.toString(),
-        timeout: 5000
+      // Call RPC method on agent to toggle audio with retry logic
+      const result = await performAgentRpc('toggle_audio', newAudioState.toString(), {
+        timeout: 15000,
+        maxRetries: 3,
+        retryDelay: 1000
       });
 
       console.log('Audio toggle result:', result);
@@ -99,7 +150,7 @@ export const useUnifiedLiveKit = () => {
       console.error('Failed to toggle audio:', err);
       setError(`Failed to toggle audio: ${err.message}`);
     }
-  }, [audioEnabled, isConnected, findAgentIdentity]);
+  }, [audioEnabled, isConnected, performAgentRpc]);
 
   // RPC: Send Text Message (when in text mode)
   const sendTextMessage = useCallback(async (message) => {
@@ -108,17 +159,10 @@ export const useUnifiedLiveKit = () => {
     }
 
     try {
-      const agentIdentity = findAgentIdentity();
-      if (!agentIdentity) {
-        setError('Agent not found in room');
-        return;
-      }
-
-      await roomRef.current.localParticipant.performRpc({
-        destinationIdentity: agentIdentity,
-        method: 'send_text',
-        payload: message,
-        timeout: 30000
+      await performAgentRpc('send_text', message, {
+        timeout: 30000,
+        maxRetries: 2,
+        retryDelay: 1000
       });
       
       console.log('Text message sent successfully');
@@ -126,7 +170,7 @@ export const useUnifiedLiveKit = () => {
       console.error('Failed to send text message:', err);
       setError(`Failed to send message: ${err.message}`);
     }
-  }, [isConnected, findAgentIdentity]);
+  }, [isConnected, performAgentRpc]);
 
   // RPC: Get Agent Status
   const getAgentStatus = useCallback(async () => {
@@ -135,15 +179,10 @@ export const useUnifiedLiveKit = () => {
     }
 
     try {
-      const agentIdentity = findAgentIdentity();
-      if (!agentIdentity) {
-        return null;
-      }
-
-      const result = await roomRef.current.localParticipant.performRpc({
-        destinationIdentity: agentIdentity,
-        method: 'get_status',
-        timeout: 5000
+      const result = await performAgentRpc('get_status', '', {
+        timeout: 5000,
+        maxRetries: 2,
+        retryDelay: 500
       });
       
       return JSON.parse(result);
@@ -151,7 +190,7 @@ export const useUnifiedLiveKit = () => {
       console.warn('Failed to get agent status:', err);
       return null;
     }
-  }, [isConnected, findAgentIdentity]);
+  }, [isConnected, performAgentRpc]);
 
   // Connect to LiveKit room
   const connect = useCallback(async () => {
@@ -258,6 +297,20 @@ export const useUnifiedLiveKit = () => {
         .on(RoomEvent.MediaDevicesError, (error) => {
           console.error('Media device error:', error);
           setError(`Media error: ${error.message}`);
+        })
+        .on(RoomEvent.DataReceived, (payload, participant) => {
+          try {
+            const data = JSON.parse(new TextDecoder().decode(payload));
+            if (data.type === 'agent_ready') {
+              console.log('Agent ready signal received');
+              if (mountedRef.current) {
+                setIsAgentReady(true);
+                setError(null); // Clear any previous errors
+              }
+            }
+          } catch (error) {
+            console.warn('Failed to parse data packet:', error);
+          }
         });
 
       // Register text stream handler for transcriptions
@@ -383,6 +436,11 @@ export const useUnifiedLiveKit = () => {
       agentSpeakingTimeoutRef.current = null;
     }
     
+    if (agentReadyTimeoutRef.current) {
+      clearTimeout(agentReadyTimeoutRef.current);
+      agentReadyTimeoutRef.current = null;
+    }
+    
     if (roomRef.current) {
       roomRef.current.disconnect();
       roomRef.current = null;
@@ -397,6 +455,7 @@ export const useUnifiedLiveKit = () => {
       setIsAgentSpeaking(false);
       setIsUserSpeaking(false);
       setAudioEnabled(false);
+      setIsAgentReady(false);
       setProductImageData(null);
       setProductLinkData(null);
     }
@@ -433,6 +492,10 @@ export const useUnifiedLiveKit = () => {
         clearTimeout(agentSpeakingTimeoutRef.current);
         agentSpeakingTimeoutRef.current = null;
       }
+      if (agentReadyTimeoutRef.current) {
+        clearTimeout(agentReadyTimeoutRef.current);
+        agentReadyTimeoutRef.current = null;
+      }
       if (roomRef.current) {
         roomRef.current.disconnect();
         roomRef.current = null;
@@ -449,6 +512,9 @@ export const useUnifiedLiveKit = () => {
     isConnected,
     isConnecting,
     error,
+    
+    // Agent readiness
+    isAgentReady,
     
     // Audio controls and state
     audioEnabled,
