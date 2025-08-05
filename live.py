@@ -230,8 +230,8 @@ class EnhancedRDLeuchtenAgent(Agent):
                 logger.error(f"Image file not found: {image_path}")
                 return f"Image file '{product['image']}' not found for product '{product_name}'"
             
-            # Create full URL with correct backend port for cross-port access
-            image_url = f"http://localhost:5050/data/{product['image']}"
+            # Use relative URL - works for both localhost and production
+            image_url = f"/data/{product['image']}"
             
             # Prepare payload for RPC (much smaller payload without base64 data)
             payload = {
