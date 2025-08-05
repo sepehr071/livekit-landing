@@ -120,12 +120,18 @@ KERNKOMPETENZEN:
 - Projektentwicklung von der Idee bis zur Umsetzung
 - Produktberatung für Stromschienenstrahler, Einbaustrahler, Pendelleuchten
 
-HAUPTPRODUKTE die du bewerben sollst:
+RD LEUCHTEN HAUPTPRODUKTE (für normale Beratung):
 - Beam InTrack: Stromschienenstrahler mit breitem Leistungsspektrum
 - Pick: Ausgezeichneter Einbaustrahler mit innovativem Design
 - Tablet: Bluetooth-gesteuerter Strahler für hohe Decken
 - Carda 90: Einbaustrahler für gleichmäßige Flächenausleuchtung
 - Polar Serie: Bewährte Lichtbrillanz mit höchster Energieeffizienz
+
+DEMO-DISPLAY SYSTEM (separate Funktion):
+Du hast spezielle Display-Funktionen für Demo-Zwecke. Diese werden nur bei expliziten Anfragen wie "zeig mir produkt a" oder "show me product a" verwendet.
+- WICHTIG: "produkt a" oder "product a" bezieht sich auf das Demo-System, NICHT auf unsere Hauptprodukte!
+- Verfügbare Demo-IDs: "a", "product-a" (verwende show_product_image/show_product_link Funktionen)
+- Diese Demo-Displays sind GETRENNT von unseren echten RD Leuchten Produkten
 
 DIENSTLEISTUNGEN:
 - Lichtplanung und -berechnung
@@ -164,6 +170,12 @@ WICHTIGE REGELN:
 - Erwähne die Kontaktdaten: T: +41 56 249 28 40, info@rdleuchten.ch
 - Informiere Nutzer dass sie zwischen Text- und Sprachmodus wechseln können
 - Standardmäßig startest du im Textmodus, Nutzer können Audio jederzeit aktivieren
+
+DEMO-DISPLAY REGELN:
+- Wenn User "zeig mir produkt a" oder "show me product a" sagt → verwende show_product_image mit "a"
+- Wenn User "zeig mir produkt a link" sagt → verwende show_product_link mit "a"
+- Wenn User normale Produktberatung möchte → spreche über echte RD Leuchten Produkte
+- Verwechsle NIEMALS Demo-IDs (a, product-a) mit echten Produktnamen (Beam InTrack, etc.)
 """
 
 class EnhancedRDLeuchtenAgent(Agent):
@@ -181,15 +193,24 @@ class EnhancedRDLeuchtenAgent(Agent):
         context: RunContext,
         product_name: str
     ) -> str:
-        """Display a product image in the frontend with smooth overlay transition.
+        """DEMO DISPLAY FUNCTION: Shows demo product images in frontend overlay.
+        
+        IMPORTANT: This is for DEMO purposes only, NOT for real RD Leuchten products!
+        Only use when user explicitly asks for demo displays like "zeig mir produkt a".
         
         Args:
-            product_name: Product identifier (supports: 'a', 'A', 'product-a', 'Product A', etc.)
+            product_name: EXACT demo identifier - use literally what user says after "product"
+                         Available: "a", "product-a" (case-insensitive)
+                         DO NOT interpret as real product names like "Beam InTrack"!
             
         Examples:
-            - User: "show me product a" -> product_name: "a"
-            - User: "zeig mir Produkt A" -> product_name: "A"
-            - User: "display product-a" -> product_name: "product-a"
+            - User: "zeig mir produkt a" -> product_name: "a" (use exactly "a")
+            - User: "show me product a" -> product_name: "a" (use exactly "a")
+            - User: "display product-a" -> product_name: "product-a" (use exactly "product-a")
+            
+        Do NOT use for:
+            - Questions about Beam InTrack, Pick, Tablet, Carda 90, etc. (those are real products for consultation)
+            - General product inquiries (answer normally without this function)
         """
         try:
             logger.info(f"show_product_image called with product_name: '{product_name}'")
@@ -256,15 +277,24 @@ class EnhancedRDLeuchtenAgent(Agent):
         context: RunContext,
         product_name: str
     ) -> str:
-        """Display a product link in the frontend with a styled link box.
+        """DEMO DISPLAY FUNCTION: Shows demo product links in frontend overlay.
+        
+        IMPORTANT: This is for DEMO purposes only, NOT for real RD Leuchten products!
+        Only use when user explicitly asks for demo links like "zeig mir produkt a link".
         
         Args:
-            product_name: Product identifier (supports: 'a', 'A', 'product-a', 'Product A', etc.)
+            product_name: EXACT demo identifier - use literally what user says after "product"
+                         Available: "a", "product-a" (case-insensitive)
+                         DO NOT interpret as real product names like "Beam InTrack"!
             
         Examples:
-            - User: "show me product a link" -> product_name: "a"
-            - User: "zeig mir Produkt A Link" -> product_name: "A"
-            - User: "get product-a url" -> product_name: "product-a"
+            - User: "zeig mir produkt a link" -> product_name: "a" (use exactly "a")
+            - User: "show me product a link" -> product_name: "a" (use exactly "a")
+            - User: "get product-a url" -> product_name: "product-a" (use exactly "product-a")
+            
+        Do NOT use for:
+            - Questions about Beam InTrack, Pick, Tablet, Carda 90, etc. (those are real products for consultation)
+            - General product inquiries (answer normally without this function)
         """
         try:
             logger.info(f"show_product_link called with product_name: '{product_name}'")
