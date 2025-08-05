@@ -31,6 +31,7 @@ export const useUnifiedLiveKit = () => {
   const identityRef = useRef(null);
   const agentSpeakingTimeoutRef = useRef(null);
   const agentReadyTimeoutRef = useRef(null);
+  const errorTimeoutRef = useRef(null);
 
   // Fetch LiveKit token from Flask backend
   const fetchToken = useCallback(async () => {
@@ -42,6 +43,17 @@ export const useUnifiedLiveKit = () => {
       return await response.json();
     } catch (err) {
       setError(err.message);
+      
+      // Auto-hide error after 3 seconds
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+      errorTimeoutRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setError(null);
+        }
+      }, 3000);
+      
       throw err;
     }
   }, []);
@@ -148,7 +160,18 @@ export const useUnifiedLiveKit = () => {
 
     } catch (err) {
       console.error('Failed to toggle audio:', err);
-      setError(`Failed to toggle audio: ${err.message}`);
+      const errorMessage = `Failed to toggle audio: ${err.message}`;
+      setError(errorMessage);
+      
+      // Auto-hide error after 3 seconds
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+      errorTimeoutRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setError(null);
+        }
+      }, 3000);
     }
   }, [audioEnabled, isConnected, performAgentRpc]);
 
@@ -168,7 +191,18 @@ export const useUnifiedLiveKit = () => {
       console.log('Text message sent successfully');
     } catch (err) {
       console.error('Failed to send text message:', err);
-      setError(`Failed to send message: ${err.message}`);
+      const errorMessage = `Failed to send message: ${err.message}`;
+      setError(errorMessage);
+      
+      // Auto-hide error after 3 seconds
+      if (errorTimeoutRef.current) {
+        clearTimeout(errorTimeoutRef.current);
+      }
+      errorTimeoutRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setError(null);
+        }
+      }, 3000);
     }
   }, [isConnected, performAgentRpc]);
 
@@ -297,6 +331,16 @@ export const useUnifiedLiveKit = () => {
         .on(RoomEvent.MediaDevicesError, (error) => {
           console.error('Media device error:', error);
           setError(`Media error: ${error.message}`);
+          
+          // Auto-hide error after 3 seconds
+          if (errorTimeoutRef.current) {
+            clearTimeout(errorTimeoutRef.current);
+          }
+          errorTimeoutRef.current = setTimeout(() => {
+            if (mountedRef.current) {
+              setError(null);
+            }
+          }, 3000);
         })
         .on(RoomEvent.DataReceived, (payload, participant) => {
           try {
@@ -419,6 +463,16 @@ export const useUnifiedLiveKit = () => {
       if (mountedRef.current) {
         setError(err.message);
         setIsConnecting(false);
+        
+        // Auto-hide error after 3 seconds
+        if (errorTimeoutRef.current) {
+          clearTimeout(errorTimeoutRef.current);
+        }
+        errorTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) {
+            setError(null);
+          }
+        }, 3000);
       }
     } finally {
       // Always reset connection flag
@@ -439,6 +493,10 @@ export const useUnifiedLiveKit = () => {
     if (agentReadyTimeoutRef.current) {
       clearTimeout(agentReadyTimeoutRef.current);
       agentReadyTimeoutRef.current = null;
+    }
+    if (errorTimeoutRef.current) {
+      clearTimeout(errorTimeoutRef.current);
+      errorTimeoutRef.current = null;
     }
     
     if (roomRef.current) {

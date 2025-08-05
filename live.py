@@ -109,8 +109,8 @@ KOMMUNIKATIONSSTIL:
 - Spreche AUSSCHLIESSLICH auf Deutsch
 - Sei professionell, aber herzlich und einladend
 - Verwende eine warme, vertrauensvolle Stimme (wenn Audio aktiviert)
-- Zeige Begeisterung für Lichtlösungen und deren Wirkung
-- Sei präzise und informativ, aber nicht überwältigend
+- HALTE ANTWORTEN KURZ UND PRÄGNANT (max. 2-3 Sätze)
+- Sei direkt und auf den Punkt, vermeide lange Erklärungen
 - Passe dich an den Kommunikationsmodus an (Text oder Sprache)
 
 KERNKOMPETENZEN:
@@ -140,12 +140,12 @@ DIENSTLEISTUNGEN:
 - Finanzierungsangebote und Fördergelder-Beratung
 
 GESPRÄCHSFÜHRUNG:
-1. Begrüße Besucher herzlich und frage nach ihren Beleuchtungsbedürfnissen
-2. Höre aktiv zu und stelle gezielte Nachfragen
-3. Empfehle passende Produkte basierend auf Branche und Anforderungen
-4. Erkläre Vorteile und technische Details verständlich
-5. Lade zu Showroom-Besuch oder Beratungstermin ein
-6. Betone nachhaltige LED-Technologie und Energieeffizienz
+1. Begrüße Besucher kurz und frage direkt nach ihren Bedürfnissen
+2. Stelle präzise Nachfragen, keine langen Monologe
+3. Empfehle konkrete Produkte mit kurzen Beschreibungen
+4. Erkläre Vorteile knapp und verständlich
+5. Lade direkt zu Beratung ein: "Rufen Sie uns an: +41 56 249 28 40"
+6. Halte Antworten unter 3 Sätzen
 
 REFERENZPROJEKTE die du erwähnen kannst:
 - VIU Worldwide: Designerbrillen-Stores mit CARDA 90
@@ -231,7 +231,7 @@ class EnhancedRDLeuchtenAgent(Agent):
                 return f"Image file '{product['image']}' not found for product '{product_name}'"
             
             # Use relative URL - works for both localhost and production
-            image_url = f"/data/{product['image']}"
+            image_url = f"/images/{product['image']}"
             
             # Prepare payload for RPC (much smaller payload without base64 data)
             payload = {
@@ -469,14 +469,14 @@ async def entrypoint(ctx: JobContext):
                         if enabled:
                             await asyncio.wait_for(
                                 session.generate_reply(
-                                    instructions="Bestätige freundlich auf Deutsch dass der Sprachmodus jetzt aktiviert ist und du sowohl sprechen als auch hören kannst. Halte es kurz."
+                                    instructions="Sage nur: 'Sprachmodus aktiviert.'"
                                 ),
                                 timeout=15.0
                             )
                         else:
                             await asyncio.wait_for(
                                 session.generate_reply(
-                                    instructions="Bestätige freundlich auf Deutsch dass du jetzt im Textmodus bist und weiterhin per Text kommunizierst. Halte es kurz."
+                                    instructions="Sage nur: 'Textmodus aktiviert.'"
                                 ),
                                 timeout=15.0
                             )
@@ -544,7 +544,7 @@ async def entrypoint(ctx: JobContext):
                 try:
                     await asyncio.wait_for(
                         session.generate_reply(
-                            instructions="Bestätige freundlich auf Deutsch dass das Gespräch zurückgesetzt wurde und begrüße den Nutzer neu als RD Leuchten Lichtberater. Biete deine Hilfe an."
+                            instructions="Sage nur: 'Gespräch zurückgesetzt. Wie kann ich helfen?'"
                         ),
                         timeout=15.0
                     )
