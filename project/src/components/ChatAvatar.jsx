@@ -20,22 +20,33 @@ const ChatAvatar = ({
 
   // Update imageData when productImageData prop changes
   useEffect(() => {
-    console.log('ChatAvatar: productImageData changed:', productImageData);
+    console.log('🔍 ChatAvatar: productImageData changed:', productImageData);
+    console.log('🔍 Current state - isImageVisible:', isImageVisible, 'imageSource:', imageSource);
+    
     if (productImageData && productImageData.image_url) {
+      console.log('✅ Product image data is valid, image_url:', productImageData.image_url);
+      console.log('🎬 Setting isImageVisible to true');
       setIsImageVisible(true);
 
       setTimeout(() => {
+        console.log('🖼️ Setting imageSource to:', productImageData.image_url);
         setImageSource(productImageData.image_url);
       }, 250);
 
       const timer = setTimeout(() => {
+        console.log('⏰ 4 seconds passed, hiding image');
         setIsImageVisible(false);
 
         setTimeout(() => {
+          console.log('🧹 Clearing imageSource');
           setImageSource("");
         }, 250);
       }, 4000); // Display image for 4 seconds
       return () => clearTimeout(timer);
+    } else {
+      console.log('❌ Product image data is invalid or missing image_url');
+      console.log('   - productImageData exists:', !!productImageData);
+      console.log('   - image_url exists:', productImageData?.image_url);
     }
   }, [productImageData]);
 
@@ -131,18 +142,23 @@ const ChatAvatar = ({
         />
 
         {/* Image Display */}
-        {imageSource && (
-          <div
-            id="imageBox"
-            className="w-full h-full duration-500 rounded-lg transition-all place-items-center content-center"
-          >
-            <img
-              className="max-w-full max-h-full rounded-lg"
-              src={imageSource}
-              alt="image"
-            />
-          </div>
-        )}
+        {(() => {
+          console.log('🎨 Rendering image section - imageSource:', imageSource, 'condition:', !!imageSource);
+          return imageSource && (
+            <div
+              id="imageBox"
+              className="w-full h-full duration-500 rounded-lg transition-all place-items-center content-center"
+            >
+              <img
+                className="max-w-full max-h-full rounded-lg"
+                src={imageSource}
+                alt="image"
+                onLoad={() => console.log('✅ Image loaded successfully:', imageSource)}
+                onError={(e) => console.log('❌ Image failed to load:', imageSource, 'Error:', e)}
+              />
+            </div>
+          );
+        })()}
 
         {/* Link Display */}
         {linkData && (
