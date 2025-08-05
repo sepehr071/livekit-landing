@@ -105,17 +105,12 @@ const UnifiedChatPage = () => {
 
   const currentAgentMessage = agentMessage || defaultMessage;
 
-  // Check if any overlay is active for fade effect
-  const hasActiveOverlay = productImageData || productLinkData;
-
   return (
     <>
       {/* Main Chat Widget */}
       <div
         style={isHidden ? { transform: "translateX(30rem)" } : {}}
-        className={`fixed bg-gradient-to-b from-[#fcf4e7]/30 to-gray-300/30 backdrop-blur-md bottom-4 right-4 w-96 h-[820px] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%] transition-all ${
-          hasActiveOverlay ? "opacity-30 blur-sm" : "opacity-100 blur-0"
-        }`}
+        className={`fixed bg-gradient-to-b from-[#fcf4e7]/30 to-gray-300/30 backdrop-blur-md bottom-4 right-4 w-96 h-[820px] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%] transition-all opacity-100 blur-0`}
       >
         {/* Header with mode indicators and close button */}
         <div className="flex justify-between items-center p-4 bg-gradient-to-br to-[#fcf4e7] from-[#dbbe9b] drop-shadow-md">
@@ -173,6 +168,8 @@ const UnifiedChatPage = () => {
             }
             isAgentSpeaking={isAgentSpeaking}
             showLoadingDots={isSendingText && !agentMessage}
+            productImageData={productImageData}
+            productLinkData={productLinkData}
           />
 
           {/* Error Display */}
@@ -301,10 +298,10 @@ const UnifiedChatPage = () => {
         onClose={dismissProductOverlays}
       /> */}
 
-      <ProductLinkBox
+      {/* <ProductLinkBox
         productData={productLinkData}
         onClose={dismissProductOverlays}
-      />
+      /> */}
     </>
   );
 };

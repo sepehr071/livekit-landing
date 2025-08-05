@@ -8,24 +8,24 @@ const ChatAvatar = ({
   showLoadingDots = false,
   mode = "chat", // 'chat' or 'voice',
   productImageData = { image_url: "" },
+  productLinkData = null,
 }) => {
   const { canvasRef, setAnimationState, isLoaded, availableInputs, error } =
     useRive();
 
   const [isImageVisible, setIsImageVisible] = useState(false);
   const [imageSource, setImageSource] = useState("");
-  const [imageData, setImageData] = useState(productImageData);
+  const [isLinkVisible, setIsLinkVisible] = useState(false);
+  const [linkData, setLinkData] = useState(null);
 
-  // const handelImage = () => {
-  //   setImageData({ image_url: "images/image.png" });
-  // };
-
+  // Update imageData when productImageData prop changes
   useEffect(() => {
-    if (imageData && imageData.image_url) {
+    console.log('ChatAvatar: productImageData changed:', productImageData);
+    if (productImageData && productImageData.image_url) {
       setIsImageVisible(true);
 
       setTimeout(() => {
-        setImageSource(imageData.image_url);
+        setImageSource(productImageData.image_url);
       }, 250);
 
       const timer = setTimeout(() => {
@@ -34,10 +34,31 @@ const ChatAvatar = ({
         setTimeout(() => {
           setImageSource("");
         }, 250);
-      }, 3500); // Display image for 5 seconds
+      }, 4000); // Display image for 4 seconds
       return () => clearTimeout(timer);
     }
-  }, [imageData]);
+  }, [productImageData]);
+
+  // Update linkData when productLinkData prop changes
+  useEffect(() => {
+    console.log('ChatAvatar: productLinkData changed:', productLinkData);
+    if (productLinkData && productLinkData.link_url) {
+      setIsLinkVisible(true);
+
+      setTimeout(() => {
+        setLinkData(productLinkData);
+      }, 250);
+
+      const timer = setTimeout(() => {
+        setIsLinkVisible(false);
+
+        setTimeout(() => {
+          setLinkData(null);
+        }, 250);
+      }, 5000); // Display link for 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [productLinkData]);
 
   // Update animation states based on mode
   useEffect(() => {
@@ -101,15 +122,15 @@ const ChatAvatar = ({
           // onClick={handelImage}
           ref={canvasRef}
           className={`w-full h-full rounded shadow-lg bg-white/40 backdrop-blur-xl duration-500 transition-all ${
-            imageSource &&
+            (imageSource || linkData) &&
             `!w-1/5 !h-1/5 !rounded-full !bg-white/80 absolute  right-2  top-2  ${
-              !isImageVisible && "right-[45%] top-[45%]"
+              (!isImageVisible && !isLinkVisible) && "right-[45%] top-[45%]"
             }`
           }`}
           style={{ maxWidth: "100%", maxHeight: "100%" }}
         />
 
-        {/* image */}
+        {/* Image Display */}
         {imageSource && (
           <div
             id="imageBox"
@@ -120,6 +141,41 @@ const ChatAvatar = ({
               src={imageSource}
               alt="image"
             />
+          </div>
+        )}
+
+        {/* Link Display */}
+        {linkData && (
+          <div
+            id="linkBox"
+            className="w-full h-full duration-500 rounded-lg transition-all flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 to-indigo-100"
+          >
+            <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm text-center">
+              <div className="mb-4">
+                <h3 className="text-lg font-bold text-gray-800 mb-2">
+                  {linkData.product_title || "Product Link"}
+                </h3>
+                {linkData.description && (
+                  <p className="text-sm text-gray-600 mb-3">{linkData.description}</p>
+                )}
+              </div>
+              
+              <button
+                onClick={() => window.open(linkData.link_url, '_blank', 'noopener,noreferrer')}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 w-full"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15,3 21,3 21,9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+                Open Link
+              </button>
+              
+              <div className="mt-3 text-xs text-gray-500">
+                Auto-close in 5 seconds
+              </div>
+            </div>
           </div>
         )}
 
