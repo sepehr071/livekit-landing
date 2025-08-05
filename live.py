@@ -231,7 +231,7 @@ class EnhancedRDLeuchtenAgent(Agent):
                 return f"Image file '{product['image']}' not found for product '{product_name}'"
             
             # Use relative URL - works for both localhost and production
-            image_url = f"/data/{product['image']}"
+            image_url = f"/images/{product['image']}"
             
             # Prepare payload for RPC (much smaller payload without base64 data)
             payload = {
