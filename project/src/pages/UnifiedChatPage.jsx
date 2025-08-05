@@ -227,11 +227,7 @@ const UnifiedChatPage = () => {
                   }
                   title={"Zum Textmodus wechseln"}
                 >
-                  {audioEnabled ? (
-                    <Volume2 size={20} />
-                  ) : (
-                    <MessageSquare size={20} />
-                  )}
+                  <img src="/images/back.png" alt="back" width={22} />
                 </button>
               </div>
             )}
@@ -280,15 +276,11 @@ const UnifiedChatPage = () => {
                   onClick={toggleAudio}
                   disabled={!isConnected}
                   className={
-                    "w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300  disabled:opacity-50 disabled:cursor-not-allowed bg-gray-500 hover:bg-gray-600 text-white"
+                    "w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300  disabled:opacity-50 disabled:cursor-not-allowed bg-blue-500 hover:bg-blue-600 text-white"
                   }
                   title={"Sprachmodus aktivieren"}
                 >
-                  {audioEnabled ? (
-                    <Volume2 size={20} />
-                  ) : (
-                    <MessageSquare size={20} />
-                  )}
+                  <img src="/images/voice.png" alt="voice" width={30} />
                 </button>
               </form>
             )}
@@ -304,10 +296,10 @@ const UnifiedChatPage = () => {
       </div>
 
       {/* Product Display Overlays */}
-      <ProductImageOverlay
+      {/* <ProductImageOverlay
         productData={productImageData}
         onClose={dismissProductOverlays}
-      />
+      /> */}
 
       <ProductLinkBox
         productData={productLinkData}

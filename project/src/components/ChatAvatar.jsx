@@ -6,24 +6,38 @@ const ChatAvatar = ({
   isUserSpeaking = false,
   agentMessage = "Hallo! Ich bin Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?",
   showLoadingDots = false,
-  mode = "chat", // 'chat' or 'voice'
+  mode = "chat", // 'chat' or 'voice',
+  productImageData = { image_url: "" },
 }) => {
   const { canvasRef, setAnimationState, isLoaded, availableInputs, error } =
     useRive();
 
   const [isImageVisible, setIsImageVisible] = useState(false);
   const [imageSource, setImageSource] = useState("");
+  const [imageData, setImageData] = useState(productImageData);
 
-  const handelImage = () => {
-    setIsImageVisible(!isImageVisible);
+  // const handelImage = () => {
+  //   setImageData({ image_url: "images/image.png" });
+  // };
 
-    setTimeout(() => {
-      console.log("click");
+  useEffect(() => {
+    if (imageData && imageData.image_url) {
+      setIsImageVisible(true);
 
-      if (imageSource) setImageSource("");
-      else setImageSource("images/image.png");
-    }, 250);
-  };
+      setTimeout(() => {
+        setImageSource(imageData.image_url);
+      }, 250);
+
+      const timer = setTimeout(() => {
+        setIsImageVisible(false);
+
+        setTimeout(() => {
+          setImageSource("");
+        }, 250);
+      }, 3500); // Display image for 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [imageData]);
 
   // Update animation states based on mode
   useEffect(() => {
@@ -84,7 +98,7 @@ const ChatAvatar = ({
       {/* Rive Animation Container */}
       <div className="relative  rounded-lg flex items-center justify-center max-h-[22rem] h-[100%] w-full ">
         <canvas
-          onClick={handelImage}
+          // onClick={handelImage}
           ref={canvasRef}
           className={`w-full h-full rounded shadow-lg bg-white/40 backdrop-blur-xl duration-500 transition-all ${
             imageSource &&
