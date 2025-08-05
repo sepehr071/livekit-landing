@@ -230,8 +230,8 @@ class EnhancedRDLeuchtenAgent(Agent):
                 logger.error(f"Image file not found: {image_path}")
                 return f"Image file '{product['image']}' not found for product '{product_name}'"
             
-            # Create absolute image URL pointing to Flask backend (eliminates payload size issues)
-            image_url = f"http://localhost:5050/data/{product['image']}"
+            # Create relative image URL that works on any server/domain
+            image_url = f"/data/{product['image']}"
             
             # Prepare payload for RPC (much smaller payload without base64 data)
             payload = {
