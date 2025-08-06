@@ -115,32 +115,8 @@ const UnifiedChatPage = () => {
         style={isHidden ? { transform: "translateX(30rem)" } : {}}
         className={`fixed bg-gradient-to-b from-[#fcf4e7]/30 to-gray-300/30 backdrop-blur-md bottom-4 right-4 w-96 h-[820px] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%] transition-all opacity-100 blur-0`}
       >
-        {/* Header with mode indicators and close button */}
-        <div className="flex justify-between items-center p-4 bg-gradient-to-br to-[#fcf4e7] from-[#dbbe9b] drop-shadow-md">
-          {/* Mode Indicators */}
-          <div className="flex gap-2">
-            <span
-              className={`mode-badge flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all duration-200 ${
-                audioEnabled
-                  ? "bg-blue-500 text-white shadow-md"
-                  : "bg-gray-200 text-gray-600"
-              }`}
-            >
-              <Volume2 size={12} />
-              Voice
-            </span>
-            <span
-              className={`mode-badge flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all duration-200 ${
-                !audioEnabled
-                  ? "bg-orange-500 text-white shadow-md"
-                  : "bg-gray-200 text-gray-600"
-              }`}
-            >
-              <MessageSquare size={12} />
-              Text
-            </span>
-          </div>
-
+        {/* Header with close button */}
+        <div className="flex justify-end items-center p-4 bg-gradient-to-br to-[#fcf4e7] from-[#dbbe9b] drop-shadow-md">
           {/* Close Button */}
           <button
             onClick={handleClose}

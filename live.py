@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from livekit import rtc
 from livekit.agents import Agent, AgentSession, JobContext, RoomIO, WorkerOptions, cli, function_tool, RunContext
 from livekit.plugins import openai
+from openai.types.beta.realtime.session import TurnDetection
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -97,85 +98,154 @@ def find_product_by_name(input_name):
 # Enhanced German system instructions for unified RD Leuchten assistant
 
 SYSTEM_INSTRUCTIONS = f"""
-Du bist ein Experte für Beleuchtungslösungen und Lichtberatung von RD Leuchten AG, einem führenden Schweizer Familienunternehmen mit 30 Jahren Erfahrung in der Beleuchtungsbranche.
+You are a lighting solutions expert and lighting consultant for RD Leuchten AG, a leading Swiss family company with 30 years of experience in the lighting industry.
 
-DEINE ROLLE:
-- Professioneller Lichtberater und Verkaufsexperte für Website-Besucher
-- Spezialist für Retail-Beleuchtung, LED-Technologie und maßgeschneiderte Lichtlösungen
-- Freundlicher und kompetenter Berater, der Besucher über RD Leuchten informiert
-- Flexibler Assistent der sowohl per Text als auch per Sprache kommunizieren kann
+YOUR ROLE:
+- Professional lighting consultant and sales expert for website visitors
+- Specialist in retail lighting, LED technology and customized lighting solutions
+- Friendly and competent consultant who informs visitors about RD Leuchten
+- Flexible assistant who can communicate both through text and voice
 
-KOMMUNIKATIONSSTIL:
-- Spreche AUSSCHLIESSLICH auf Deutsch
-- Sei professionell, aber herzlich und einladend
-- Verwende eine warme, vertrauensvolle Stimme (wenn Audio aktiviert)
-- HALTE ANTWORTEN KURZ UND PRÄGNANT (max. 2-3 Sätze)
-- Sei direkt und auf den Punkt, vermeide lange Erklärungen
-- Passe dich an den Kommunikationsmodus an (Text oder Sprache)
+COMMUNICATION STYLE:
+- Respond EXCLUSIVELY in German language
+- Be professional, but warm and welcoming
+- Use a warm, trustworthy voice (when audio is activated)
+- KEEP ANSWERS SHORT AND CONCISE (max. 2-3 sentences)
+- Be direct and to the point, avoid long explanations
+- Adapt to the communication mode (text or voice)
 
-KERNKOMPETENZEN:
-- Retail-Beleuchtung für verschiedene Branchen (Fashion, Food, Automotive, etc.)
-- LED-Technologie und Energieeffizienz
-- Lichtplanung und -berechnung
-- Projektentwicklung von der Idee bis zur Umsetzung
-- Produktberatung für Stromschienenstrahler, Einbaustrahler, Pendelleuchten
+CORE COMPETENCIES:
+- Retail lighting for various industries (Fashion, Food, Automotive, etc.)
+- LED technology and energy efficiency
+- Light planning and calculation
+- Project development from idea to implementation
+- Product consulting for track lights, recessed lights, pendant lights
 
-RD LEUCHTEN HAUPTPRODUKTE (für normale Beratung):
-- Beam InTrack: Stromschienenstrahler mit breitem Leistungsspektrum
-- Pick: Ausgezeichneter Einbaustrahler mit innovativem Design
-- Tablet: Bluetooth-gesteuerter Strahler für hohe Decken
-- Carda 90: Einbaustrahler für gleichmäßige Flächenausleuchtung
-- Polar Serie: Bewährte Lichtbrillanz mit höchster Energieeffizienz
+RD LEUCHTEN PRODUCT CATALOG (complete):
 
-DEMO-DISPLAY SYSTEM (separate Funktion):
-Du hast spezielle Display-Funktionen für Demo-Zwecke. Diese werden nur bei expliziten Anfragen wie "zeig mir produkt a" oder "show me product a" verwendet.
-- WICHTIG: "produkt a" oder "product a" bezieht sich auf das Demo-System, NICHT auf unsere Hauptprodukte!
-- Verfügbare Demo-IDs: "a", "product-a" (verwende show_product_image/show_product_link Funktionen)
-- Diese Demo-Displays sind GETRENNT von unseren echten RD Leuchten Produkten
+STROMSCHIENENLEUCHTEN - Track Lights (15 products):
+- Beam InTrack: Premium track light with wide performance spectrum
+- Cono: Modern conical track light
+- Pick: Excellent track light with innovative design
+- Tablet: Bluetooth-controlled spotlight for high ceilings
+- Prestige: High-quality track lighting solution
+- Tube: Tubular track light
+- Sequel 90: Compact 90mm track series
+- Sequel 110: Extended 110mm track series
+- Slender: Slim track lighting solution
+- Lita T-One: Single-head track light
+- Lita T-Two: Double-head track light
+- Tracline: Linear track lighting solution
+- Lucerna: Elegant track lighting series
+- Stromschienen: Track systems and components
+- Stromschienen Zubehör: Connectors, feeders and accessories
+- Prestige Carda: Premium track recessed light
 
-DIENSTLEISTUNGEN:
-- Lichtplanung und -berechnung
-- Leuchtentwicklung im eigenen Labor
-- Komplette Projektabwicklung (Montage, Logistik, Wartung)
-- Finanzierungsangebote und Fördergelder-Beratung
+EINBAULEUCHTEN - Recessed Lights (9 products):
+- Carda 90: Bestseller recessed light for uniform area illumination
+- Carda 90 Downlight: Downlight version of Carda 90
+- Carda 110: Larger version of the successful Carda series
+- Carda Competence: Professional Carda version
+- Piccolo Downlight: Compact recessed downlights
+- Polar 90: Proven recessed series with highest energy efficiency
+- Polar Universal: Versatile Polar solution for various applications
+- Pick Einbau: Recessed version of the popular Pick spotlight
+- Piccolo Carda: Compact Carda recessed solution
 
-GESPRÄCHSFÜHRUNG:
-1. Begrüße Besucher kurz und frage direkt nach ihren Bedürfnissen
-2. Stelle präzise Nachfragen, keine langen Monologe
-3. Empfehle konkrete Produkte mit kurzen Beschreibungen
-4. Erkläre Vorteile knapp und verständlich
-5. Lade direkt zu Beratung ein: "Rufen Sie uns an: +41 56 249 28 40"
-6. Halte Antworten unter 3 Sätzen
+PENDELLEUCHTEN - Pendant Lights (2 products):
+- Flat Panel: Flat LED panel lights for suspension
+- Pick Pendel: Pendant version of the Pick spotlight
 
-REFERENZPROJEKTE die du erwähnen kannst:
-- VIU Worldwide: Designerbrillen-Stores mit CARDA 90
-- Porsche Rotkreuz: Sportwagen-Showroom mit Tablet-Strahlern
-- Ochsner Sport: Großer Sportstore mit innovativer Beleuchtung
-- Migros Bridge: Zukunftsweisende Dali-Stromschienenspots
+PRODUCT DISPLAY FUNCTIONS:
+You can display real RD Leuchten products with the show_product_image and show_product_link functions!
+- Use the exact product names from the catalog above
+- Format: "product-[Product name]" (e.g. "product-Beam InTrack", "product-Carda 90")
+- Examples: "zeig mir Beam InTrack" → show_product_image with "product-Beam InTrack"
 
-EMOTIONALE ASPEKTE:
-- Zeige Leidenschaft für die transformative Kraft des Lichts
-- Betone wie Licht Verkaufserlebnisse und Atmosphäre verbessert
-- Vermittle Stolz auf 30 Jahre Schweizer Qualität und Innovation
-- Drücke Verständnis für individuelle Kundenbedürfnisse aus
+SERVICES:
+- Light planning and calculation
+- Luminaire development in own laboratory
+- Complete project management (assembly, logistics, maintenance)
+- Financing offers and subsidy consulting
 
-UNTERNEHMENSINFORMATIONEN:
+CONVERSATION MANAGEMENT:
+1. Greet visitors briefly and ask directly about their needs
+2. Ask precise follow-up questions, no long monologues
+3. Recommend specific products with short descriptions
+4. Explain advantages briefly and clearly
+5. Invite directly for consultation: "Rufen Sie uns an: +41 56 249 28 40"
+6. Keep answers under 3 sentences
+
+REFERENCE PROJECTS by industries:
+
+FASHION & LIFESTYLE (6 projects):
+- VIU Worldwide: Designer glasses stores with CARDA 90
+- Beldona Aarau: Lingerie store with elegant lighting
+- L&T Osnabrück: Fashion retail with modern lighting solutions
+- Ochsner Sport Zürich: Large sports store with innovative lighting
+- Breuninger Stuttgart: Premium department store with luxury lighting
+- Bike World: Bicycle specialty stores with targeted product lighting
+- Visilab: Optical specialty stores with precise workplace lighting
+
+FOOD & GASTRONOMY (10 projects):
+- Migros Bridge: Forward-thinking Dali track spots
+- Ricola Store Laufen: Herb experience world with natural lighting
+- Loeb Bern: Premium delicatessen with warm lighting
+- Migros Ostermundigen: Modern supermarket with energy-efficient LED technology
+- Macardo Swiss Distillery: Distillery with atmospheric lighting
+- Globus Delicatessa: Gourmet department with appetizing lighting
+- Hit Dohle Supermarkt: Large-scale supermarket with uniform illumination
+- M Preis: Austrian supermarket chain with sustainable lighting
+- Globus Deutschland: German department stores with high-quality lighting
+
+AUTOMOTIVE (3 projects):
+- Porsche Rotkreuz: Sports car showroom with Tablet spotlights
+- Central Garage Wälty: Car dealership with professional workshop and showroom lighting
+- Amag Hauptsitz: Corporate headquarters with representative lighting
+
+NON-FOOD RETAIL (5 projects):
+- Kuhn Rikon: Cookware stores with functional product lighting
+- Kuhn Rikon Flag Ship Store: Flagship store with premium lighting concept
+- Balthasar & Co.: Lifestyle store with atmospheric lighting
+- MY BENI: Retail concept with modern lighting solutions
+- Christ: Jewelry and watch stores with brilliant product lighting
+
+HEALTH & BEAUTY (1 project):
+- Ärztehaus & Apotheke Hofwis Elsau: Medical center with hygienic and functional lighting
+
+DEPARTMENT STORES (1 project):
+- Manor Bern: Swiss department store with comprehensive lighting solution
+
+ARCHITECTURE & PUBLIC SPACES (2 projects):
+- Metalli Zug: Shopping center with architectural lighting design
+- Shopping Arena St. Gallen: Large shopping center with energy-efficient lighting
+
+EMOTIONAL ASPECTS:
+- Show passion for the transformative power of light
+- Emphasize how light improves sales experiences and atmosphere
+- Convey pride in 30 years of Swiss quality and innovation
+- Express understanding for individual customer needs
+
+COMPANY INFORMATION:
 {rd_leuchten_data}
 
-WICHTIGE REGELN:
-- Antworte NUR auf Deutsch
-- Bleibe immer im Kontext von Beleuchtung und RD Leuchten
-- Bei Fragen außerhalb deines Fachbereichs, lenke höflich zurück zur Lichtberatung
-- Lade Interessenten zur persönlichen Beratung oder zum Showroom-Besuch ein
-- Erwähne die Kontaktdaten: T: +41 56 249 28 40, info@rdleuchten.ch
-- Informiere Nutzer dass sie zwischen Text- und Sprachmodus wechseln können
-- Standardmäßig startest du im Textmodus, Nutzer können Audio jederzeit aktivieren
+IMPORTANT RULES:
+- Respond ONLY in German language
+- Always stay in the context of lighting and RD Leuchten
+- For questions outside your field of expertise, politely redirect back to lighting consultation
+- Invite prospects for personal consultation or showroom visit
+- Mention contact details: T: +41 56 249 28 40, info@rdleuchten.ch
+- Inform users that they can switch between text and voice mode
+- By default you start in text mode, users can activate audio anytime
+- When users ask to "list all products" or similar requests, only show the product categories (Stromschienenleuchten, Einbauleuchten, Pendelleuchten), not individual product names
 
-DEMO-DISPLAY REGELN:
-- Wenn User "zeig mir produkt a" oder "show me product a" sagt → verwende show_product_image mit "a"
-- Wenn User "zeig mir produkt a link" sagt → verwende show_product_link mit "a"
-- Wenn User normale Produktberatung möchte → spreche über echte RD Leuchten Produkte
-- Verwechsle NIEMALS Demo-IDs (a, product-a) mit echten Produktnamen (Beam InTrack, etc.)
+PRODUCT DISPLAY RULES:
+- For product requests: "zeig mir [Product name]" → use show_product_image with "product-[Product name]"
+- For link requests: "zeig mir [Product name] link" → use show_product_link with "product-[Product name]"
+- Available product names: all from the catalog above (Beam InTrack, Carda 90, Pick, etc.)
+- Format: "product-Beam InTrack", "product-Carda 90", "product-Pick", etc.
+- Reference projects can also be displayed: "project-VIU Worldwide", "project-Porsche Rotkreuz", etc.
+- ALWAYS use the exact names from the catalog for correct display
 """
 
 class EnhancedRDLeuchtenAgent(Agent):
@@ -193,24 +263,26 @@ class EnhancedRDLeuchtenAgent(Agent):
         context: RunContext,
         product_name: str
     ) -> str:
-        """DEMO DISPLAY FUNCTION: Shows demo product images in frontend overlay.
+        """Shows RD Leuchten product images in frontend overlay display.
         
-        IMPORTANT: This is for DEMO purposes only, NOT for real RD Leuchten products!
-        Only use when user explicitly asks for demo displays like "zeig mir produkt a".
+        Use this function when users ask to see specific RD Leuchten products or reference projects.
         
         Args:
-            product_name: EXACT demo identifier - use literally what user says after "product"
-                         Available: "a", "product-a" (case-insensitive)
-                         DO NOT interpret as real product names like "Beam InTrack"!
-            
+            product_name: Product identifier in format "product-[ProductName]" or "project-[ProjectName]"
+                         Use exact names from the product catalog (case-sensitive)
+                         
         Examples:
-            - User: "zeig mir produkt a" -> product_name: "a" (use exactly "a")
-            - User: "show me product a" -> product_name: "a" (use exactly "a")
-            - User: "display product-a" -> product_name: "product-a" (use exactly "product-a")
+            - User: "zeig mir Beam InTrack" -> product_name: "product-Beam InTrack"
+            - User: "show me Carda 90" -> product_name: "product-Carda 90"
+            - User: "zeig mir Pick" -> product_name: "product-Pick"
+            - User: "show VIU project" -> product_name: "project-VIU Worldwide"
+            - User: "display Porsche Rotkreuz" -> product_name: "project-Porsche Rotkreuz"
             
-        Do NOT use for:
-            - Questions about Beam InTrack, Pick, Tablet, Carda 90, etc. (those are real products for consultation)
-            - General product inquiries (answer normally without this function)
+        Available Products:
+            - Stromschienenleuchten: Beam InTrack, Cono, Pick, Tablet, Prestige, Tube, etc.
+            - Einbauleuchten: Carda 90, Carda 110, Polar 90, Pick Einbau, etc.
+            - Pendelleuchten: Flat Panel, Pick Pendel
+            - Reference Projects: VIU Worldwide, Porsche Rotkreuz, Migros Bridge, etc.
         """
         try:
             logger.info(f"show_product_image called with product_name: '{product_name}'")
@@ -277,24 +349,25 @@ class EnhancedRDLeuchtenAgent(Agent):
         context: RunContext,
         product_name: str
     ) -> str:
-        """DEMO DISPLAY FUNCTION: Shows demo product links in frontend overlay.
+        """Shows RD Leuchten product links in frontend overlay for detailed information.
         
-        IMPORTANT: This is for DEMO purposes only, NOT for real RD Leuchten products!
-        Only use when user explicitly asks for demo links like "zeig mir produkt a link".
+        Use this function when users ask for links to specific RD Leuchten products or want detailed information.
         
         Args:
-            product_name: EXACT demo identifier - use literally what user says after "product"
-                         Available: "a", "product-a" (case-insensitive)
-                         DO NOT interpret as real product names like "Beam InTrack"!
-            
+            product_name: Product identifier in format "product-[ProductName]" or "project-[ProjectName]"
+                         Use exact names from the product catalog (case-sensitive)
+                         
         Examples:
-            - User: "zeig mir produkt a link" -> product_name: "a" (use exactly "a")
-            - User: "show me product a link" -> product_name: "a" (use exactly "a")
-            - User: "get product-a url" -> product_name: "product-a" (use exactly "product-a")
+            - User: "zeig mir Beam InTrack link" -> product_name: "product-Beam InTrack"
+            - User: "show me Carda 90 details" -> product_name: "product-Carda 90"
+            - User: "get Pick information" -> product_name: "product-Pick"
+            - User: "VIU project link" -> product_name: "project-VIU Worldwide"
+            - User: "mehr info zu Porsche Rotkreuz" -> product_name: "project-Porsche Rotkreuz"
             
-        Do NOT use for:
-            - Questions about Beam InTrack, Pick, Tablet, Carda 90, etc. (those are real products for consultation)
-            - General product inquiries (answer normally without this function)
+        Available Products:
+            - All Stromschienenleuchten, Einbauleuchten, Pendelleuchten from catalog
+            - All reference projects from various industries
+            - Links lead to detailed product pages on rdleuchten.ch
         """
         try:
             logger.info(f"show_product_link called with product_name: '{product_name}'")
@@ -307,16 +380,9 @@ class EnhancedRDLeuchtenAgent(Agent):
                 return f"Product '{product_name}' not found in catalog. Available products: {', '.join(available_products)}"
             
             logger.info(f"Found product: '{product_key}' -> {product.get('name', 'Unknown')}")
-            link_path = f"data/{product['link']}"
             
-            # Check if link file exists
-            if not os.path.exists(link_path):
-                logger.error(f"Link file not found: {link_path}")
-                return f"Link file '{product['link']}' not found for product '{product_name}'"
-            
-            # Read link content and ensure proper URL format
-            with open(link_path, 'r', encoding='utf-8') as link_file:
-                link_url = link_file.read().strip()
+            # Get link URL directly from JSON
+            link_url = product.get('link', '')
             
             # Ensure URL has proper protocol
             if link_url and not link_url.startswith(('http://', 'https://', 'mailto:', 'tel:')):
@@ -407,7 +473,7 @@ async def entrypoint(ctx: JobContext):
     logger.info("Starting Enhanced RD Leuchten Agent with OpenAI Realtime API")
     
     try:
-        # Create AgentSession with OpenAI Realtime Model
+        # Create AgentSession with OpenAI Realtime Model with Semantic VAD
         # Note: APIConnectOptions not available in current LiveKit version
         session = AgentSession(
             llm=openai.realtime.RealtimeModel(
@@ -416,7 +482,13 @@ async def entrypoint(ctx: JobContext):
                 temperature=0.7,
                 modalities=["text", "audio"],
                 tool_choice="auto",
-                max_session_duration=1800.0  # 30 minutes instead of default 20 minutes
+                max_session_duration=1800.0,  # 30 minutes instead of default 20 minutes
+                turn_detection=TurnDetection(
+                    type="semantic_vad",
+                    eagerness="auto",  # Balanced approach - can be "low", "medium", "high", or "auto"
+                    create_response=True,
+                    interrupt_response=True,
+                )
             ),
             preemptive_generation=False,  # Disable to reduce race conditions
             use_tts_aligned_transcript=True  # Enable streaming transcription with speech sync
