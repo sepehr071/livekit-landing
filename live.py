@@ -156,11 +156,27 @@ PENDELLEUCHTEN - Pendant Lights (2 products):
 - Flat Panel: Flat LED panel lights for suspension
 - Pick Pendel: Pendant version of the Pick spotlight
 
-PRODUCT DISPLAY FUNCTIONS:
-You can display real RD Leuchten products with the show_product_image and show_product_link functions!
-- Use the exact product names from the catalog above
+INTELLIGENT PRODUCT DISPLAY SYSTEM:
+You have intelligent product display capabilities that work automatically based on conversation context!
+
+AUTOMATIC IMAGE DISPLAY RULES:
+- AUTOMATICALLY show product images whenever you mention or discuss a specific product
+- Use show_product_image whenever you talk about ANY product from the catalog
+- Images stay persistent until topic changes to another product or user asks to close
+- NO manual user requests needed - be proactive in showing relevant products
 - Format: "product-[Product name]" (e.g. "product-Beam InTrack", "product-Carda 90")
-- Examples: "zeig mir Beam InTrack" → show_product_image with "product-Beam InTrack"
+
+CONTEXT-AWARE BEHAVIOR:
+- When discussing "Carda 90" → automatically call show_product_image with "product-Carda 90"
+- When switching to "Beam InTrack" → automatically call show_product_image with "product-Beam InTrack"
+- When user asks general questions → keep current product displayed
+- When topic moves away from specific products → you may keep last relevant product shown
+- Only dismiss when user specifically asks to "close", "hide", or "dismiss" images
+
+LINK DISPLAY RULES:
+- ONLY show product links when user explicitly asks for links/details/more information
+- Links are for when users want to visit product pages or get detailed specifications
+- Examples: "show me the link", "more details", "visit product page", "get specifications"
 
 SERVICES:
 - Light planning and calculation
@@ -239,13 +255,20 @@ IMPORTANT RULES:
 - By default you start in text mode, users can activate audio anytime
 - When users ask to "list all products" or similar requests, only show the product categories (Stromschienenleuchten, Einbauleuchten, Pendelleuchten), not individual product names
 
-PRODUCT DISPLAY RULES:
-- For product requests: "zeig mir [Product name]" → use show_product_image with "product-[Product name]"
-- For link requests: "zeig mir [Product name] link" → use show_product_link with "product-[Product name]"
-- Available product names: all from the catalog above (Beam InTrack, Carda 90, Pick, etc.)
-- Format: "product-Beam InTrack", "product-Carda 90", "product-Pick", etc.
-- Reference projects can also be displayed: "project-VIU Worldwide", "project-Porsche Rotkreuz", etc.
-- ALWAYS use the exact names from the catalog for correct display
+SMART PRODUCT DISPLAY RULES:
+- AUTOMATIC IMAGE DISPLAY: Show product images whenever you mention specific products in your responses
+- PERSISTENT DISPLAY: Images remain visible until topic changes to different product or explicit dismissal
+- MANUAL LINK DISPLAY: Only show links when users explicitly request more information or links
+- TOPIC SWITCHING: When conversation moves to new product, automatically show new product image
+- DISMISSAL: Only dismiss when user says "close", "hide", "dismiss" or similar commands
+- Available formats: "product-Beam InTrack", "product-Carda 90", "project-VIU Worldwide", etc.
+- ALWAYS use exact names from the catalog for correct display
+
+CONVERSATION FLOW EXAMPLES:
+- User: "Tell me about Carda 90" → You respond + automatically show_product_image("product-Carda 90")
+- User: "What about Beam InTrack?" → You respond + automatically show_product_image("product-Beam InTrack")
+- User: "Show me the link" → You call show_product_link for current product being discussed
+- User: "Close the image" → You call dismiss_overlays
 """
 
 class EnhancedRDLeuchtenAgent(Agent):
@@ -263,26 +286,27 @@ class EnhancedRDLeuchtenAgent(Agent):
         context: RunContext,
         product_name: str
     ) -> str:
-        """Shows RD Leuchten product images in frontend overlay display.
+        """AUTOMATICALLY shows RD Leuchten product images whenever you mention specific products in conversation.
         
-        Use this function when users ask to see specific RD Leuchten products or reference projects.
+        SMART USAGE: Call this function automatically whenever you discuss any specific product from the catalog.
+        The image will persist until the topic changes to a different product or user requests dismissal.
         
         Args:
             product_name: Product identifier in format "product-[ProductName]" or "project-[ProjectName]"
                          Use exact names from the product catalog (case-sensitive)
                          
-        Examples:
-            - User: "zeig mir Beam InTrack" -> product_name: "product-Beam InTrack"
-            - User: "show me Carda 90" -> product_name: "product-Carda 90"
-            - User: "zeig mir Pick" -> product_name: "product-Pick"
-            - User: "show VIU project" -> product_name: "project-VIU Worldwide"
-            - User: "display Porsche Rotkreuz" -> product_name: "project-Porsche Rotkreuz"
+        AUTOMATIC TRIGGER EXAMPLES:
+            - You mention "Carda 90" in response -> automatically call with "product-Carda 90"
+            - You discuss "Beam InTrack features" -> automatically call with "product-Beam InTrack"
+            - You talk about "VIU project" -> automatically call with "project-VIU Worldwide"
+            - Topic switches to "Pick spotlight" -> automatically call with "product-Pick"
             
-        Available Products:
-            - Stromschienenleuchten: Beam InTrack, Cono, Pick, Tablet, Prestige, Tube, etc.
-            - Einbauleuchten: Carda 90, Carda 110, Polar 90, Pick Einbau, etc.
-            - Pendelleuchten: Flat Panel, Pick Pendel
-            - Reference Projects: VIU Worldwide, Porsche Rotkreuz, Migros Bridge, etc.
+        CONTEXT-AWARE BEHAVIOR:
+            - Show images proactively when discussing products
+            - Images remain visible until topic changes or explicit dismissal
+            - Automatically switch images when conversation moves to new product
+            
+        Available Products: All products and projects from the complete catalog
         """
         try:
             logger.info(f"show_product_image called with product_name: '{product_name}'")
@@ -349,25 +373,29 @@ class EnhancedRDLeuchtenAgent(Agent):
         context: RunContext,
         product_name: str
     ) -> str:
-        """Shows RD Leuchten product links in frontend overlay for detailed information.
+        """Shows RD Leuchten product links ONLY when users explicitly request detailed information or links.
         
-        Use this function when users ask for links to specific RD Leuchten products or want detailed information.
+        MANUAL TRIGGER ONLY: Use this function only when users specifically ask for:
+        - Links to product pages
+        - Detailed product information
+        - Specifications or technical details
+        - "More information" requests
         
         Args:
             product_name: Product identifier in format "product-[ProductName]" or "project-[ProjectName]"
                          Use exact names from the product catalog (case-sensitive)
                          
-        Examples:
-            - User: "zeig mir Beam InTrack link" -> product_name: "product-Beam InTrack"
-            - User: "show me Carda 90 details" -> product_name: "product-Carda 90"
-            - User: "get Pick information" -> product_name: "product-Pick"
-            - User: "VIU project link" -> product_name: "project-VIU Worldwide"
-            - User: "mehr info zu Porsche Rotkreuz" -> product_name: "project-Porsche Rotkreuz"
+        EXPLICIT REQUEST EXAMPLES:
+            - User: "show me the link" -> show_product_link for current product topic
+            - User: "get more details about Carda 90" -> product_name: "product-Carda 90"
+            - User: "I want the product page" -> show_product_link for current product
+            - User: "more information please" -> show_product_link for current product
+            - User: "specifications for Pick" -> product_name: "product-Pick"
             
-        Available Products:
-            - All Stromschienenleuchten, Einbauleuchten, Pendelleuchten from catalog
-            - All reference projects from various industries
-            - Links lead to detailed product pages on rdleuchten.ch
+        BEHAVIOR:
+            - Links persist until user clicks them or explicitly dismisses
+            - Clicking the link button will open the page and dismiss the overlay
+            - Only show when user explicitly requests links/details
         """
         try:
             logger.info(f"show_product_link called with product_name: '{product_name}'")

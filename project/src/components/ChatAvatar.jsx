@@ -33,16 +33,15 @@ const ChatAvatar = ({
         setImageSource(productImageData.image_url);
       }, 250);
 
-      const timer = setTimeout(() => {
-        console.log('⏰ 4 seconds passed, hiding image');
-        setIsImageVisible(false);
-
-        setTimeout(() => {
-          console.log('🧹 Clearing imageSource');
-          setImageSource("");
-        }, 250);
-      }, 4000); // Display image for 4 seconds
-      return () => clearTimeout(timer);
+      // No timer - image stays persistent until explicitly changed
+    } else if (productImageData === null) {
+      // Explicitly dismiss when productImageData is set to null
+      console.log('🔄 Dismissing image due to null productImageData');
+      setIsImageVisible(false);
+      setTimeout(() => {
+        console.log('🧹 Clearing imageSource');
+        setImageSource("");
+      }, 250);
     } else {
       console.log('❌ Product image data is invalid or missing image_url');
       console.log('   - productImageData exists:', !!productImageData);
@@ -60,14 +59,14 @@ const ChatAvatar = ({
         setLinkData(productLinkData);
       }, 250);
 
-      const timer = setTimeout(() => {
-        setIsLinkVisible(false);
-
-        setTimeout(() => {
-          setLinkData(null);
-        }, 250);
-      }, 5000); // Display link for 5 seconds
-      return () => clearTimeout(timer);
+      // No timer - link stays persistent until explicitly dismissed
+    } else if (productLinkData === null) {
+      // Explicitly dismiss when productLinkData is set to null
+      console.log('🔄 Dismissing link due to null productLinkData');
+      setIsLinkVisible(false);
+      setTimeout(() => {
+        setLinkData(null);
+      }, 250);
     }
   }, [productLinkData]);
 
@@ -177,7 +176,14 @@ const ChatAvatar = ({
               </div>
               
               <button
-                onClick={() => window.open(linkData.link_url, '_blank', 'noopener,noreferrer')}
+                onClick={() => {
+                  window.open(linkData.link_url, '_blank', 'noopener,noreferrer');
+                  // Dismiss the link overlay after opening
+                  setIsLinkVisible(false);
+                  setTimeout(() => {
+                    setLinkData(null);
+                  }, 250);
+                }}
                 className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 w-full"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -189,7 +195,7 @@ const ChatAvatar = ({
               </button>
               
               <div className="mt-3 text-xs text-gray-500">
-                Auto-close in 5 seconds
+                Click link to dismiss or say "close"
               </div>
             </div>
           </div>

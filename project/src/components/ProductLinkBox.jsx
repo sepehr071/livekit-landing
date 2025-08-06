@@ -35,6 +35,8 @@ const ProductLinkBox = ({ productData, onClose }) => {
 
   const handleLinkClick = () => {
     window.open(productData.link_url, '_blank', 'noopener,noreferrer');
+    // Dismiss the overlay after opening the link
+    handleClose();
   };
 
   const handleCopyLink = async () => {
@@ -162,7 +164,7 @@ const ProductLinkBox = ({ productData, onClose }) => {
         {/* Footer */}
         <div className="bg-gray-50 px-4 py-3 text-center border-t">
           <p className="text-xs text-gray-500">
-            Press ESC or click outside to close
+            Click link to dismiss, press ESC, or click outside to close
           </p>
         </div>
       </div>
