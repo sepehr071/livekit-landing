@@ -103,10 +103,9 @@ const ChatAvatar = ({
           <div className="mr-2 text-gray-500">
             <i className="fas fa-quote-left"></i>
           </div>
-          <div className="text-gray-800 text-sm sm:text-base" id="agentText">
+          <div className="text-gray-800 text-sm sm:text-base font-medium" id="agentText">
             {showLoadingDots ? (
               <div className="flex items-center">
-                <span className="animate-pulse">...</span>
                 <div className="ml-2 flex space-x-1">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                   <div
@@ -171,7 +170,7 @@ const ChatAvatar = ({
                   {linkData.product_title || "Product Link"}
                 </h3>
                 {linkData.description && (
-                  <p className="text-sm text-gray-600 mb-3">{linkData.description}</p>
+                  <p className="text-sm text-gray-600 mb-3 font-medium">{linkData.description}</p>
                 )}
               </div>
               
@@ -194,7 +193,7 @@ const ChatAvatar = ({
                 Open Link
               </button>
               
-              <div className="mt-3 text-xs text-gray-500">
+              <div className="mt-3 text-xs text-gray-500 font-medium">
                 Click link to dismiss or say "close"
               </div>
             </div>
@@ -208,7 +207,7 @@ const ChatAvatar = ({
               <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-2">
                 <span className="text-3xl">🤖</span>
               </div>
-              <p className="text-sm">Avatar Ready</p>
+              <p className="text-sm font-medium">Avatar Ready</p>
             </div>
           </div>
         )}
@@ -217,7 +216,7 @@ const ChatAvatar = ({
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-gray-500 text-center">
               <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              <p className="text-sm">Loading avatar...</p>
+              <p className="text-sm font-medium">Loading avatar...</p>
             </div>
           </div>
         )}

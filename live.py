@@ -571,14 +571,14 @@ async def entrypoint(ctx: JobContext):
                         if enabled:
                             await asyncio.wait_for(
                                 session.generate_reply(
-                                    instructions="Sage nur: 'Sprachmodus aktiviert.'"
+                                    instructions="Say ONLY these exact words in German: 'Sprachmodus aktiviert, jetzt können wir sprechen.' Then STOP immediately. Do not add anything else. Do not continue any previous conversation topics."
                                 ),
                                 timeout=15.0
                             )
                         else:
                             await asyncio.wait_for(
                                 session.generate_reply(
-                                    instructions="Sage nur: 'Textmodus aktiviert.'"
+                                    instructions="Say ONLY these exact words in German: 'Textmodus aktiviert.' Then STOP immediately. Do not add anything else. Do not continue any previous conversation topics."
                                 ),
                                 timeout=15.0
                             )

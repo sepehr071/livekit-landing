@@ -137,18 +137,18 @@ const UnifiedChatPage = () => {
       </div> */}
 
         {/* Main content area */}
-        <div className="flex-1 overflow-y-auto p-4 h-[80%] drop-shadow-md">
+        <div className="flex-1 overflow-y-auto p-4 h-[80%] drop-shadow-md rounded-[50px]">
           {/* User Speech Transcription Display */}
           {audioEnabled && (userInterimMessage || userMessage) && (
             <div className="mb-4 flex justify-end">
-              <div className={`px-4 py-2 rounded-lg max-w-xs text-sm shadow-sm ${
+              <div className={`px-4 py-2 rounded-lg max-w-xs text-sm shadow-sm font-medium ${
                 userInterimMessage
                   ? "bg-blue-50 text-blue-600 border border-blue-200"
                   : "bg-blue-100 text-blue-800"
               }`}>
                 <div className="flex items-center gap-2">
                   <span className="text-blue-600">🎤</span>
-                  <span className={userInterimMessage ? "italic opacity-80" : "italic"}>
+                  <span className={userInterimMessage ? "italic opacity-80 font-medium" : "italic font-medium"}>
                     {userInterimMessage || userMessage}
                   </span>
                 </div>
@@ -171,27 +171,27 @@ const UnifiedChatPage = () => {
 
           {/* Error Display */}
           {error && (
-            <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg font-medium">
               <div className="flex items-center">
                 <span className="text-red-500 mr-2">⚠️</span>
-                <span>Fehler: {error}</span>
+                <span className="font-medium">Fehler: {error}</span>
               </div>
             </div>
           )}
 
           {/* Connection Loading */}
           {isConnecting && (
-            <div className="mt-3 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg text-sm">
+            <div className="mt-3 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg text-sm font-medium">
               <div className="flex items-center">
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                <span>Verbindung wird hergestellt...</span>
+                <span className="font-medium">Verbindung wird hergestellt...</span>
               </div>
             </div>
           )}
         </div>
 
         {/* Bottom input/control area */}
-        <div className="relative bg-gradient-to-br from-gray-300 to-gray-200 p-4 py-6 shadow-inner">
+        <div className="relative bg-gradient-to-tl to-[#fcf4e7] from-[#dbbe9b] p-4 py-6 shadow-inner">
           <div className="flex flex-col gap-3">
             {/* Audio Toggle Button */}
 
