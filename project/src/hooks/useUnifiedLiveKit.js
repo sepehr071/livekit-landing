@@ -9,7 +9,7 @@ export const useUnifiedLiveKit = () => {
   const [error, setError] = useState(null);
   
   // Audio/Mode state
-  const [audioEnabled, setAudioEnabled] = useState(true); // Default OFF (text mode)
+  const [audioEnabled, setAudioEnabled] = useState(false); // Default OFF (text mode)
   const [isMuted, setIsMuted] = useState(false);
   
   // Communication state
