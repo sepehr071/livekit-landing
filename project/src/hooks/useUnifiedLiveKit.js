@@ -474,7 +474,10 @@ export const useUnifiedLiveKit = () => {
             const imageData = JSON.parse(data.payload);
             console.log('Received product image display request:', imageData);
             if (mountedRef.current) {
+              // Mutual exclusion: clear link data when showing image
+              setProductLinkData(null);
               setProductImageData(imageData);
+              console.log('Image displayed, link data cleared for mutual exclusion');
             }
             return 'image_displayed';
           } catch (error) {
@@ -491,7 +494,10 @@ export const useUnifiedLiveKit = () => {
             const linkData = JSON.parse(data.payload);
             console.log('Received product link display request:', linkData);
             if (mountedRef.current) {
+              // Mutual exclusion: clear image data when showing link
+              setProductImageData(null);
               setProductLinkData(linkData);
+              console.log('Link displayed, image data cleared for mutual exclusion');
             }
             return 'link_displayed';
           } catch (error) {
