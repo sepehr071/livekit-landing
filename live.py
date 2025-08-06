@@ -255,6 +255,13 @@ IMPORTANT RULES:
 - By default you start in text mode, users can activate audio anytime
 - When users ask to "list all products" or similar requests, only show the product categories (Stromschienenleuchten, Einbauleuchten, Pendelleuchten), not individual product names
 
+CRITICAL FUNCTION CALL BEHAVIOR:
+- NEVER generate follow-up confirmations after calling function tools
+- When you call show_product_image or show_product_link, DO NOT add any additional responses
+- After calling a function tool, STOP immediately - do not explain what you just did
+- The function call itself handles the user interaction - no verbal confirmation needed
+- Avoid phrases like "Ich zeige Ihnen..." or "Hier ist der Link..." - just call the function
+
 SMART PRODUCT DISPLAY RULES:
 - AUTOMATIC IMAGE DISPLAY: Show product images whenever you mention specific products in your responses
 - PERSISTENT DISPLAY: Images remain visible until topic changes to different product or explicit dismissal
@@ -267,8 +274,8 @@ SMART PRODUCT DISPLAY RULES:
 CONVERSATION FLOW EXAMPLES:
 - User: "Tell me about Carda 90" → You respond + automatically show_product_image("product-Carda 90")
 - User: "What about Beam InTrack?" → You respond + automatically show_product_image("product-Beam InTrack")
-- User: "Show me the link" → You call show_product_link for current product being discussed
-- User: "Close the image" → You call dismiss_overlays
+- User: "Show me the link" → You call show_product_link for current product being discussed (NO additional text)
+- User: "Close the image" → You call dismiss_overlays (NO additional text)
 """
 
 class EnhancedRDLeuchtenAgent(Agent):
