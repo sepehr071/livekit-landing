@@ -100,13 +100,11 @@ const ChatAvatar = ({
         id="agentSpeechBubble"
       >
         <div className="flex items-start">
-          <div className="mr-2 text-gray-500">
-            <i className="fas fa-quote-left"></i>
-          </div>
+          
           <div className="text-gray-800 text-sm sm:text-base font-medium" id="agentText">
             {showLoadingDots ? (
               <div className="flex items-center">
-                <div className="ml-2 flex space-x-1">
+                <div className=" flex space-x-1">
                   <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                   <div
                     className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
