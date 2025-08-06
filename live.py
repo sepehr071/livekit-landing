@@ -419,7 +419,7 @@ async def entrypoint(ctx: JobContext):
                 max_session_duration=1800.0  # 30 minutes instead of default 20 minutes
             ),
             preemptive_generation=False,  # Disable to reduce race conditions
-            use_tts_aligned_transcript=True  # Better transcription sync
+            use_tts_aligned_transcript=True  # Enable streaming transcription with speech sync
         )
         
         # Create RoomIO for session management
@@ -430,6 +430,8 @@ async def entrypoint(ctx: JobContext):
         session.input.set_audio_enabled(False)
         session.output.set_audio_enabled(False)
         session.output.set_transcription_enabled(True)  # Always show text transcription
+        
+        logger.info("Audio disabled, transcription enabled")
         
         logger.info("Session created, starting with agent...")
         

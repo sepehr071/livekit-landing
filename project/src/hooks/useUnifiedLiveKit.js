@@ -14,6 +14,9 @@ export const useUnifiedLiveKit = () => {
   
   // Communication state
   const [agentMessage, setAgentMessage] = useState('');
+  const [userMessage, setUserMessage] = useState('');
+  const [agentInterimMessage, setAgentInterimMessage] = useState('');
+  const [userInterimMessage, setUserInterimMessage] = useState('');
   const [isAgentSpeaking, setIsAgentSpeaking] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   
@@ -244,6 +247,14 @@ export const useUnifiedLiveKit = () => {
         return;
       }
 
+      // Clean up existing room first
+      if (roomRef.current) {
+        console.log('Cleaning up existing room before reconnecting');
+        roomRef.current.disconnect();
+        roomRef.current = null;
+        setRoom(null);
+      }
+
       // Get token from backend
       const { token, url, identity } = await fetchToken();
       identityRef.current = identity;
@@ -357,31 +368,90 @@ export const useUnifiedLiveKit = () => {
           }
         });
 
-      // Register text stream handler for transcriptions
-      newRoom.registerTextStreamHandler('lk.transcription', async (reader, participantInfo) => {
+      // Register TranscriptionReceived event for real-time streaming transcriptions
+      newRoom.on(RoomEvent.TranscriptionReceived, (segments, participant, publication) => {
         try {
-          const message = await reader.readAll();
-          console.log('Transcription received:', message);
-          setAgentMessage(message);
+          if (!mountedRef.current || !segments || segments.length === 0) return;
           
-          // Use transcription as fallback agent speaking detection
-          if (participantInfo.identity !== identityRef.current && mountedRef.current) {
-            setIsAgentSpeaking(true);
+          const isFromAgent = participant.identity !== identityRef.current;
+          console.log('=== TRANSCRIPTION SEGMENT RECEIVED ===');
+          console.log('Participant identity:', participant.identity);
+          console.log('Local identity:', identityRef.current);
+          console.log('Is from agent:', isFromAgent);
+          console.log('Segments count:', segments.length);
+          
+          // Process each transcription segment
+          segments.forEach((segment) => {
+            console.log('Segment:', {
+              text: segment.text,
+              final: segment.final,
+              startTime: segment.startTime,
+              endTime: segment.endTime,
+              id: segment.id
+            });
             
-            // Clear existing timeout
-            if (agentSpeakingTimeoutRef.current) {
-              clearTimeout(agentSpeakingTimeoutRef.current);
-            }
+            if (!segment.text) return;
             
-            // Set timeout to stop agent speaking after no new transcription
-            agentSpeakingTimeoutRef.current = setTimeout(() => {
-              if (mountedRef.current) {
-                setIsAgentSpeaking(false);
+            if (isFromAgent) {
+              // Agent speech transcription
+              if (segment.final) {
+                console.log('Setting FINAL AGENT message:', segment.text);
+                setAgentMessage(segment.text);
+                setAgentInterimMessage(''); // Clear interim
+                setIsAgentSpeaking(true);
+                
+                // Clear existing timeout
+                if (agentSpeakingTimeoutRef.current) {
+                  clearTimeout(agentSpeakingTimeoutRef.current);
+                }
+                
+                // Set timeout to stop agent speaking after final transcription
+                agentSpeakingTimeoutRef.current = setTimeout(() => {
+                  if (mountedRef.current) {
+                    console.log('Setting agent speaking: false (timeout)');
+                    setIsAgentSpeaking(false);
+                  }
+                }, 2000);
+              } else {
+                // Interim transcription - show progressive text
+                console.log('Setting INTERIM AGENT message:', segment.text);
+                setAgentInterimMessage(segment.text);
+                setIsAgentSpeaking(true);
+                
+                // Clear existing timeout for interim
+                if (agentSpeakingTimeoutRef.current) {
+                  clearTimeout(agentSpeakingTimeoutRef.current);
+                }
               }
-            }, 2000);
-          }
+            } else {
+              // User speech transcription
+              if (segment.final) {
+                console.log('Setting FINAL USER message:', segment.text);
+                setUserMessage(segment.text);
+                setUserInterimMessage(''); // Clear interim
+                
+                // Clear user message after a delay
+                setTimeout(() => {
+                  if (mountedRef.current) {
+                    setUserMessage('');
+                  }
+                }, 3000);
+              } else {
+                // Interim user transcription
+                console.log('Setting INTERIM USER message:', segment.text);
+                setUserInterimMessage(segment.text);
+              }
+            }
+          });
+          
         } catch (error) {
-          console.error('Error handling transcription:', error);
+          console.error('Error handling transcription segments:', error);
+          // Ensure speaking states are cleared on error
+          if (mountedRef.current) {
+            setIsAgentSpeaking(false);
+            setAgentInterimMessage('');
+            setUserInterimMessage('');
+          }
         }
       });
 
@@ -509,6 +579,9 @@ export const useUnifiedLiveKit = () => {
       setIsConnected(false);
       setIsConnecting(false);
       setAgentMessage('');
+      setUserMessage('');
+      setAgentInterimMessage('');
+      setUserInterimMessage('');
       setError(null);
       setIsAgentSpeaking(false);
       setIsUserSpeaking(false);
@@ -590,6 +663,9 @@ export const useUnifiedLiveKit = () => {
     
     // Messages
     agentMessage,
+    userMessage,
+    agentInterimMessage,
+    userInterimMessage,
     
     // Product display state and controls
     productImageData,

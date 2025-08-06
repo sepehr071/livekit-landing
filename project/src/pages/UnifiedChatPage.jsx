@@ -23,6 +23,9 @@ const UnifiedChatPage = () => {
     isMuted,
     sendTextMessage,
     agentMessage,
+    userMessage,
+    agentInterimMessage,
+    userInterimMessage,
     isAgentSpeaking,
     isUserSpeaking,
     error,
@@ -103,7 +106,7 @@ const UnifiedChatPage = () => {
     ? "Hallo! Ich bin Ihr KI-Assistent. Sie können jetzt sprechen oder weiterhin schreiben."
     : "Hallo! Ich bin Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?";
 
-  const currentAgentMessage = agentMessage || defaultMessage;
+  const currentAgentMessage = agentInterimMessage || agentMessage || defaultMessage;
 
   return (
     <>
@@ -159,6 +162,24 @@ const UnifiedChatPage = () => {
 
         {/* Main content area */}
         <div className="flex-1 overflow-y-auto p-4 h-[80%] drop-shadow-md">
+          {/* User Speech Transcription Display */}
+          {audioEnabled && (userInterimMessage || userMessage) && (
+            <div className="mb-4 flex justify-end">
+              <div className={`px-4 py-2 rounded-lg max-w-xs text-sm shadow-sm ${
+                userInterimMessage
+                  ? "bg-blue-50 text-blue-600 border border-blue-200"
+                  : "bg-blue-100 text-blue-800"
+              }`}>
+                <div className="flex items-center gap-2">
+                  <span className="text-blue-600">🎤</span>
+                  <span className={userInterimMessage ? "italic opacity-80" : "italic"}>
+                    {userInterimMessage || userMessage}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Avatar with unified integration */}
           <ChatAvatar
             mode={audioEnabled ? "voice" : "text"}
