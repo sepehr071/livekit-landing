@@ -106,7 +106,8 @@ const UnifiedChatPage = () => {
     ? "Hallo! Ich bin Ihr KI-Assistent. Sie können jetzt sprechen oder weiterhin schreiben."
     : "Hallo! Ich bin Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?";
 
-  const currentAgentMessage = agentInterimMessage || agentMessage || defaultMessage;
+  const currentAgentMessage =
+    agentInterimMessage || agentMessage || defaultMessage;
 
   return (
     <>
@@ -116,11 +117,25 @@ const UnifiedChatPage = () => {
         className={`fixed bg-gradient-to-b from-[#fcf4e7]/30 to-gray-300/30 backdrop-blur-md bottom-4 right-4 w-96 h-[820px] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%] transition-all opacity-100 blur-0`}
       >
         {/* Header with close button */}
-        <div className="flex justify-end items-center p-4 bg-gradient-to-br to-[#fcf4e7] from-[#dbbe9b] drop-shadow-md">
+        <div className="flex justify-between items-center p-4 bg-gradient-to-br to-[#fcf4e7] from-[#dbbe9b] drop-shadow-md">
           {/* Close Button */}
+
+          {audioEnabled && (
+            <button
+              onClick={toggleAudio}
+              disabled={!isConnected}
+              className={
+                "p-2 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-500 hover:bg-blue-600 text-white"
+              }
+              title={"Zum Textmodus wechseln"}
+            >
+              <img src="/images/back.png" alt="back" width={22} />
+            </button>
+          )}
+
           <button
             onClick={handleClose}
-            className="p-2 bg-gray-50 rounded-full shadow text-gray-600 hover:text-red-500 transition-colors duration-200"
+            className="p-2 bg-gray-50 rounded-full shadow text-gray-600 hover:text-red-500 transition-all hover:scale-105 duration-200"
           >
             <X size={20} />
           </button>
@@ -141,14 +156,22 @@ const UnifiedChatPage = () => {
           {/* User Speech Transcription Display */}
           {audioEnabled && (userInterimMessage || userMessage) && (
             <div className="mb-4 flex justify-end">
-              <div className={`px-4 py-2 rounded-lg max-w-xs text-sm shadow-sm font-medium ${
-                userInterimMessage
-                  ? "bg-blue-50 text-blue-600 border border-blue-200"
-                  : "bg-blue-100 text-blue-800"
-              }`}>
+              <div
+                className={`px-4 py-2 rounded-lg max-w-xs text-sm shadow-sm font-medium ${
+                  userInterimMessage
+                    ? "bg-blue-50 text-blue-600 border border-blue-200"
+                    : "bg-blue-100 text-blue-800"
+                }`}
+              >
                 <div className="flex items-center gap-2">
                   <span className="text-blue-600">🎤</span>
-                  <span className={userInterimMessage ? "italic opacity-80 font-medium" : "italic font-medium"}>
+                  <span
+                    className={
+                      userInterimMessage
+                        ? "italic opacity-80 font-medium"
+                        : "italic font-medium"
+                    }
+                  >
                     {userInterimMessage || userMessage}
                   </span>
                 </div>
@@ -184,7 +207,9 @@ const UnifiedChatPage = () => {
             <div className="mt-3 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg text-sm font-medium">
               <div className="flex items-center">
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                <span className="font-medium">Verbindung wird hergestellt...</span>
+                <span className="font-medium">
+                  Verbindung wird hergestellt...
+                </span>
               </div>
             </div>
           )}
@@ -201,27 +226,16 @@ const UnifiedChatPage = () => {
                 <button
                   onClick={toggleMicrophone}
                   disabled={!isConnected}
-                  className={`w-12 h-12 text-white border-orange-400 border-2 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`w-16 h-16 text-white border-blue-700 border-2 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed ${
                     isMuted
                       ? "bg-red-500 hover:bg-red-600"
-                      : "bg-green-500 hover:bg-green-600"
+                      : "bg-blue-500 hover:bg-blue-600"
                   }`}
                   title={
                     isMuted ? "Mikrofon aktivieren" : "Mikrofon deaktivieren"
                   }
                 >
-                  {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
-                </button>
-
-                <button
-                  onClick={toggleAudio}
-                  disabled={!isConnected}
-                  className={
-                    "w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-500 hover:bg-blue-600 text-white"
-                  }
-                  title={"Zum Textmodus wechseln"}
-                >
-                  <img src="/images/back.png" alt="back" width={22} />
+                  {isMuted ? <MicOff size={22} /> : <Mic size={22} />}
                 </button>
               </div>
             )}
