@@ -72,7 +72,7 @@ const ChatAvatar = ({
       setTimeout(() => {
         setLinkData(productLinkData);
         setShowProductContainer(true);
-      }, 600);
+      }, 1200);
 
     } else if (productLinkData === null) {
       // Explicitly dismiss when productLinkData is set to null
@@ -84,7 +84,7 @@ const ChatAvatar = ({
         setIsLinkVisible(false);
         setLinkData(null);
         setIsTransitioning(false);
-      }, 600);
+      }, 1200);
     }
   }, [productLinkData]);
 
@@ -160,21 +160,19 @@ const ChatAvatar = ({
         {/* Main canvas with smooth transition animation */}
         <canvas
           ref={canvasRef}
-          className={`relative z-10 rounded bg-transparent transition-all duration-700 ease-in-out ${
+          className={`relative z-10 bg-transparent transition-all duration-[1200ms] ease-in-out ${
             showProductContainer
-              ? 'w-24 h-24 absolute rounded-full shadow-lg'
-              : 'w-full h-full'
+              ? 'w-16 h-16 sm:w-20 sm:h-20 absolute rounded-full shadow-lg border-2 border-white'
+              : 'w-full h-full rounded-lg'
           }`}
           style={{
-            maxWidth: showProductContainer ? "96px" : "100%",
-            maxHeight: showProductContainer ? "96px" : "100%",
-            border: showProductContainer ? "3px solid #e56c13" : "none",
             zIndex: showProductContainer ? 30 : 10,
             marginBottom: !showProductContainer ? "1px" : "0",
+            background: showProductContainer ? "linear-gradient(135deg, #fb923c, #f97316)" : "transparent",
             ...(showProductContainer ? {
-              top: "-35%",
-              left: "86%",
-              transform: "translateX(-50%)"
+              top: "-33%",
+              right: "-73%",
+              transform: "none"
             } : {})
           }}
         />
@@ -185,30 +183,27 @@ const ChatAvatar = ({
           return imageSource && showProductContainer && (
             <div
               id="imageBox"
-              className="duration-500 transition-all flex items-center justify-center p-6 relative"
+              className="duration-500 transition-all flex items-center justify-center p-3 sm:p-4 md:p-6 relative w-full h-full"
               style={{
                 backgroundImage: "url('/images/Rectangle-image.png')",
                 backgroundSize: "contain",
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "center",
-                minHeight: "500px",
-                width: "120%",
-                height: "120%",
-                marginLeft: "-10%",
-                transform: "scale(1.1)"
+                minHeight: "280px",
+                maxHeight: "450px"
               }}
             >
               {/* Product content overlaid directly on background */}
-              <div className="flex flex-col items-center justify-center w-full max-w-sm mx-auto relative">
-                <div className="pt-8 pb-4">
+              <div className="flex flex-col items-center justify-center w-full max-w-[280px] sm:max-w-xs mx-auto relative px-3 sm:px-4">
+                <div className="pt-4 sm:pt-6 md:pt-8 pb-3 sm:pb-4 text-center">
                   <img
-                    className="w-32 h-32 mx-auto rounded-xl object-cover mb-6"
+                    className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 mx-auto rounded-lg sm:rounded-xl object-cover mb-3 sm:mb-4 md:mb-6"
                     src={imageSource}
                     alt="product"
                     onLoad={() => console.log('✅ Image loaded successfully:', imageSource)}
                     onError={(e) => console.log('❌ Image failed to load:', imageSource, 'Error:', e)}
                   />
-                  <h3 className="text-xl font-bold text-gray-800 text-center mb-4">
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 text-center mb-2 sm:mb-3 md:mb-4 leading-tight">
                     {productImageData?.product_title || "Product"}
                   </h3>
                   <div className="text-xs text-gray-500 font-medium text-center">
@@ -224,27 +219,24 @@ const ChatAvatar = ({
         {linkData && showProductContainer && (
           <div
             id="linkBox"
-            className="duration-500 transition-all flex items-center justify-center p-6 relative"
+            className="duration-500 transition-all flex items-center justify-center p-3 sm:p-4 md:p-6 relative w-full h-full"
             style={{
               backgroundImage: "url('/images/Rectangle-image.png')",
               backgroundSize: "contain",
               backgroundRepeat: "no-repeat",
               backgroundPosition: "center",
-              minHeight: "500px",
-              width: "120%",
-              height: "120%",
-              marginLeft: "-10%",
-              transform: "scale(1.1)"
+              minHeight: "280px",
+              maxHeight: "450px"
             }}
           >
             {/* Link content overlaid directly on background */}
-            <div className="flex flex-col items-center justify-center w-full max-w-sm mx-auto relative">
-              <div className="pt-8 pb-4">
-                <h3 className="text-xl font-bold text-gray-800 text-center mb-4">
+            <div className="flex flex-col items-center justify-center w-full max-w-[280px] sm:max-w-xs mx-auto relative px-3 sm:px-4">
+              <div className="pt-4 sm:pt-6 md:pt-8 pb-3 sm:pb-4 text-center">
+                <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 text-center mb-2 sm:mb-3 md:mb-4 leading-tight">
                   {linkData.product_title || "Product Link"}
                 </h3>
                 {linkData.description && (
-                  <p className="text-sm text-gray-600 mb-6 text-center font-medium">{linkData.description}</p>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 md:mb-6 text-center font-medium leading-relaxed">{linkData.description}</p>
                 )}
                 
                 <button
@@ -260,9 +252,9 @@ const ChatAvatar = ({
                       setIsTransitioning(false);
                     }, 1200);
                   }}
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 w-full text-base mb-4"
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 md:px-8 rounded-lg sm:rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 w-full text-xs sm:text-sm md:text-base mb-2 sm:mb-3 md:mb-4"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:w-4 sm:h-4">
                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                     <polyline points="15,3 21,3 21,9"></polyline>
                     <line x1="10" y1="14" x2="21" y2="3"></line>
