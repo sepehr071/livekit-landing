@@ -106,7 +106,8 @@ const UnifiedChatPage = () => {
     ? "Hallo! Ich bin Ihr KI-Assistent. Sie können jetzt sprechen oder weiterhin schreiben."
     : "Hallo! Ich bin Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?";
 
-  const currentAgentMessage = agentInterimMessage || agentMessage || defaultMessage;
+  const currentAgentMessage =
+    agentInterimMessage || agentMessage || defaultMessage;
 
   return (
     <>
@@ -116,14 +117,26 @@ const UnifiedChatPage = () => {
         className={`fixed bg-gradient-to-b from-white/95 via-orange-50/70 to-orange-100/80 backdrop-blur-xl bottom-4 right-4 w-96 h-[820px] max-h-[90vh] rounded-2xl shadow-2xl border border-orange-200/40 flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%] transition-all opacity-100 blur-0`}
       >
         {/* Header with close button */}
-        <div className="flex justify-end items-center p-4 bg-gradient-to-b from-orange-200/80 via-orange-100/60 to-transparent backdrop-blur-sm">
+        <div className="flex justify-between flex-row-reverse items-center p-4 bg-gradient-to-br to-[#fcf4e7] from-[#dbbe9b] drop-shadow-md">
           {/* Close Button */}
           <button
             onClick={handleClose}
-            className="p-2 bg-gray-50 rounded-full shadow text-gray-600 hover:text-red-500 transition-colors duration-200"
+            className="p-2 bg-gray-50 rounded-full shadow text-gray-600 hover:text-red-500 transition-all hover:scale-105 duration-200"
           >
             <X size={20} />
           </button>
+
+          {audioEnabled && (
+            <button
+              onClick={toggleAudio}
+              className={
+                "p-2 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed bg-white text-white"
+              }
+              title={"Zum Textmodus wechseln"}
+            >
+              <img src="/images/back.png" alt="back" width={22} />
+            </button>
+          )}
         </div>
 
         {/* Connection Status */}
@@ -168,7 +181,9 @@ const UnifiedChatPage = () => {
             <div className="mt-3 p-3 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg text-sm font-medium">
               <div className="flex items-center">
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                <span className="font-medium">Verbindung wird hergestellt...</span>
+                <span className="font-medium">
+                  Verbindung wird hergestellt...
+                </span>
               </div>
             </div>
           )}
@@ -185,27 +200,16 @@ const UnifiedChatPage = () => {
                 <button
                   onClick={toggleMicrophone}
                   disabled={!isConnected}
-                  className={`w-12 h-12 text-white border-orange-400 border-2 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`w-16 h-16 text-white border-blue-700 border-2 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed ${
                     isMuted
                       ? "bg-red-500 hover:bg-red-600"
-                      : "bg-green-500 hover:bg-green-600"
+                      : "bg-blue-500 hover:bg-blue-600"
                   }`}
                   title={
                     isMuted ? "Mikrofon aktivieren" : "Mikrofon deaktivieren"
                   }
                 >
-                  {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
-                </button>
-
-                <button
-                  onClick={toggleAudio}
-                  disabled={!isConnected}
-                  className={
-                    "w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed bg-blue-500 hover:bg-blue-600 text-white"
-                  }
-                  title={"Zum Textmodus wechseln"}
-                >
-                  <img src="/images/back.png" alt="back" width={22} />
+                  {isMuted ? <MicOff size={22} /> : <Mic size={22} />}
                 </button>
               </div>
             )}
@@ -236,7 +240,7 @@ const UnifiedChatPage = () => {
                 <button
                   type="submit"
                   disabled={!textInput.trim() || !isConnected || isSendingText}
-                  className="p-3 bg-amber-400 hover:bg-amber-500 text-white rounded-full transition-colors duration-300 disabled:bg-orange-300 disabled:cursor-not-allowed shadow-md"
+                  className="p-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full transition-colors duration-300 disabled:bg-orange-300 disabled:cursor-not-allowed shadow-md"
                   title={
                     isSendingText
                       ? "Nachricht wird gesendet..."
