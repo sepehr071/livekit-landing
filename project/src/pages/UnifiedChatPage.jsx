@@ -113,10 +113,10 @@ const UnifiedChatPage = () => {
       {/* Main Chat Widget */}
       <div
         style={isHidden ? { transform: "translateX(30rem)" } : {}}
-        className={`fixed bg-gradient-to-b from-[#fcf4e7]/30 to-gray-300/30 backdrop-blur-md bottom-4 right-4 w-96 h-[820px] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%] transition-all opacity-100 blur-0`}
+        className={`fixed bg-gradient-to-b from-white/95 via-orange-50/70 to-orange-100/80 backdrop-blur-xl bottom-4 right-4 w-96 h-[820px] max-h-[90vh] rounded-2xl shadow-2xl border border-orange-200/40 flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%] transition-all opacity-100 blur-0`}
       >
         {/* Header with close button */}
-        <div className="flex justify-end items-center p-4 bg-gradient-to-br to-[#fcf4e7] from-[#dbbe9b] drop-shadow-md">
+        <div className="flex justify-end items-center p-4 bg-gradient-to-b from-orange-200/80 via-orange-100/60 to-transparent backdrop-blur-sm">
           {/* Close Button */}
           <button
             onClick={handleClose}
@@ -137,24 +137,8 @@ const UnifiedChatPage = () => {
       </div> */}
 
         {/* Main content area */}
-        <div className="flex-1 overflow-y-auto p-4 h-[80%] drop-shadow-md rounded-[50px]">
-          {/* User Speech Transcription Display */}
-          {audioEnabled && (userInterimMessage || userMessage) && (
-            <div className="mb-4 flex justify-end">
-              <div className={`px-4 py-2 rounded-lg max-w-xs text-sm shadow-sm font-medium ${
-                userInterimMessage
-                  ? "bg-blue-50 text-blue-600 border border-blue-200"
-                  : "bg-blue-100 text-blue-800"
-              }`}>
-                <div className="flex items-center gap-2">
-                  <span className="text-blue-600">🎤</span>
-                  <span className={userInterimMessage ? "italic opacity-80 font-medium" : "italic font-medium"}>
-                    {userInterimMessage || userMessage}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 h-[80%] drop-shadow-md rounded-[50px]">
+          {/* User Speech Transcription Display - Removed for voice mode */}
 
           {/* Avatar with unified integration */}
           <ChatAvatar
@@ -191,7 +175,7 @@ const UnifiedChatPage = () => {
         </div>
 
         {/* Bottom input/control area */}
-        <div className="relative bg-gradient-to-tl to-[#fcf4e7] from-[#dbbe9b] p-4 py-6 shadow-inner">
+        <div className="relative bg-gradient-to-t from-orange-200/80 via-orange-100/60 to-transparent p-4 py-6 backdrop-blur-sm">
           <div className="flex flex-col gap-3">
             {/* Audio Toggle Button */}
 
