@@ -114,27 +114,39 @@ const UnifiedChatPage = () => {
       {/* Main Chat Widget */}
       <div
         style={isHidden ? { transform: "translateX(30rem)" } : {}}
-        className={`fixed bg-gradient-to-b from-white/95 via-orange-50/70 to-orange-100/80 backdrop-blur-xl bottom-4 right-4 w-96 h-[820px] max-h-[90vh] rounded-2xl shadow-2xl border border-orange-200/40 flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%] transition-all opacity-100 blur-0`}
+        className={`fixed ${
+          audioEnabled
+            ? 'bg-gradient-to-b from-blue-50/40 via-blue-25/20 to-blue-50/30'
+            : 'bg-gradient-to-b from-white/95 via-orange-50/70 to-orange-100/80'
+        } backdrop-blur-xl bottom-4 right-4 w-96 h-[820px] max-h-[90vh] rounded-2xl shadow-2xl border ${
+          audioEnabled ? 'border-blue-200/40' : 'border-orange-200/40'
+        } flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%] transition-all opacity-100 blur-0`}
       >
         {/* Header with close button */}
-        <div className="flex justify-between flex-row-reverse items-center p-4 bg-gradient-to-br to-[#fcf4e7] from-[#dbbe9b] drop-shadow-md">
+        <div className="flex justify-between flex-row-reverse items-center p-4 relative">
+          {/* Smooth gradient background that fades into content */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#dbbe9b]/60 via-[#f5e6d3]/40 to-transparent backdrop-blur-md"></div>
+          {/* Additional fade layer for seamless blending */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#fcf4e7]/30 via-white/15 to-transparent pointer-events-none"></div>
+          {/* Bottom fade to completely eliminate the line */}
+          <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-white/20 pointer-events-none"></div>
           {/* Close Button */}
           <button
             onClick={handleClose}
-            className="p-2 bg-gray-50 rounded-full shadow text-gray-600 hover:text-red-500 transition-all hover:scale-105 duration-200"
+            className="p-2 bg-gray-50 rounded-full shadow text-gray-600 hover:text-red-500 transition-all hover:scale-105 duration-200 relative z-10"
           >
-            <X size={20} />
+            <img src="/images/icons8-cancel-208.png" alt="close" width={20} height={20} />
           </button>
 
           {audioEnabled && (
             <button
               onClick={toggleAudio}
               className={
-                "p-2 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed bg-white text-white"
+                "p-2 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed bg-white text-white relative z-10"
               }
               title={"Zum Textmodus wechseln"}
             >
-              <img src="/images/back.png" alt="back" width={22} />
+              <img src="/images/icons8-back-100 (1).png" alt="back" width={22} />
             </button>
           )}
         </div>
@@ -190,7 +202,9 @@ const UnifiedChatPage = () => {
         </div>
 
         {/* Bottom input/control area */}
-        <div className="relative bg-gradient-to-t from-orange-200/80 via-orange-100/60 to-transparent p-4 py-6 backdrop-blur-sm">
+        <div className="relative bg-gradient-to-t from-orange-200/60 via-orange-100/40 to-white/10 p-4 py-6 backdrop-blur-md">
+          {/* Soft fade overlay for seamless blending */}
+          <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/5 to-white/15 pointer-events-none"></div>
           <div className="flex flex-col gap-3">
             {/* Audio Toggle Button */}
 
@@ -240,7 +254,11 @@ const UnifiedChatPage = () => {
                 <button
                   type="submit"
                   disabled={!textInput.trim() || !isConnected || isSendingText}
-                  className="p-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full transition-colors duration-300 disabled:bg-orange-300 disabled:cursor-not-allowed shadow-md"
+                  className={`p-3 ${
+                    textInput.trim()
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-slate-700 hover:bg-slate-800'
+                  } text-white rounded-full transition-colors duration-300 disabled:bg-orange-300 disabled:cursor-not-allowed shadow-md`}
                   title={
                     isSendingText
                       ? "Nachricht wird gesendet..."

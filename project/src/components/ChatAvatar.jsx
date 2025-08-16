@@ -22,69 +22,100 @@ const ChatAvatar = ({
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showProductContainer, setShowProductContainer] = useState(false);
 
-  // Update imageData when productImageData prop changes
+  // Unified effect for handling both image and link data changes with seamless transitions
   useEffect(() => {
     console.log('🔍 ChatAvatar: productImageData changed:', productImageData);
     console.log('🔍 Current state - isImageVisible:', isImageVisible, 'imageSource:', imageSource);
     
     if (productImageData && productImageData.image_url) {
       console.log('✅ Product image data is valid, image_url:', productImageData.image_url);
-      console.log('🎬 Starting transition animation');
       
-      // Start transition animation
-      setIsTransitioning(true);
-      setIsImageVisible(true);
-      
-      // After transition animation, show product container
-      setTimeout(() => {
-        console.log('🖼️ Setting imageSource and showing product container:', productImageData.image_url);
+      // If we're already showing product container, just swap content instantly
+      if (showProductContainer) {
+        console.log('🔄 Instant content swap - updating image without character animation');
         setImageSource(productImageData.image_url);
-        setShowProductContainer(true);
-      }, 1200); // Transition duration
+        setIsImageVisible(true);
+        // Clear link data to show image
+        setLinkData(null);
+        setIsLinkVisible(false);
+      } else {
+        // First time showing - animate character
+        console.log('🎬 Starting transition animation');
+        setIsTransitioning(true);
+        setIsImageVisible(true);
+        
+        setTimeout(() => {
+          console.log('🖼️ Setting imageSource and showing product container:', productImageData.image_url);
+          setImageSource(productImageData.image_url);
+          setShowProductContainer(true);
+          setIsTransitioning(false);
+        }, 1200);
+      }
 
-    } else if (productImageData === null) {
-      // Explicitly dismiss when productImageData is set to null
+    } else if (productImageData === null && !productLinkData) {
+      // Only dismiss if no link data is coming
       console.log('🔄 Dismissing image due to null productImageData');
-      setShowProductContainer(false);
-      setIsTransitioning(true);
+      setIsImageVisible(false);
+      setImageSource("");
       
-      setTimeout(() => {
-        setIsImageVisible(false);
-        setImageSource("");
-        setIsTransitioning(false);
-      }, 1200);
-    } else {
-      console.log('❌ Product image data is invalid or missing image_url');
-      console.log('   - productImageData exists:', !!productImageData);
-      console.log('   - image_url exists:', productImageData?.image_url);
+      if (!linkData) {
+        setShowProductContainer(false);
+        setIsTransitioning(true);
+        
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 1200);
+      }
+    } else if (productImageData === null && productLinkData) {
+      // Clear image data but keep container for link
+      setIsImageVisible(false);
+      setImageSource("");
     }
   }, [productImageData]);
 
   // Update linkData when productLinkData prop changes
   useEffect(() => {
     console.log('ChatAvatar: productLinkData changed:', productLinkData);
+    
     if (productLinkData && productLinkData.link_url) {
-      // Start transition animation
-      setIsTransitioning(true);
-      setIsLinkVisible(true);
-
-      // After transition animation, show product container
-      setTimeout(() => {
+      // If we're already showing product container, just swap content instantly
+      if (showProductContainer) {
+        console.log('🔄 Instant content swap - updating link without character animation');
         setLinkData(productLinkData);
-        setShowProductContainer(true);
-      }, 1200);
+        setIsLinkVisible(true);
+        // Clear image data to show link
+        setImageSource("");
+        setIsImageVisible(false);
+      } else {
+        // First time showing - animate character
+        setIsTransitioning(true);
+        setIsLinkVisible(true);
 
-    } else if (productLinkData === null) {
-      // Explicitly dismiss when productLinkData is set to null
+        setTimeout(() => {
+          setLinkData(productLinkData);
+          setShowProductContainer(true);
+          setIsTransitioning(false);
+        }, 1200);
+      }
+
+    } else if (productLinkData === null && !productImageData) {
+      // Only dismiss if no image data is coming
       console.log('🔄 Dismissing link due to null productLinkData');
-      setShowProductContainer(false);
-      setIsTransitioning(true);
+      setIsLinkVisible(false);
+      setLinkData(null);
       
-      setTimeout(() => {
-        setIsLinkVisible(false);
-        setLinkData(null);
-        setIsTransitioning(false);
-      }, 1200);
+      if (!imageSource) {
+        setShowProductContainer(false);
+        setIsTransitioning(true);
+        
+        setTimeout(() => {
+          setIsTransitioning(false);
+        }, 1200);
+      }
+    } else if (productLinkData === null && productImageData) {
+      // Clear link data but keep container for image
+      setIsLinkVisible(false);
+      setLinkData(null);
     }
   }, [productLinkData]);
 
@@ -114,7 +145,7 @@ const ChatAvatar = ({
     <div className="flex flex-col items-center justify-center max-h-full py-2 overflow-y-auto h-[100%] drop-shadow-md">
       {/* Speech Bubble */}
       <div
-        className="relative bg-gradient-to-r from-orange-50/90 via-white to-orange-100/70 p-4 rounded-xl shadow-lg border border-orange-200/30 mb-4 max-w-xs sm:max-w-sm md:max-w-md max-h-[35%] overflow-y-auto custom-scrollbar backdrop-blur-sm"
+        className="relative bg-white p-4 rounded-xl shadow-lg border border-gray-200/50 mb-4 max-w-xs sm:max-w-sm md:max-w-md max-h-[35%] overflow-y-auto custom-scrollbar backdrop-blur-sm"
         id="agentSpeechBubble"
       >
         <div className="flex items-start">
@@ -162,7 +193,7 @@ const ChatAvatar = ({
           ref={canvasRef}
           className={`relative z-10 bg-transparent transition-all duration-[1200ms] ease-in-out ${
             showProductContainer
-              ? 'w-16 h-16 sm:w-20 sm:h-20 absolute rounded-full shadow-lg border-2 border-white'
+              ? 'w-24 h-24 sm:w-28 sm:h-28 absolute rounded-full shadow-lg border-2 border-white'
               : 'w-full h-full rounded-lg'
           }`}
           style={{
@@ -170,8 +201,8 @@ const ChatAvatar = ({
             marginBottom: !showProductContainer ? "1px" : "0",
             background: showProductContainer ? "linear-gradient(135deg, #fb923c, #f97316)" : "transparent",
             ...(showProductContainer ? {
-              top: "-33%",
-              right: "-73%",
+              top: "-31%",
+              right: "-63%",
               transform: "none"
             } : {})
           }}
@@ -188,9 +219,12 @@ const ChatAvatar = ({
                 backgroundImage: "url('/images/Rectangle-image.png')",
                 backgroundSize: "contain",
                 backgroundRepeat: "no-repeat",
-                backgroundPosition: "center",
+                backgroundPosition: "center center",
                 minHeight: "280px",
-                maxHeight: "450px"
+                maxHeight: "450px",
+                marginRight: "-55px",
+                right: "71px",
+                top: "35px"
               }}
             >
               {/* Product content overlaid directly on background */}
@@ -226,7 +260,10 @@ const ChatAvatar = ({
               backgroundRepeat: "no-repeat",
               backgroundPosition: "center",
               minHeight: "280px",
-              maxHeight: "450px"
+              maxHeight: "450px",
+              marginRight: "-55px",
+                right: "71px",
+                top: "35px"
             }}
           >
             {/* Link content overlaid directly on background */}
