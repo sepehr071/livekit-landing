@@ -18,102 +18,73 @@ const ChatAvatar = ({
   const [isLinkVisible, setIsLinkVisible] = useState(false);
   const [linkData, setLinkData] = useState(null);
   
-  // Transition animation states
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  // Product display states
   const [showProductContainer, setShowProductContainer] = useState(false);
+  const [isExpanding, setIsExpanding] = useState(false);
 
-  // Unified effect for handling both image and link data changes with seamless transitions
+  // Handle image data changes
   useEffect(() => {
-    console.log('🔍 ChatAvatar: productImageData changed:', productImageData);
-    console.log('🔍 Current state - isImageVisible:', isImageVisible, 'imageSource:', imageSource);
-    
     if (productImageData && productImageData.image_url) {
-      console.log('✅ Product image data is valid, image_url:', productImageData.image_url);
-      
-      // If we're already showing product container, just swap content instantly
       if (showProductContainer) {
-        console.log('🔄 Instant content swap - updating image without character animation');
+        // Instant content swap for existing container
         setImageSource(productImageData.image_url);
         setIsImageVisible(true);
-        // Clear link data to show image
         setLinkData(null);
         setIsLinkVisible(false);
       } else {
-        // First time showing - animate character
-        console.log('🎬 Starting transition animation');
-        setIsTransitioning(true);
+        // New container - start center-expand animation
+        setIsExpanding(true);
         setIsImageVisible(true);
         
         setTimeout(() => {
-          console.log('🖼️ Setting imageSource and showing product container:', productImageData.image_url);
           setImageSource(productImageData.image_url);
           setShowProductContainer(true);
-          setIsTransitioning(false);
-        }, 1200);
+          setIsExpanding(false);
+        }, 600);
       }
-
     } else if (productImageData === null && !productLinkData) {
-      // Only dismiss if no link data is coming
-      console.log('🔄 Dismissing image due to null productImageData');
+      // Clean dismissal - no extra animations
       setIsImageVisible(false);
       setImageSource("");
-      
       if (!linkData) {
         setShowProductContainer(false);
-        setIsTransitioning(true);
-        
-        setTimeout(() => {
-          setIsTransitioning(false);
-        }, 1200);
       }
     } else if (productImageData === null && productLinkData) {
-      // Clear image data but keep container for link
+      // Keep container for link
       setIsImageVisible(false);
       setImageSource("");
     }
   }, [productImageData]);
 
-  // Update linkData when productLinkData prop changes
+  // Handle link data changes
   useEffect(() => {
-    console.log('ChatAvatar: productLinkData changed:', productLinkData);
-    
     if (productLinkData && productLinkData.link_url) {
-      // If we're already showing product container, just swap content instantly
       if (showProductContainer) {
-        console.log('🔄 Instant content swap - updating link without character animation');
+        // Instant content swap for existing container
         setLinkData(productLinkData);
         setIsLinkVisible(true);
-        // Clear image data to show link
         setImageSource("");
         setIsImageVisible(false);
       } else {
-        // First time showing - animate character
-        setIsTransitioning(true);
+        // New container - start center-expand animation
+        setIsExpanding(true);
         setIsLinkVisible(true);
-
+        
         setTimeout(() => {
           setLinkData(productLinkData);
           setShowProductContainer(true);
-          setIsTransitioning(false);
-        }, 1200);
+          setIsExpanding(false);
+        }, 600);
       }
-
     } else if (productLinkData === null && !productImageData) {
-      // Only dismiss if no image data is coming
-      console.log('🔄 Dismissing link due to null productLinkData');
+      // Clean dismissal - no extra animations
       setIsLinkVisible(false);
       setLinkData(null);
-      
       if (!imageSource) {
         setShowProductContainer(false);
-        setIsTransitioning(true);
-        
-        setTimeout(() => {
-          setIsTransitioning(false);
-        }, 1200);
       }
     } else if (productLinkData === null && productImageData) {
-      // Clear link data but keep container for image
+      // Keep container for image
       setIsLinkVisible(false);
       setLinkData(null);
     }
@@ -201,59 +172,62 @@ const ChatAvatar = ({
             marginBottom: !showProductContainer ? "1px" : "0",
             background: showProductContainer ? "linear-gradient(135deg, #fb923c, #f97316)" : "transparent",
             ...(showProductContainer ? {
-              top: "-31%",
-              right: "-63%",
+              top: "-34%",
+              right: "-54%",
+              width: "139px",
+              height: "115px",
               transform: "none"
             } : {})
           }}
         />
 
         {/* Product Image Display - Organic Container Design */}
-        {(() => {
-          console.log('🎨 Rendering image section - imageSource:', imageSource, 'showProductContainer:', showProductContainer);
-          return imageSource && showProductContainer && (
-            <div
-              id="imageBox"
-              className="duration-500 transition-all flex items-center justify-center p-3 sm:p-4 md:p-6 relative w-full h-full"
-              style={{
-                backgroundImage: "url('/images/Rectangle-image.png')",
-                backgroundSize: "contain",
-                backgroundRepeat: "no-repeat",
-                backgroundPosition: "center center",
-                minHeight: "280px",
-                maxHeight: "450px",
-                marginRight: "-55px",
-                right: "71px",
-                top: "35px"
-              }}
-            >
-              {/* Product content overlaid directly on background */}
-              <div className="flex flex-col items-center justify-center w-full max-w-[280px] sm:max-w-xs mx-auto relative px-3 sm:px-4">
-                <div className="pt-4 sm:pt-6 md:pt-8 pb-3 sm:pb-4 text-center">
-                  <img
-                    className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 mx-auto rounded-lg sm:rounded-xl object-cover mb-3 sm:mb-4 md:mb-6"
-                    src={imageSource}
-                    alt="product"
-                    onLoad={() => console.log('✅ Image loaded successfully:', imageSource)}
-                    onError={(e) => console.log('❌ Image failed to load:', imageSource, 'Error:', e)}
-                  />
-                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 text-center mb-2 sm:mb-3 md:mb-4 leading-tight">
-                    {productImageData?.product_title || "Product"}
-                  </h3>
-                  <div className="text-xs text-gray-500 font-medium text-center">
-                    Say "close" to dismiss
-                  </div>
+        {imageSource && showProductContainer && (
+          <div
+            id="imageBox"
+            className={`flex items-center justify-center p-3 sm:p-4 md:p-6 relative w-full h-full transition-all duration-600 ease-out ${
+              isExpanding ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
+            }`}
+            style={{
+              backgroundImage: "url('/images/Rectangle-image.png')",
+              backgroundSize: "contain",
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "center center",
+              minHeight: "280px",
+              maxHeight: "450px",
+              marginRight: "-77px",
+              right: "96px",
+              top: "36px"
+            }}
+          >
+            {/* Product content overlaid directly on background */}
+            <div className="flex flex-col items-center justify-center w-full max-w-[280px] sm:max-w-xs mx-auto relative px-3 sm:px-4">
+              <div className="pt-4 sm:pt-6 md:pt-8 pb-3 sm:pb-4 text-center">
+                <img
+                  className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 mx-auto rounded-lg sm:rounded-xl object-cover mb-3 sm:mb-4 md:mb-6"
+                  src={imageSource}
+                  alt="product"
+                  onLoad={() => console.log('✅ Image loaded successfully:', imageSource)}
+                  onError={(e) => console.log('❌ Image failed to load:', imageSource, 'Error:', e)}
+                />
+                <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 text-center mb-2 sm:mb-3 md:mb-4 leading-tight">
+                  {productImageData?.product_title || "Product"}
+                </h3>
+                <div className="text-xs text-gray-500 font-medium text-center">
+                  Say "close" to dismiss
                 </div>
               </div>
             </div>
-          );
-        })()}
+          </div>
+        )}
 
         {/* Product Link Display - Organic Container Design */}
         {linkData && showProductContainer && (
           <div
             id="linkBox"
-            className="duration-500 transition-all flex items-center justify-center p-3 sm:p-4 md:p-6 relative w-full h-full"
+            className={`flex items-center justify-center p-3 sm:p-4 md:p-6 relative w-full h-full transition-all duration-600 ease-out ${
+              isExpanding ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
+            }`}
             style={{
               backgroundImage: "url('/images/Rectangle-image.png')",
               backgroundSize: "contain",
@@ -262,8 +236,8 @@ const ChatAvatar = ({
               minHeight: "280px",
               maxHeight: "450px",
               marginRight: "-55px",
-                right: "71px",
-                top: "35px"
+              right: "71px",
+              top: "35px"
             }}
           >
             {/* Link content overlaid directly on background */}
@@ -281,13 +255,8 @@ const ChatAvatar = ({
                     window.open(linkData.link_url, '_blank', 'noopener,noreferrer');
                     // Dismiss link box after opening
                     setShowProductContainer(false);
-                    setIsTransitioning(true);
-                    
-                    setTimeout(() => {
-                      setIsLinkVisible(false);
-                      setLinkData(null);
-                      setIsTransitioning(false);
-                    }, 1200);
+                    setIsLinkVisible(false);
+                    setLinkData(null);
                   }}
                   className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 md:px-8 rounded-lg sm:rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 w-full text-xs sm:text-sm md:text-base mb-2 sm:mb-3 md:mb-4"
                 >

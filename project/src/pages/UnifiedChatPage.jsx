@@ -135,7 +135,7 @@ const UnifiedChatPage = () => {
             onClick={handleClose}
             className="p-2 bg-gray-50 rounded-full shadow text-gray-600 hover:text-red-500 transition-all hover:scale-105 duration-200 relative z-10"
           >
-            <img src="/images/icons8-cancel-208.png" alt="close" width={20} height={20} />
+            <img src="/images/icons8-cancel.png" alt="close" width={20} height={20} />
           </button>
 
           {audioEnabled && (
@@ -146,7 +146,7 @@ const UnifiedChatPage = () => {
               }
               title={"Zum Textmodus wechseln"}
             >
-              <img src="/images/icons8-back-100 (1).png" alt="back" width={22} />
+              <img src="/images/icons8-back.png" alt="back" width={22} />
             </button>
           )}
         </div>
@@ -254,11 +254,14 @@ const UnifiedChatPage = () => {
                 <button
                   type="submit"
                   disabled={!textInput.trim() || !isConnected || isSendingText}
-                  className={`p-3 ${
+                  className={`p-3 text-white rounded-full transition-colors duration-300 disabled:bg-orange-300 disabled:cursor-not-allowed shadow-md ${
                     textInput.trim()
-                      ? 'bg-green-600 hover:bg-green-700'
+                      ? 'hover:brightness-110'
                       : 'bg-slate-700 hover:bg-slate-800'
-                  } text-white rounded-full transition-colors duration-300 disabled:bg-orange-300 disabled:cursor-not-allowed shadow-md`}
+                  }`}
+                  style={textInput.trim() ? {
+                    backgroundColor: '#4cc579cc'
+                  } : {}}
                   title={
                     isSendingText
                       ? "Nachricht wird gesendet..."
