@@ -162,22 +162,24 @@ const ChatAvatar = ({
         {/* Main canvas with smooth transition animation */}
         <canvas
           ref={canvasRef}
-          className={`relative z-10 bg-transparent transition-all duration-[1200ms] ease-in-out ${
+          className={`relative z-10 bg-transparent transition-all duration-[1200ms] ease-out ${
             showProductContainer
-              ? 'w-24 h-24 sm:w-28 sm:h-28 absolute rounded-full shadow-lg border-2 border-white'
-              : 'w-full h-full rounded-lg'
+              ? 'absolute rounded-full shadow-lg border-2 border-white'
+              : 'rounded-lg'
           }`}
           style={{
             zIndex: showProductContainer ? 30 : 10,
             marginBottom: !showProductContainer ? "1px" : "0",
             background: showProductContainer ? "linear-gradient(135deg, #fb923c, #f97316)" : "transparent",
-            ...(showProductContainer ? {
-              top: "-34%",
-              right: "-54%",
-              width: "139px",
-              height: "115px",
-              transform: "none"
-            } : {})
+            width: showProductContainer ? "120px" : "100%",
+            height: showProductContainer ? "120px" : "100%",
+            transform: showProductContainer
+              ? 'translate(210px, -110px) scale(0.90)'
+              : 'translate(0, 0) scale(1)',
+            transformOrigin: 'center center',
+            transition: 'all 1200ms cubic-bezier(0.4, 0, 0.2, 1)',
+            // Ensure perfect circle in product mode
+            borderRadius: showProductContainer ? '50%' : undefined
           }}
         />
 
@@ -235,9 +237,9 @@ const ChatAvatar = ({
               backgroundPosition: "center",
               minHeight: "280px",
               maxHeight: "450px",
-              marginRight: "-55px",
-              right: "71px",
-              top: "35px"
+              marginRight: "-68px",
+              right: "92px",
+              top: "34px"
             }}
           >
             {/* Link content overlaid directly on background */}
