@@ -22,6 +22,20 @@ const ChatAvatar = ({
   const [showProductContainer, setShowProductContainer] = useState(false);
   const [isExpanding, setIsExpanding] = useState(false);
 
+  // Check if mobile device
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
   // Handle image data changes
   useEffect(() => {
     if (productImageData && productImageData.image_url) {
@@ -174,12 +188,12 @@ const ChatAvatar = ({
             width: showProductContainer ? "120px" : "100%",
             height: showProductContainer ? "120px" : "100%",
             transform: showProductContainer
-              ? 'translate(210px, -110px) scale(0.90)'
+              ? (isMobile ? 'translate(160px, -90px) scale(0.85)' : 'translate(210px, -110px) scale(0.90)')
               : 'translate(0, 0) scale(1)',
             transformOrigin: 'center center',
             transition: 'all 1200ms cubic-bezier(0.4, 0, 0.2, 1)',
-            // Ensure perfect circle in product mode
-            borderRadius: showProductContainer ? '50%' : undefined
+            // Ensure perfect circle in product mode - different radius for mobile
+            borderRadius: showProductContainer ? (isMobile ? '97%' : '50%') : undefined
           }}
         />
 
