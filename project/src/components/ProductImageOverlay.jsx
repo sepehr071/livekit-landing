@@ -69,7 +69,7 @@ const ProductImageOverlay = ({ productData, onClose }) => {
         <div
           className="relative text-white p-4"
           style={{
-            background: `linear-gradient(to right, ${config.theme.colors.primary}, ${config.theme.colors.secondary})`
+            background: `linear-gradient(to right, ${config.theme.primary.main}, ${config.theme.secondary.main})`
           }}
         >
           <h2 className="text-xl font-bold pr-12">{productData.product_title}</h2>

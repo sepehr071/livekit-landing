@@ -90,7 +90,7 @@ const ProductLinkBox = ({ productData, onClose }) => {
         <div
           className="text-white p-4 relative"
           style={{
-            background: `linear-gradient(to right, ${config.theme.colors.primary}, ${config.theme.colors.secondary})`
+            background: `linear-gradient(to right, ${config.theme.primary.main}, ${config.theme.secondary.main})`
           }}
         >
           <div className="flex items-start justify-between">
@@ -142,8 +142,8 @@ const ProductLinkBox = ({ productData, onClose }) => {
               onClick={handleLinkClick}
               className="flex-1 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
               style={{
-                backgroundColor: config.theme.colors.primary,
-                '&:hover': { backgroundColor: config.theme.colors.primaryDark }
+                backgroundColor: config.theme.primary.main,
+                '&:hover': { backgroundColor: config.theme.primary.dark }
               }}
             >
               <ExternalLink size={18} />

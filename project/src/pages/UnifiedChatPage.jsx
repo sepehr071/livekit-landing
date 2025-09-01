@@ -4,7 +4,7 @@ import { Mic, MicOff, X, MessageSquare, Volume2, Loader2 } from "lucide-react";
 import ChatAvatar from "../components/ChatAvatar";
 import ProductImageOverlay from "../components/ProductImageOverlay";
 import ProductLinkBox from "../components/ProductLinkBox";
-import { useUnifiedLiveKit } from "../hooks/useUnifiedLiveKit";
+import { useElevenLabsConversation } from "../hooks/useElevenLabsConversation";
 import { useCompanyConfig } from "../config/useCompanyConfig";
 
 const UnifiedChatPage = () => {
@@ -36,7 +36,7 @@ const UnifiedChatPage = () => {
     productImageData,
     productLinkData,
     dismissProductOverlays,
-  } = useUnifiedLiveKit();
+  } = useElevenLabsConversation();
 
   // Auto-connect and show widget on mount
   useEffect(() => {
@@ -48,7 +48,7 @@ const UnifiedChatPage = () => {
       }
     }, 150);
 
-    // Auto-connect to LiveKit only once
+    // Auto-connect to ElevenLabs conversation only once
     connect();
 
     return () => {
@@ -298,16 +298,16 @@ const UnifiedChatPage = () => {
         </div>
       </div>
 
-      {/* Product Display Overlays */}
-      {/* <ProductImageOverlay
+      
+       <ProductImageOverlay
         productData={productImageData}
         onClose={dismissProductOverlays}
-      /> */}
+      /> 
 
-      {/* <ProductLinkBox
+       <ProductLinkBox
         productData={productLinkData}
         onClose={dismissProductOverlays}
-      /> */}
+      /> 
     </>
   );
 };
