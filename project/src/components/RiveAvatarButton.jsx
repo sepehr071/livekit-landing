@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRive } from "../hooks/useRive";
 import { useNavigate } from "react-router-dom";
+import { useCompanyConfig } from "../config/useCompanyConfig";
 
 const RiveAvatarButton = ({
   className,
@@ -10,7 +11,11 @@ const RiveAvatarButton = ({
   isUserSpeaking = false,
   mode = "chat",
 }) => {
-  const { canvasRef, setAnimationState, isLoaded, error } = useRive();
+  // Get company configuration
+  const { config, getText } = useCompanyConfig();
+  
+  // Use configurable Rive animation file
+  const { canvasRef, setAnimationState, isLoaded, error } = useRive(config.assets.riveAnimation);
   const [isHidden, setIsHidden] = useState(true);
   const navigate = useNavigate();
 
@@ -42,7 +47,7 @@ const RiveAvatarButton = ({
               <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-2">
                 <span className="text-3xl">🤖</span>
               </div>
-              <p className="text-sm">Avatar Ready</p>
+              <p className="text-sm">{getText("ui.avatarReady")}</p>
             </div>
           </div>
         )}
@@ -50,7 +55,7 @@ const RiveAvatarButton = ({
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-gray-500 text-center">
               <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              <p className="text-sm">Loading avatar...</p>
+              <p className="text-sm">{getText("ui.loadingAvatar")}</p>
             </div>
           </div>
         )}

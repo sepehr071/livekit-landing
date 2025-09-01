@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { X, ExternalLink, Copy, Check } from 'lucide-react';
+import { useCompanyConfig } from '../config/useCompanyConfig';
 
 const ProductLinkBox = ({ productData, onClose }) => {
+  // Get company configuration
+  const { config, getText } = useCompanyConfig();
   const [isVisible, setIsVisible] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -84,7 +87,12 @@ const ProductLinkBox = ({ productData, onClose }) => {
         }`}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-4 relative">
+        <div
+          className="text-white p-4 relative"
+          style={{
+            background: `linear-gradient(to right, ${config.theme.colors.primary}, ${config.theme.colors.secondary})`
+          }}
+        >
           <div className="flex items-start justify-between">
             <div className="flex-1 pr-8">
               <h3 className="font-bold text-lg">{productData.product_title}</h3>
@@ -102,7 +110,7 @@ const ProductLinkBox = ({ productData, onClose }) => {
             <button
               onClick={handleClose}
               className="p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors duration-200 flex-shrink-0"
-              title="Close (ESC)"
+              title={getText("ui.closeEsc")}
             >
               <X size={18} />
             </button>
@@ -115,7 +123,7 @@ const ProductLinkBox = ({ productData, onClose }) => {
           <div className="bg-gray-50 rounded-lg p-4 mb-4 border-2 border-dashed border-gray-200">
             <div className="flex items-center gap-3 mb-2">
               <ExternalLink className="text-blue-500 flex-shrink-0" size={20} />
-              <span className="text-sm font-medium text-gray-600">Product Link</span>
+              <span className="text-sm font-medium text-gray-600">{getText("ui.linkLabel")}</span>
             </div>
             
             <div className="bg-white rounded-md p-3 border">
@@ -123,7 +131,7 @@ const ProductLinkBox = ({ productData, onClose }) => {
                 {productData.link_url}
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                Domain: {getDomainName(productData.link_url)}
+                {getText("ui.domainLabel").replace("{domain}", getDomainName(productData.link_url))}
               </p>
             </div>
           </div>
@@ -132,10 +140,14 @@ const ProductLinkBox = ({ productData, onClose }) => {
           <div className="flex gap-3">
             <button
               onClick={handleLinkClick}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+              className="flex-1 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+              style={{
+                backgroundColor: config.theme.colors.primary,
+                '&:hover': { backgroundColor: config.theme.colors.primaryDark }
+              }}
             >
               <ExternalLink size={18} />
-              Open Link
+              {getText("ui.openLink")}
             </button>
             
             <button
@@ -145,7 +157,7 @@ const ProductLinkBox = ({ productData, onClose }) => {
                   ? 'bg-green-50 border-green-200 text-green-700'
                   : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
               }`}
-              title="Copy link to clipboard"
+              title={getText("ui.copyLink")}
             >
               {copied ? <Check size={18} /> : <Copy size={18} />}
             </button>
@@ -155,7 +167,7 @@ const ProductLinkBox = ({ productData, onClose }) => {
           {copied && (
             <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded-md">
               <p className="text-sm text-green-700 text-center">
-                ✓ Link copied to clipboard!
+                {getText("ui.linkCopiedSuccess")}
               </p>
             </div>
           )}
@@ -164,7 +176,7 @@ const ProductLinkBox = ({ productData, onClose }) => {
         {/* Footer */}
         <div className="bg-gray-50 px-4 py-3 text-center border-t">
           <p className="text-xs text-gray-500">
-            Click link to dismiss, press ESC, or click outside to close
+            {getText("ui.linkOverlayInstructions")}
           </p>
         </div>
       </div>

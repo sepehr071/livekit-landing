@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { X, ZoomIn, ZoomOut } from 'lucide-react';
+import { useCompanyConfig } from '../config/useCompanyConfig';
 
 const ProductImageOverlay = ({ productData, onClose }) => {
+  // Get company configuration
+  const { config, getText } = useCompanyConfig();
   const [isVisible, setIsVisible] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -63,7 +66,12 @@ const ProductImageOverlay = ({ productData, onClose }) => {
         }`}
       >
         {/* Header */}
-        <div className="relative bg-gradient-to-r from-amber-500 to-orange-500 text-white p-4">
+        <div
+          className="relative text-white p-4"
+          style={{
+            background: `linear-gradient(to right, ${config.theme.colors.primary}, ${config.theme.colors.secondary})`
+          }}
+        >
           <h2 className="text-xl font-bold pr-12">{productData.product_title}</h2>
           {productData.description && (
             <p className="text-amber-100 text-sm mt-1">{productData.description}</p>
@@ -78,7 +86,7 @@ const ProductImageOverlay = ({ productData, onClose }) => {
           <button
             onClick={handleClose}
             className="absolute top-4 right-4 p-2 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors duration-200"
-            title="Close (ESC)"
+            title={getText("ui.closeEsc")}
           >
             <X size={20} />
           </button>
@@ -109,7 +117,7 @@ const ProductImageOverlay = ({ productData, onClose }) => {
               <button
                 onClick={toggleZoom}
                 className="bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all duration-200 backdrop-blur-sm"
-                title={isZoomed ? "Zoom Out" : "Zoom In"}
+                title={isZoomed ? getText("ui.zoomOut") : getText("ui.zoomIn")}
               >
                 {isZoomed ? <ZoomOut size={18} /> : <ZoomIn size={18} />}
               </button>
@@ -120,7 +128,7 @@ const ProductImageOverlay = ({ productData, onClose }) => {
         {/* Footer */}
         <div className="bg-gray-100 px-4 py-3 text-center">
           <p className="text-sm text-gray-600">
-            Click image to zoom • Press ESC or click outside to close
+            {getText("ui.imageOverlayInstructions")}
           </p>
         </div>
       </div>

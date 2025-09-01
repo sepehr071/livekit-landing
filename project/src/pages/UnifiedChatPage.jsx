@@ -5,12 +5,16 @@ import ChatAvatar from "../components/ChatAvatar";
 import ProductImageOverlay from "../components/ProductImageOverlay";
 import ProductLinkBox from "../components/ProductLinkBox";
 import { useUnifiedLiveKit } from "../hooks/useUnifiedLiveKit";
+import { useCompanyConfig } from "../config/useCompanyConfig";
 
 const UnifiedChatPage = () => {
   const navigate = useNavigate();
   const [isHidden, setIsHidden] = useState(true);
   const [textInput, setTextInput] = useState("");
   const [isSendingText, setIsSendingText] = useState(false);
+
+  // Get company configuration
+  const { config, getText, getGradient, getAsset } = useCompanyConfig();
 
   const {
     connect,
@@ -87,24 +91,24 @@ const UnifiedChatPage = () => {
   const getConnectionStatus = () => {
     if (isConnecting)
       return {
-        text: "Verbindung zum KI-Assistenten...",
+        text: getText("ui.connecting"),
         color: "text-yellow-600",
       };
     if (!isConnected && !error)
-      return { text: "Nicht verbunden", color: "text-gray-600" };
-    if (error) return { text: `Fehler: ${error}`, color: "text-red-600" };
-    return { text: "Mit KI-Assistant verbunden", color: "text-green-600" };
+      return { text: getText("ui.disconnected"), color: "text-gray-600" };
+    if (error) return { text: getText("ui.connectionError", { error }), color: "text-red-600" };
+    return { text: getText("ui.connected"), color: "text-green-600" };
   };
 
   const getStatusIndicator = () => {
-    if (isConnected) return "bg-green-500";
-    if (isConnecting) return "bg-yellow-500 animate-pulse";
-    return "bg-red-500";
+    if (isConnected) return `bg-[${config.theme.status.success}]`;
+    if (isConnecting) return `bg-[${config.theme.status.warning}] animate-pulse`;
+    return `bg-[${config.theme.status.error}]`;
   };
 
   const defaultMessage = audioEnabled
-    ? "Hallo! Ich bin Ihr KI-Assistent. Sie können jetzt sprechen oder weiterhin schreiben."
-    : "Hallo! Ich bin Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?";
+    ? getText("defaultGreeting.voice")
+    : getText("defaultGreeting.text");
 
   const currentAgentMessage =
     agentInterimMessage || agentMessage || defaultMessage;
@@ -114,13 +118,9 @@ const UnifiedChatPage = () => {
       {/* Main Chat Widget */}
       <div
         style={isHidden ? { transform: "translateX(30rem)" } : {}}
-        className={`fixed ${
-          audioEnabled
-            ? 'bg-gradient-to-b from-blue-50/40 via-blue-25/20 to-blue-50/30'
-            : 'bg-gradient-to-b from-white/95 via-orange-50/70 to-orange-100/80'
-        } backdrop-blur-xl bottom-4 right-4 w-96 h-[820px] max-h-[90vh] rounded-2xl shadow-2xl border ${
+        className={`fixed bg-gradient-to-b ${getGradient(audioEnabled ? 'voice' : 'text', 'primary')} backdrop-blur-xl ${config.theme.widget.position} ${config.theme.widget.size.width} ${config.theme.widget.size.height} max-h-[90vh] rounded-2xl shadow-2xl border ${
           audioEnabled ? 'border-blue-200/40' : 'border-orange-200/40'
-        } flex flex-col overflow-hidden z-50 sm:w-80 md:w-96 duration-[700ms] max-w-[90%] transition-all opacity-100 blur-0`}
+        } flex flex-col overflow-hidden z-50 ${config.theme.widget.size.mobileWidth} ${config.theme.widget.animation.duration} max-w-[90%] transition-all opacity-100 blur-0`}
       >
         {/* Header with close button */}
         <div className="flex justify-between flex-row-reverse items-center p-4 relative">
@@ -135,7 +135,7 @@ const UnifiedChatPage = () => {
             onClick={handleClose}
             className="p-2 bg-gray-50 rounded-full shadow text-gray-600 hover:text-red-500 transition-all hover:scale-105 duration-200 relative z-10"
           >
-            <img src="/images/icons8-cancel.png" alt="close" width={20} height={20} />
+            <img src={getAsset("icons.close")} alt={getText("ui.close")} width={20} height={20} />
           </button>
 
           {audioEnabled && (
@@ -144,9 +144,9 @@ const UnifiedChatPage = () => {
               className={
                 "p-2 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed bg-white text-white relative z-10"
               }
-              title={"Zum Textmodus wechseln"}
+              title={getText("ui.switchToText")}
             >
-              <img src="/images/icons8-back.png" alt="back" width={22} />
+              <img src={getAsset("icons.back")} alt={getText("ui.back")} width={22} />
             </button>
           )}
         </div>
@@ -183,7 +183,7 @@ const UnifiedChatPage = () => {
             <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg font-medium">
               <div className="flex items-center">
                 <span className="text-red-500 mr-2">⚠️</span>
-                <span className="font-medium">Fehler: {error}</span>
+                <span className="font-medium">{getText("ui.connectionError", { error })}</span>
               </div>
             </div>
           )}
@@ -194,7 +194,7 @@ const UnifiedChatPage = () => {
               <div className="flex items-center">
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 <span className="font-medium">
-                  Verbindung wird hergestellt...
+                  {getText("ui.establishingConnection")}
                 </span>
               </div>
             </div>
@@ -216,11 +216,11 @@ const UnifiedChatPage = () => {
                   disabled={!isConnected}
                   className={`w-16 h-16 text-white border-blue-700 border-2 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed ${
                     isMuted
-                      ? "bg-red-500 hover:bg-red-600"
-                      : "bg-blue-500 hover:bg-blue-600"
+                      ? `bg-[${config.theme.status.error}] hover:bg-red-600`
+                      : `bg-[${config.theme.secondary.main}] hover:bg-[${config.theme.secondary.dark}]`
                   }`}
                   title={
-                    isMuted ? "Mikrofon aktivieren" : "Mikrofon deaktivieren"
+                    isMuted ? getText("ui.enableMicrophone") : getText("ui.disableMicrophone")
                   }
                 >
                   {isMuted ? <MicOff size={22} /> : <Mic size={22} />}
@@ -242,10 +242,10 @@ const UnifiedChatPage = () => {
                     onKeyPress={handleKeyPress}
                     placeholder={
                       audioEnabled
-                        ? "Sprechen oder schreiben..."
-                        : "Geben Sie Ihre Nachricht ein..."
+                        ? getText("ui.voiceInputPlaceholder")
+                        : getText("ui.textInputPlaceholder")
                     }
-                    className="w-full px-4 py-3 bg-white rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 transition duration-300 focus:border-transparent shadow-md disabled:bg-gray-100"
+                    className={`w-full px-4 py-3 bg-white rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[${config.theme.primary.main}] transition duration-300 focus:border-transparent shadow-md disabled:bg-gray-100`}
                     disabled={!isConnected || isSendingText}
                     maxLength={500}
                   />
@@ -260,18 +260,18 @@ const UnifiedChatPage = () => {
                       : 'bg-slate-700 hover:bg-slate-800'
                   }`}
                   style={textInput.trim() ? {
-                    backgroundColor: '#4cc579cc'
+                    backgroundColor: config.theme.status.success
                   } : {}}
                   title={
                     isSendingText
-                      ? "Nachricht wird gesendet..."
-                      : "Nachricht senden"
+                      ? getText("ui.sendingMessage")
+                      : getText("ui.sendMessage")
                   }
                 >
                   {isSendingText ? (
                     <Loader2 className="w-6 h-6 animate-spin" />
                   ) : (
-                    <img src="/images/send.png" alt="send" width={25} />
+                    <img src={getAsset("icons.send")} alt={getText("ui.send")} width={25} />
                   )}
                 </button>
 
@@ -279,11 +279,11 @@ const UnifiedChatPage = () => {
                   onClick={toggleAudio}
                   disabled={!isConnected}
                   className={
-                    "w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300  disabled:opacity-50 disabled:cursor-not-allowed bg-blue-500 hover:bg-blue-600 text-white"
+                    `w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed bg-[${config.theme.secondary.main}] hover:bg-[${config.theme.secondary.dark}] text-white`
                   }
-                  title={"Sprachmodus aktivieren"}
+                  title={getText("ui.activateVoice")}
                 >
-                  <img src="/images/voice.png" alt="voice" width={30} />
+                  <img src={getAsset("icons.voice")} alt={getText("ui.voice")} width={30} />
                 </button>
               </form>
             )}

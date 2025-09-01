@@ -1,17 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { useRive } from "../hooks/useRive";
+import { useCompanyConfig } from "../config/useCompanyConfig";
 
 const ChatAvatar = ({
   isAgentSpeaking = false,
   isUserSpeaking = false,
-  agentMessage = "Hallo! Ich bin Ihr KI-Assistent. Wie kann ich Ihnen heute helfen?",
+  agentMessage,
   showLoadingDots = false,
   mode = "chat", // 'chat' or 'voice',
   productImageData = { image_url: "" },
   productLinkData = null,
 }) => {
+  // Get company configuration
+  const { config, getText, getAsset, getAvatarSettings } = useCompanyConfig();
+  
+  // Use configurable Rive animation file
   const { canvasRef, setAnimationState, isLoaded, availableInputs, error } =
-    useRive();
+    useRive(config.assets.riveAnimation);
 
   const [isImageVisible, setIsImageVisible] = useState(false);
   const [imageSource, setImageSource] = useState("");
@@ -22,19 +27,25 @@ const ChatAvatar = ({
   const [showProductContainer, setShowProductContainer] = useState(false);
   const [isExpanding, setIsExpanding] = useState(false);
 
-  // Check if mobile device
-  const [isMobile, setIsMobile] = useState(false);
+  // Check if mobile device using config breakpoint
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
 
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+      setIsMobileDevice(window.innerWidth <= config.behavior.ui.responsiveBreakpoint);
     };
     
     checkIsMobile();
     window.addEventListener('resize', checkIsMobile);
     
     return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
+  }, [config.behavior.ui.responsiveBreakpoint]);
+
+  // Get avatar settings based on device type
+  const avatarSettings = getAvatarSettings(isMobileDevice);
+  
+  // Set default message if not provided
+  const displayMessage = agentMessage || getText("defaultGreeting.text");
 
   // Handle image data changes
   useEffect(() => {
@@ -164,7 +175,7 @@ const ChatAvatar = ({
           <div
             className="absolute inset-0 flex items-center justify-center overflow-hidden"
             style={{
-              backgroundImage: "url('/images/Rectangle-character.png')",
+              backgroundImage: `url('${getAsset("images.characterBackground")}')`,
               backgroundSize: "contain",
               backgroundRepeat: "no-repeat",
               marginBottom: "-30px",
@@ -188,12 +199,12 @@ const ChatAvatar = ({
             width: showProductContainer ? "120px" : "100%",
             height: showProductContainer ? "120px" : "100%",
             transform: showProductContainer
-              ? (isMobile ? 'translate(160px, -90px) scale(0.85)' : 'translate(210px, -110px) scale(0.90)')
+              ? `translate(${avatarSettings.translate.x}px, ${avatarSettings.translate.y}px) scale(${avatarSettings.scale})`
               : 'translate(0, 0) scale(1)',
             transformOrigin: 'center center',
             transition: 'all 1200ms cubic-bezier(0.4, 0, 0.2, 1)',
             // Ensure perfect circle in product mode - different radius for mobile
-            borderRadius: showProductContainer ? (isMobile ? '97%' : '50%') : undefined
+            borderRadius: showProductContainer ? avatarSettings.borderRadius : undefined
           }}
         />
 
@@ -205,7 +216,7 @@ const ChatAvatar = ({
               isExpanding ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
             }`}
             style={{
-              backgroundImage: "url('/images/Rectangle-image.png')",
+              backgroundImage: `url('${getAsset("images.productContainer")}')`,
               backgroundSize: "contain",
               backgroundRepeat: "no-repeat",
               backgroundPosition: "center center",
@@ -227,10 +238,10 @@ const ChatAvatar = ({
                   onError={(e) => console.log('❌ Image failed to load:', imageSource, 'Error:', e)}
                 />
                 <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 text-center mb-2 sm:mb-3 md:mb-4 leading-tight">
-                  {productImageData?.product_title || "Product"}
+                  {productImageData?.product_title || getText("ui.productFallback")}
                 </h3>
                 <div className="text-xs text-gray-500 font-medium text-center">
-                  Say "close" to dismiss
+                  {getText("ui.productDismissText")}
                 </div>
               </div>
             </div>
@@ -245,7 +256,7 @@ const ChatAvatar = ({
               isExpanding ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
             }`}
             style={{
-              backgroundImage: "url('/images/Rectangle-image.png')",
+              backgroundImage: `url('${getAsset("images.productContainer")}')`,
               backgroundSize: "contain",
               backgroundRepeat: "no-repeat",
               backgroundPosition: "center",
@@ -260,7 +271,7 @@ const ChatAvatar = ({
             <div className="flex flex-col items-center justify-center w-full max-w-[280px] sm:max-w-xs mx-auto relative px-3 sm:px-4">
               <div className="pt-4 sm:pt-6 md:pt-8 pb-3 sm:pb-4 text-center">
                 <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 text-center mb-2 sm:mb-3 md:mb-4 leading-tight">
-                  {linkData.product_title || "Product Link"}
+                  {linkData.product_title || getText("ui.productLinkFallback")}
                 </h3>
                 {linkData.description && (
                   <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 md:mb-6 text-center font-medium leading-relaxed">{linkData.description}</p>
@@ -281,11 +292,11 @@ const ChatAvatar = ({
                     <polyline points="15,3 21,3 21,9"></polyline>
                     <line x1="10" y1="14" x2="21" y2="3"></line>
                   </svg>
-                  Open Link
+                  {getText("ui.openLink")}
                 </button>
                 
                 <div className="text-xs text-gray-500 font-medium text-center">
-                  Click link to dismiss or say "close"
+                  {getText("ui.linkDismissText")}
                 </div>
               </div>
             </div>
@@ -299,7 +310,7 @@ const ChatAvatar = ({
               <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-2">
                 <span className="text-3xl">🤖</span>
               </div>
-              <p className="text-sm font-medium">Avatar Ready</p>
+              <p className="text-sm font-medium">{getText("ui.avatarReady")}</p>
             </div>
           </div>
         )}
@@ -308,7 +319,7 @@ const ChatAvatar = ({
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-gray-500 text-center">
               <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              <p className="text-sm font-medium">Loading avatar...</p>
+              <p className="text-sm font-medium">{getText("ui.loadingAvatar")}</p>
             </div>
           </div>
         )}
