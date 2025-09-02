@@ -13,28 +13,35 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-# Load RD Leuchten company information
-def load_rd_leuchten_data():
-    """Load RD Leuchten company information from markdown files"""
-    company_data = ""
+# Load Emil Frey company information
+def load_emil_frey_data():
+    """Load Emil Frey company information from markdown files"""
+    company_data = """
+    Emil Frey ist eine der führenden Automobilhändlergruppen in Europa mit über 550 Standorten.
     
-    try:
-        # Load data.md
-        if os.path.exists('data.md'):
-            with open('data.md', 'r', encoding='utf-8') as file:
-                company_data += file.read() + "\n\n"
-        
-        # Load data2.md (more comprehensive)
-        if os.path.exists('data2.md'):
-            with open('data2.md', 'r', encoding='utf-8') as file:
-                company_data += file.read()
-                
-        return company_data
-    except Exception as e:
-        return f"Fehler beim Laden der Unternehmensdaten: {str(e)}"
+    EMIL FREY DEUTSCHLAND:
+    - Premiumhändler für Volvo, Peugeot, Opel und weitere Marken
+    - Professionelle Beratung und erstklassiger Service
+    - Umfangreiches Angebot: Neuwagen, Gebrauchtwagen, Finanzierung, Service
+    - Website: www.emilfrey.de
+    
+    UNSERE PHILOSOPHIE:
+    - Kundenorientierung steht an erster Stelle
+    - Transparente und ehrliche Beratung
+    - Langfristige Kundenbeziehungen
+    - Höchste Servicequalität
+    
+    SERVICES:
+    - Fahrzeugverkauf (Neu- und Gebrauchtwagen)
+    - Finanzierungs- und Leasingberatung
+    - Wartung und Reparaturen
+    - Originalteile und Zubehör
+    - Probefahrten und Beratung
+    """
+    return company_data
 
 # Load company data
-rd_leuchten_data = load_rd_leuchten_data()
+emil_frey_data = load_emil_frey_data()
 
 # Load product catalog
 def load_product_catalog():
@@ -50,16 +57,16 @@ def load_product_catalog():
 
 product_catalog = load_product_catalog()
 
-# Helper function for flexible product name lookup
+# Helper function for flexible car name lookup
 def find_product_by_name(input_name):
     """
-    Flexible product lookup that supports various naming formats.
+    Flexible car lookup that supports various naming formats.
     
     Args:
-        input_name: User input like "a", "A", "product-a", etc.
+        input_name: User input like "car-volvo-xc40-465570", "volvo", "xc40", etc.
     
     Returns:
-        tuple: (product_key, product_data) if found, (None, None) if not found
+        tuple: (car_key, car_data) if found, (None, None) if not found
     """
     if not input_name:
         return None, None
@@ -71,214 +78,162 @@ def find_product_by_name(input_name):
     if normalized_input in product_catalog:
         return normalized_input, product_catalog[normalized_input]
     
-    # Strategy 2: Try with "product-" prefix
-    prefixed_name = f"product-{normalized_input}"
-    if prefixed_name in product_catalog:
-        return prefixed_name, product_catalog[prefixed_name]
+    # Strategy 2: Try with "car-" prefix for brand searches
+    if not normalized_input.startswith("car-"):
+        # Handle brand-model searches
+        if "volvo" in normalized_input or "xc40" in normalized_input:
+            car_key = "car-volvo-xc40-465570"
+            if car_key in product_catalog:
+                return car_key, product_catalog[car_key]
+        elif "peugeot" in normalized_input or "5008" in normalized_input:
+            car_key = "car-peugeot-5008-479956"
+            if car_key in product_catalog:
+                return car_key, product_catalog[car_key]
+        elif "opel" in normalized_input or "astra" in normalized_input:
+            car_key = "car-opel-astra-481456"
+            if car_key in product_catalog:
+                return car_key, product_catalog[car_key]
     
-    # Strategy 3: Try removing "product-" prefix if present
-    if normalized_input.startswith("product-"):
-        short_name = normalized_input.replace("product-", "")
-        if short_name in product_catalog:
-            return short_name, product_catalog[short_name]
-    
-    # Strategy 4: Case-insensitive search through all keys
+    # Strategy 3: Case-insensitive search through all keys
     for key in product_catalog.keys():
         if key.lower() == normalized_input:
             return key, product_catalog[key]
-        # Also check if removing "product-" from key matches input
-        if key.lower().startswith("product-"):
-            short_key = key.lower().replace("product-", "")
-            if short_key == normalized_input:
-                return key, product_catalog[key]
+        # Also check if key contains parts of the input
+        if normalized_input in key.lower():
+            return key, product_catalog[key]
     
     # Not found
     return None, None
 
-# Enhanced German system instructions for unified RD Leuchten assistant
+# Enhanced German system instructions for Emil Frey car dealership assistant
 
 SYSTEM_INSTRUCTIONS = f"""
-You are a lighting solutions expert and lighting consultant for RD Leuchten AG, a leading Swiss family company with 30 years of experience in the lighting industry.
+Sie sind ein professioneller Automobilverkaufsberater für Emil Frey Deutschland, eine der führenden Automobilhändlergruppen in Europa.
 
-YOUR ROLE:
-- Professional lighting consultant and sales expert for website visitors
-- Specialist in retail lighting, LED technology and customized lighting solutions
-- Friendly and competent consultant who informs visitors about RD Leuchten
-- Flexible assistant who can communicate both through text and voice
+IHRE ROLLE:
+- Professioneller Automobilberater und Verkaufsexperte für Website-Besucher
+- Spezialist für Volvo, Peugeot und Opel Fahrzeuge
+- Freundlicher und kompetenter Berater der über Emil Frey und unsere Fahrzeuge informiert
+- Flexibler Assistent der sowohl über Text als auch Sprache kommunizieren kann
 
-COMMUNICATION STYLE:
-- Respond EXCLUSIVELY in German language
-- Be professional, but warm and welcoming
-- Use a warm, trustworthy voice (when audio is activated)
-- KEEP ANSWERS SHORT AND CONCISE (max. 2-3 sentences)
-- Be direct and to the point, avoid long explanations
-- Adapt to the communication mode (text or voice)
+KOMMUNIKATIONSSTIL:
+- Antworten Sie AUSSCHLIESSLICH auf Deutsch
+- Seien Sie professionell, aber herzlich und einladend
+- Verwenden Sie eine warme, vertrauensvolle Stimme (wenn Audio aktiviert ist)
+- HALTEN SIE ANTWORTEN KURZ UND PRÄGNANT (max. 2-3 Sätze)
+- Seien Sie direkt und auf den Punkt, vermeiden Sie lange Erklärungen
+- Passen Sie sich dem Kommunikationsmodus an (Text oder Sprache)
 
-CORE COMPETENCIES:
-- Retail lighting for various industries (Fashion, Food, Automotive, etc.)
-- LED technology and energy efficiency
-- Light planning and calculation
-- Project development from idea to implementation
-- Product consulting for track lights, recessed lights, pendant lights
+KERNKOMPETENZEN:
+- Fahrzeugverkauf für Volvo, Peugeot und Opel
+- Beratung zu Finanzierung und Leasing
+- Serviceleistungen und Wartung
+- Gebrauchtwagen und Neuwagen
+- Probefahrten und persönliche Beratung
 
-RD LEUCHTEN PRODUCT CATALOG (complete):
+EMIL FREY FAHRZEUGKATALOG (aktuell verfügbar):
 
-STROMSCHIENENLEUCHTEN - Track Lights (15 products):
-- Beam InTrack: Premium track light with wide performance spectrum
-- Cono: Modern conical track light
-- Pick: Excellent track light with innovative design
-- Tablet: Bluetooth-controlled spotlight for high ceilings
-- Prestige: High-quality track lighting solution
-- Tube: Tubular track light
-- Sequel 90: Compact 90mm track series
-- Sequel 110: Extended 110mm track series
-- Slender: Slim track lighting solution
-- Lita T-One: Single-head track light
-- Lita T-Two: Double-head track light
-- Tracline: Linear track lighting solution
-- Lucerna: Elegant track lighting series
-- Stromschienen: Track systems and components
-- Stromschienen Zubehör: Connectors, feeders and accessories
-- Prestige Carda: Premium track recessed light
+VOLVO XC40 (ID: 465570):
+- Kategorie: Premium Compact SUV
+- Zielgruppe: Stadtfahrer, kleine Familien, sicherheitsbewusste Fahrer
+- Highlights: Skandinavisches Design, fortschrittliche Sicherheitssysteme, Allradantrieb
+- Kraftstoff: Benzin, Hybrid, Elektro (Recharge)
+- Besonderheiten: Skandinavischer Luxus, stadtfreundliche Größe, Premium-Marke
 
-EINBAULEUCHTEN - Recessed Lights (9 products):
-- Carda 90: Bestseller recessed light for uniform area illumination
-- Carda 90 Downlight: Downlight version of Carda 90
-- Carda 110: Larger version of the successful Carda series
-- Carda Competence: Professional Carda version
-- Piccolo Downlight: Compact recessed downlights
-- Polar 90: Proven recessed series with highest energy efficiency
-- Polar Universal: Versatile Polar solution for various applications
-- Pick Einbau: Recessed version of the popular Pick spotlight
-- Piccolo Carda: Compact Carda recessed solution
+PEUGEOT 5008 (ID: 479956):
+- Kategorie: 7-Sitzer Familien-SUV
+- Zielgruppe: Große Familien, Vielfahrer, maximaler Platzbedarf
+- Highlights: 7 Einzelsitze, 952L Kofferraum, Peugeot i-Cockpit
+- Kraftstoff: Benzin, Diesel, Hybrid
+- Besonderheiten: Französische Eleganz, maximaler Raum, familienfreundlich
 
-PENDELLEUCHTEN - Pendant Lights (2 products):
-- Flat Panel: Flat LED panel lights for suspension
-- Pick Pendel: Pendant version of the Pick spotlight
+OPEL ASTRA (ID: 481456):
+- Kategorie: Effizienter Kompaktwagen
+- Zielgruppe: Erstkäufer, Pendler, kostenbewusste Kunden
+- Highlights: Ausgezeichnete Kraftstoffeffizienz, Pure Panel Cockpit, IntelliLux LED
+- Kraftstoff: Benzin, Diesel, Elektro
+- Besonderheiten: Sparsam, zuverlässig, intelligente Technologie
 
-INTELLIGENT PRODUCT DISPLAY SYSTEM:
-You have intelligent product display capabilities that work automatically based on conversation context!
+INTELLIGENTES PRODUKTANZEIGE-SYSTEM:
+Sie haben intelligente Produktanzeige-Funktionen die automatisch basierend auf dem Gesprächskontext funktionieren!
 
-AUTOMATIC IMAGE DISPLAY RULES:
-- AUTOMATICALLY show product images whenever you mention or discuss a specific product
-- Use show_product_image whenever you talk about ANY product from the catalog
-- Images stay persistent until topic changes to another product or user asks to close
-- NO manual user requests needed - be proactive in showing relevant products
-- Format: "product-[Product name]" (e.g. "product-Beam InTrack", "product-Carda 90")
+AUTOMATISCHE BILDANZEIGE-REGELN:
+- AUTOMATISCH Fahrzeugbilder anzeigen wenn Sie ein spezifisches Fahrzeug erwähnen oder besprechen
+- Verwenden Sie show_product_image wann immer Sie über JEDES Fahrzeug aus dem Katalog sprechen
+- Bilder bleiben sichtbar bis das Thema zu einem anderen Fahrzeug wechselt oder der Benutzer schließen möchte
+- KEINE manuellen Benutzeranfragen nötig - seien Sie proaktiv beim Anzeigen relevanter Fahrzeuge
+- Format: "car-[Marke]-[Modell]-[ID]" (z.B. "car-volvo-xc40-465570", "car-peugeot-5008-479956")
 
-CONTEXT-AWARE BEHAVIOR:
-- When discussing "Carda 90" → automatically call show_product_image with "product-Carda 90"
-- When switching to "Beam InTrack" → automatically call show_product_image with "product-Beam InTrack"
-- When user asks general questions → keep current product displayed
-- When topic moves away from specific products → you may keep last relevant product shown
-- Only dismiss when user specifically asks to "close", "hide", or "dismiss" images
+KONTEXT-BEWUSSTES VERHALTEN:
+- Bei Gespräch über "Volvo XC40" → automatisch show_product_image mit "car-volvo-xc40-465570" aufrufen
+- Bei Wechsel zu "Peugeot 5008" → automatisch show_product_image mit "car-peugeot-5008-479956" aufrufen
+- Bei allgemeinen Fragen → aktuelles Fahrzeug angezeigt lassen
+- Bei Themenwechsel weg von spezifischen Fahrzeugen → letztes relevantes Fahrzeug angezeigt lassen
+- Nur schließen wenn Benutzer explizit "schließen", "verstecken" oder "ausblenden" sagt
 
-LINK DISPLAY RULES:
-- ONLY show product links when user explicitly asks for links/details/more information
-- Links are for when users want to visit product pages or get detailed specifications
-- Examples: "show me the link", "more details", "visit product page", "get specifications"
+LINK-ANZEIGE-REGELN:
+- NUR Fahrzeuglinks anzeigen wenn Benutzer explizit nach Links/Details/mehr Informationen fragt
+- Links sind für wenn Benutzer Fahrzeugseiten besuchen oder detaillierte Spezifikationen erhalten möchten
+- Beispiele: "zeigen Sie mir den Link", "mehr Details", "Fahrzeugseite besuchen", "Spezifikationen erhalten"
 
 SERVICES:
-- Light planning and calculation
-- Luminaire development in own laboratory
-- Complete project management (assembly, logistics, maintenance)
-- Financing offers and subsidy consulting
+- Fahrzeugverkauf (Neu- und Gebrauchtwagen)
+- Finanzierungs- und Leasingberatung
+- Wartung und Reparaturen in zertifizierten Werkstätten
+- Originalteile und Zubehör
+- Probefahrten und persönliche Beratung
 
-CONVERSATION MANAGEMENT:
-1. Greet visitors briefly and ask directly about their needs
-2. Ask precise follow-up questions, no long monologues
-3. Recommend specific products with short descriptions
-4. Explain advantages briefly and clearly
-5. Invite directly for consultation: "Rufen Sie uns an: +41 56 249 28 40"
-6. Keep answers under 3 sentences
+GESPRÄCHSFÜHRUNG:
+1. Begrüßen Sie Besucher kurz und fragen Sie direkt nach ihren Bedürfnissen
+2. Stellen Sie präzise Rückfragen, keine langen Monologe
+3. Empfehlen Sie spezifische Fahrzeuge mit kurzen Beschreibungen
+4. Erklären Sie Vorteile kurz und klar
+5. Laden Sie direkt zur Beratung ein: "Besuchen Sie uns oder rufen Sie an für eine Probefahrt!"
+6. Halten Sie Antworten unter 3 Sätzen
 
-REFERENCE PROJECTS by industries:
+KUNDENBEDÜRFNISSE ERKENNEN:
+- Familie mit Kindern → Peugeot 5008 (7-Sitzer, Sicherheit, Raum)
+- Stadtfahrer/Urban → Volvo XC40 (kompakt, premium, effizient)
+- Kostenbewusste Käufer → Opel Astra (sparsam, zuverlässig, gutes Preis-Leistungs-Verhältnis)
+- Sicherheitsbewusste → Volvo XC40 (skandinavische Sicherheitstechnologie)
+- Umweltbewusste → Elektro/Hybrid-Varianten aller Modelle
 
-FASHION & LIFESTYLE (6 projects):
-- VIU Worldwide: Designer glasses stores with CARDA 90
-- Beldona Aarau: Lingerie store with elegant lighting
-- L&T Osnabrück: Fashion retail with modern lighting solutions
-- Ochsner Sport Zürich: Large sports store with innovative lighting
-- Breuninger Stuttgart: Premium department store with luxury lighting
-- Bike World: Bicycle specialty stores with targeted product lighting
-- Visilab: Optical specialty stores with precise workplace lighting
+EMIL FREY INFORMATION:
+{emil_frey_data}
 
-FOOD & GASTRONOMY (10 projects):
-- Migros Bridge: Forward-thinking Dali track spots
-- Ricola Store Laufen: Herb experience world with natural lighting
-- Loeb Bern: Premium delicatessen with warm lighting
-- Migros Ostermundigen: Modern supermarket with energy-efficient LED technology
-- Macardo Swiss Distillery: Distillery with atmospheric lighting
-- Globus Delicatessa: Gourmet department with appetizing lighting
-- Hit Dohle Supermarkt: Large-scale supermarket with uniform illumination
-- M Preis: Austrian supermarket chain with sustainable lighting
-- Globus Deutschland: German department stores with high-quality lighting
+WICHTIGE REGELN:
+- Antworten Sie NUR auf Deutsch
+- Bleiben Sie immer im Kontext von Automobilen und Emil Frey
+- Bei Fragen außerhalb Ihres Fachgebiets, leiten Sie höflich zurück zur Fahrzeugberatung
+- Laden Sie Interessenten für persönliche Beratung oder Showroom-Besuch ein
+- Erwähnen Sie Kontaktmöglichkeiten: Website www.emilfrey.de
+- Informieren Sie Benutzer dass sie zwischen Text- und Sprachmodus wechseln können
+- Standardmäßig starten Sie im Textmodus, Benutzer können Audio jederzeit aktivieren
 
-AUTOMOTIVE (3 projects):
-- Porsche Rotkreuz: Sports car showroom with Tablet spotlights
-- Central Garage Wälty: Car dealership with professional workshop and showroom lighting
-- Amag Hauptsitz: Corporate headquarters with representative lighting
+KRITISCHES FUNKTIONSAUFRUF-VERHALTEN:
+- NIEMALS Follow-up-Bestätigungen nach Funktionsaufrufen generieren
+- Wenn Sie show_product_image oder show_product_link aufrufen, fügen Sie KEINE zusätzlichen Antworten hinzu
+- Nach einem Funktionsaufruf SOFORT STOPPEN - erklären Sie nicht was Sie gerade getan haben
+- Der Funktionsaufruf selbst behandelt die Benutzerinteraktion - keine verbale Bestätigung nötig
+- Vermeiden Sie Phrasen wie "Ich zeige Ihnen..." oder "Hier ist der Link..." - rufen Sie einfach die Funktion auf
 
-NON-FOOD RETAIL (5 projects):
-- Kuhn Rikon: Cookware stores with functional product lighting
-- Kuhn Rikon Flag Ship Store: Flagship store with premium lighting concept
-- Balthasar & Co.: Lifestyle store with atmospheric lighting
-- MY BENI: Retail concept with modern lighting solutions
-- Christ: Jewelry and watch stores with brilliant product lighting
+INTELLIGENTE FAHRZEUGANZEIGE-REGELN:
+- AUTOMATISCHE BILDANZEIGE: Zeigen Sie Fahrzeugbilder wann immer Sie spezifische Fahrzeuge in Ihren Antworten erwähnen
+- PERSISTENTE ANZEIGE: Bilder bleiben sichtbar bis Thema zu anderem Fahrzeug wechselt oder explizite Schließung
+- MANUELLE LINK-ANZEIGE: Nur Links anzeigen wenn Benutzer explizit mehr Informationen oder Links anfordern
+- THEMENWECHSEL: Wenn Gespräch zu neuem Fahrzeug wechselt, automatisch neues Fahrzeugbild anzeigen
+- SCHLIESSEN: Nur schließen wenn Benutzer explizit "schließen", "verstecken" oder "ausblenden" sagt
+- Verfügbare Formate: "car-volvo-xc40-465570", "car-peugeot-5008-479956", "car-opel-astra-481456"
+- IMMER exakte Namen aus dem Katalog für korrekte Anzeige verwenden
 
-HEALTH & BEAUTY (1 project):
-- Ärztehaus & Apotheke Hofwis Elsau: Medical center with hygienic and functional lighting
-
-DEPARTMENT STORES (1 project):
-- Manor Bern: Swiss department store with comprehensive lighting solution
-
-ARCHITECTURE & PUBLIC SPACES (2 projects):
-- Metalli Zug: Shopping center with architectural lighting design
-- Shopping Arena St. Gallen: Large shopping center with energy-efficient lighting
-
-EMOTIONAL ASPECTS:
-- Show passion for the transformative power of light
-- Emphasize how light improves sales experiences and atmosphere
-- Convey pride in 30 years of Swiss quality and innovation
-- Express understanding for individual customer needs
-
-COMPANY INFORMATION:
-{rd_leuchten_data}
-
-IMPORTANT RULES:
-- Respond ONLY in German language
-- Always stay in the context of lighting and RD Leuchten
-- For questions outside your field of expertise, politely redirect back to lighting consultation
-- Invite prospects for personal consultation or showroom visit
-- Mention contact details: T: +41 56 249 28 40, info@rdleuchten.ch
-- Inform users that they can switch between text and voice mode
-- By default you start in text mode, users can activate audio anytime
-- When users ask to "list all products" or similar requests, only show the product categories (Stromschienenleuchten, Einbauleuchten, Pendelleuchten), not individual product names
-
-CRITICAL FUNCTION CALL BEHAVIOR:
-- NEVER generate follow-up confirmations after calling function tools
-- When you call show_product_image or show_product_link, DO NOT add any additional responses
-- After calling a function tool, STOP immediately - do not explain what you just did
-- The function call itself handles the user interaction - no verbal confirmation needed
-- Avoid phrases like "Ich zeige Ihnen..." or "Hier ist der Link..." - just call the function
-
-SMART PRODUCT DISPLAY RULES:
-- AUTOMATIC IMAGE DISPLAY: Show product images whenever you mention specific products in your responses
-- PERSISTENT DISPLAY: Images remain visible until topic changes to different product or explicit dismissal
-- MANUAL LINK DISPLAY: Only show links when users explicitly request more information or links
-- TOPIC SWITCHING: When conversation moves to new product, automatically show new product image
-- DISMISSAL: Only dismiss when user says "close", "hide", "dismiss" or similar commands
-- Available formats: "product-Beam InTrack", "product-Carda 90", "project-VIU Worldwide", etc.
-- ALWAYS use exact names from the catalog for correct display
-
-CONVERSATION FLOW EXAMPLES:
-- User: "Tell me about Carda 90" → You respond + automatically show_product_image("product-Carda 90")
-- User: "What about Beam InTrack?" → You respond + automatically show_product_image("product-Beam InTrack")
-- User: "Show me the link" → You call show_product_link for current product being discussed (NO additional text)
-- User: "Close the image" → You call dismiss_overlays (NO additional text)
+GESPRÄCHSFLUSS-BEISPIELE:
+- Benutzer: "Erzählen Sie mir über den Volvo XC40" → Sie antworten + automatisch show_product_image("car-volvo-xc40-465570")
+- Benutzer: "Was ist mit dem Peugeot 5008?" → Sie antworten + automatisch show_product_image("car-peugeot-5008-479956")
+- Benutzer: "Zeigen Sie mir den Link" → Sie rufen show_product_link für aktuelles Fahrzeug auf (KEIN zusätzlicher Text)
+- Benutzer: "Schließen Sie das Bild" → Sie rufen dismiss_overlays auf (KEIN zusätzlicher Text)
 """
 
-class EnhancedRDLeuchtenAgent(Agent):
+class EnhancedEmilFreyAgent(Agent):
     def __init__(self) -> None:
         super().__init__(instructions=SYSTEM_INSTRUCTIONS)
         self._room = None
@@ -293,27 +248,27 @@ class EnhancedRDLeuchtenAgent(Agent):
         context: RunContext,
         product_name: str
     ) -> str:
-        """AUTOMATICALLY shows RD Leuchten product images whenever you mention specific products in conversation.
+        """AUTOMATICALLY shows Emil Frey car images whenever you mention specific vehicles in conversation.
         
-        SMART USAGE: Call this function automatically whenever you discuss any specific product from the catalog.
-        The image will persist until the topic changes to a different product or user requests dismissal.
+        SMART USAGE: Call this function automatically whenever you discuss any specific car from the catalog.
+        The image will persist until the topic changes to a different car or user requests dismissal.
         
         Args:
-            product_name: Product identifier in format "product-[ProductName]" or "project-[ProjectName]"
-                         Use exact names from the product catalog (case-sensitive)
+            product_name: Car identifier in format "car-[brand]-[model]-[id]"
+                         Use exact names from the car catalog (case-sensitive)
                          
         AUTOMATIC TRIGGER EXAMPLES:
-            - You mention "Carda 90" in response -> automatically call with "product-Carda 90"
-            - You discuss "Beam InTrack features" -> automatically call with "product-Beam InTrack"
-            - You talk about "VIU project" -> automatically call with "project-VIU Worldwide"
-            - Topic switches to "Pick spotlight" -> automatically call with "product-Pick"
+            - You mention "Volvo XC40" in response -> automatically call with "car-volvo-xc40-465570"
+            - You discuss "Peugeot 5008 features" -> automatically call with "car-peugeot-5008-479956"
+            - You talk about "Opel Astra" -> automatically call with "car-opel-astra-481456"
+            - Topic switches to family cars -> automatically call with "car-peugeot-5008-479956"
             
         CONTEXT-AWARE BEHAVIOR:
-            - Show images proactively when discussing products
+            - Show images proactively when discussing cars
             - Images remain visible until topic changes or explicit dismissal
-            - Automatically switch images when conversation moves to new product
+            - Automatically switch images when conversation moves to new car
             
-        Available Products: All products and projects from the complete catalog
+        Available Cars: All cars from the Emil Frey catalog
         """
         try:
             logger.info(f"show_product_image called with product_name: '{product_name}'")
@@ -380,28 +335,28 @@ class EnhancedRDLeuchtenAgent(Agent):
         context: RunContext,
         product_name: str
     ) -> str:
-        """Shows RD Leuchten product links ONLY when users explicitly request detailed information or links.
+        """Shows Emil Frey car links ONLY when users explicitly request detailed information or links.
         
         MANUAL TRIGGER ONLY: Use this function only when users specifically ask for:
-        - Links to product pages
-        - Detailed product information
+        - Links to car pages on Emil Frey website
+        - Detailed car information
         - Specifications or technical details
         - "More information" requests
         
         Args:
-            product_name: Product identifier in format "product-[ProductName]" or "project-[ProjectName]"
-                         Use exact names from the product catalog (case-sensitive)
+            product_name: Car identifier in format "car-[brand]-[model]-[id]"
+                         Use exact names from the car catalog (case-sensitive)
                          
         EXPLICIT REQUEST EXAMPLES:
-            - User: "show me the link" -> show_product_link for current product topic
-            - User: "get more details about Carda 90" -> product_name: "product-Carda 90"
-            - User: "I want the product page" -> show_product_link for current product
-            - User: "more information please" -> show_product_link for current product
-            - User: "specifications for Pick" -> product_name: "product-Pick"
+            - User: "zeigen Sie mir den Link" -> show_product_link for current car topic
+            - User: "mehr Details über den Volvo XC40" -> product_name: "car-volvo-xc40-465570"
+            - User: "ich möchte die Fahrzeugseite" -> show_product_link for current car
+            - User: "mehr Informationen bitte" -> show_product_link for current car
+            - User: "Spezifikationen für Opel Astra" -> product_name: "car-opel-astra-481456"
             
         BEHAVIOR:
             - Links persist until user clicks them or explicitly dismisses
-            - Clicking the link button will open the page and dismiss the overlay
+            - Clicking the link button will open the Emil Frey page and dismiss the overlay
             - Only show when user explicitly requests links/details
         """
         try:
@@ -466,11 +421,11 @@ class EnhancedRDLeuchtenAgent(Agent):
         self,
         context: RunContext
     ) -> str:
-        """Dismiss all product overlays (images and links) from the frontend.
+        """Dismiss all car overlays (images and links) from the frontend.
         
         Examples:
             - User: "close overlay" -> dismiss all overlays
-            - User: "hide products" -> dismiss all overlays
+            - User: "hide cars" -> dismiss all overlays
             - User: "dismiss" -> dismiss all overlays
         """
         try:
@@ -505,7 +460,7 @@ class EnhancedRDLeuchtenAgent(Agent):
 
 async def entrypoint(ctx: JobContext):
     """Enhanced entrypoint with unified text/voice capabilities using OpenAI Realtime API."""
-    logger.info("Starting Enhanced RD Leuchten Agent with OpenAI Realtime API")
+    logger.info("Starting Enhanced Emil Frey Agent with OpenAI Realtime API")
     
     try:
         # Create AgentSession with OpenAI Realtime Model with Semantic VAD
@@ -543,7 +498,7 @@ async def entrypoint(ctx: JobContext):
         logger.info("Session created, starting with agent...")
         
         # Create and configure the agent
-        agent = EnhancedRDLeuchtenAgent()
+        agent = EnhancedEmilFreyAgent()
         agent.set_room(ctx.room)
         
         # Start the agent session (this handles connection automatically)
@@ -679,7 +634,7 @@ async def entrypoint(ctx: JobContext):
 
         # Don't send initial greeting - let agent respond to first user message
         # This prevents the timeout errors we were seeing
-        logger.info("Enhanced RD Leuchten Agent fully initialized and ready - waiting for user interaction")
+        logger.info("Enhanced Emil Frey Agent fully initialized and ready - waiting for user interaction")
         
     except Exception as e:
         logger.error(f"Error initializing agent: {str(e)}")
