@@ -326,15 +326,21 @@ class EnhancedRDLeuchtenAgent(Agent):
                 return f"Product '{product_name}' not found in catalog. Available products: {', '.join(available_products)}"
             
             logger.info(f"Found product: '{product_key}' -> {product.get('name', 'Unknown')}")
-            image_path = f"data/{product['image']}"
+            
+            # Determine the correct image path based on product type
+            if 'car-' in product_key or product_key.startswith('car'):
+                # Car images are in cars subdirectory
+                image_path = f"project/public/images/cars/{product['image']}"
+                image_url = f"/images/cars/{product['image']}"
+            else:
+                # Regular product images
+                image_path = f"project/public/images/{product['image']}"
+                image_url = f"/images/{product['image']}"
             
             # Check if image file exists
             if not os.path.exists(image_path):
                 logger.error(f"Image file not found: {image_path}")
                 return f"Image file '{product['image']}' not found for product '{product_name}'"
-            
-            # Use relative URL - works for both localhost and production
-            image_url = f"/images/{product['image']}"
             
             # Prepare payload for RPC (much smaller payload without base64 data)
             payload = {
