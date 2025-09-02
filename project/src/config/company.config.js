@@ -86,7 +86,7 @@ const CompanyConfig = {
     // Background images
     images: {
       characterBackground: "/images/Rectangle-character.png",
-      productBackground: "/images/Rectangle-image.png"
+      productContainer: "/images/Rectangle-image.png"
     },
     
     // Icons

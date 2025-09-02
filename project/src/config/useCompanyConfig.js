@@ -45,7 +45,29 @@ export const useCompanyConfig = () => {
 
     // Get responsive avatar settings
     getAvatarSettings: (isMobile) => {
-      return isMobile ? config.responsive.mobile : config.responsive.desktop;
+      const settings = isMobile ? config.responsive.mobile : config.responsive.desktop;
+      
+      // Parse the transform string to extract individual values
+      // Format: "translate(180px, -80px) scale(0.9)"
+      const transformMatch = settings.avatarTransform.match(/translate\((-?\d+)px,\s*(-?\d+)px\)\s*scale\(([0-9.]+)\)/);
+      
+      if (transformMatch) {
+        return {
+          translate: {
+            x: parseInt(transformMatch[1]),
+            y: parseInt(transformMatch[2])
+          },
+          scale: parseFloat(transformMatch[3]),
+          borderRadius: settings.avatarBorderRadius
+        };
+      }
+      
+      // Fallback if parsing fails
+      return {
+        translate: { x: 210, y: -110 },
+        scale: 0.9,
+        borderRadius: "50%"
+      };
     },
 
     // Get gradient classes

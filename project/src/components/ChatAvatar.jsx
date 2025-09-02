@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useRive } from "../hooks/useRive";
 import { useCompanyConfig } from "../config/useCompanyConfig";
 
@@ -41,8 +41,20 @@ const ChatAvatar = ({
     return () => window.removeEventListener('resize', checkIsMobile);
   }, [config.behavior.ui.responsiveBreakpoint]);
 
-  // Get avatar settings based on device type
-  const avatarSettings = getAvatarSettings(isMobileDevice);
+  // Get avatar settings based on device type with error handling
+  const avatarSettings = useMemo(() => {
+    try {
+      return getAvatarSettings(isMobileDevice);
+    } catch (error) {
+      console.error('Error getting avatar settings:', error);
+      // Fallback settings
+      return {
+        translate: { x: 210, y: -110 },
+        scale: 0.9,
+        borderRadius: "50%"
+      };
+    }
+  }, [isMobileDevice, getAvatarSettings]);
   
   // Set default message if not provided
   const displayMessage = agentMessage || getText("defaultGreeting.text");
