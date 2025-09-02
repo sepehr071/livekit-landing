@@ -210,12 +210,12 @@ const CompanyConfig = {
   responsive: {
     mobile: {
       // Avatar positioning when products are shown (mobile)
-      avatarTransform: "translate(180px, -80px) scale(0.9)",
+      avatarTransform: "translate(180px, -110px) scale(0.80)",
       avatarBorderRadius: "97%"
     },
     desktop: {
       // Avatar positioning when products are shown (desktop)
-      avatarTransform: "translate(210px, -110px) scale(0.90)",
+      avatarTransform: "translate(220px, -130px) scale(0.80)",
       avatarBorderRadius: "50%"
     }
   }

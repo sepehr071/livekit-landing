@@ -214,10 +214,10 @@ const UnifiedChatPage = () => {
                 <button
                   onClick={toggleMicrophone}
                   disabled={!isConnected}
-                  className={`w-16 h-16 text-white border-blue-700 border-2 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`w-16 h-16 text-white border-2 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed ${
                     isMuted
-                      ? `bg-[${config.theme.status.error}] hover:bg-red-600`
-                      : `bg-[${config.theme.secondary.main}] hover:bg-[${config.theme.secondary.dark}]`
+                      ? `border-red-500 bg-[${config.theme.status.error}] hover:bg-red-600`
+                      : `border-green-500 bg-green-500 hover:bg-green-600`
                   }`}
                   title={
                     isMuted ? getText("ui.enableMicrophone") : getText("ui.disableMicrophone")
