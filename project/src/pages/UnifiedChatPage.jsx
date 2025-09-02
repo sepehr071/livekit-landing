@@ -299,7 +299,7 @@ const UnifiedChatPage = () => {
       </div>
 
       
-       <ProductImageOverlay
+       {/* <ProductImageOverlay
         productData={productImageData}
         onClose={dismissProductOverlays}
       /> 
@@ -307,7 +307,7 @@ const UnifiedChatPage = () => {
        <ProductLinkBox
         productData={productLinkData}
         onClose={dismissProductOverlays}
-      /> 
+      />  */}
     </>
   );
 };
