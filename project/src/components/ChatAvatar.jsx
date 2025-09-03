@@ -234,9 +234,9 @@ const ChatAvatar = ({
               backgroundPosition: "center center",
               minHeight: "280px",
               maxHeight: "450px",
-              marginRight: "-77px",
-              right: "96px",
-              top: "36px"
+              marginRight: "-95px",
+              right: "107px",
+              top: "20px"
             }}
           >
             {/* Product content overlaid directly on background */}
