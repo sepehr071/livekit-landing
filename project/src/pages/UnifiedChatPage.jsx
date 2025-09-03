@@ -21,8 +21,14 @@ const UnifiedChatPage = () => {
     disconnect,
     isConnected,
     isConnecting,
+    // NEW: Unified voice session controls
+    uiMode, // 'chat' | 'voice'
+    toggleMode, // Switches modes without session restart
+    audioOutputMuted,
+    toggleAudioOutput,
+    // Legacy compatibility
     audioEnabled,
-    toggleAudio,
+    toggleAudio, // Alias for toggleMode
     toggleMicrophone,
     isMuted,
     sendTextMessage,
@@ -48,7 +54,7 @@ const UnifiedChatPage = () => {
       }
     }, 150);
 
-    // Auto-connect to ElevenLabs conversation only once
+    // Auto-connect to unified voice session (always voice-capable, starts in chat mode)
     connect();
 
     return () => {
@@ -106,7 +112,7 @@ const UnifiedChatPage = () => {
     return `bg-[${config.theme.status.error}]`;
   };
 
-  const defaultMessage = audioEnabled
+  const defaultMessage = uiMode === 'voice'
     ? getText("defaultGreeting.voice")
     : getText("defaultGreeting.text");
 
@@ -118,8 +124,8 @@ const UnifiedChatPage = () => {
       {/* Main Chat Widget */}
       <div
         style={isHidden ? { transform: "translateX(30rem)" } : {}}
-        className={`fixed bg-gradient-to-b ${getGradient(audioEnabled ? 'voice' : 'text', 'primary')} backdrop-blur-xl ${config.theme.widget.position} ${config.theme.widget.size.width} ${config.theme.widget.size.height} max-h-[90vh] rounded-2xl shadow-2xl border ${
-          audioEnabled ? 'border-blue-200/40' : 'border-orange-200/40'
+        className={`fixed bg-gradient-to-b ${getGradient(uiMode === 'voice' ? 'voice' : 'text', 'primary')} backdrop-blur-xl ${config.theme.widget.position} ${config.theme.widget.size.width} ${config.theme.widget.size.height} max-h-[90vh] rounded-2xl shadow-2xl border ${
+          uiMode === 'voice' ? 'border-blue-200/40' : 'border-orange-200/40'
         } flex flex-col overflow-hidden z-50 ${config.theme.widget.size.mobileWidth} ${config.theme.widget.animation.duration} max-w-[90%] transition-all opacity-100 blur-0`}
       >
         {/* Header with close button */}
@@ -138,9 +144,9 @@ const UnifiedChatPage = () => {
             <img src={getAsset("icons.close")} alt={getText("ui.close")} width={20} height={20} />
           </button>
 
-          {audioEnabled && (
+          {uiMode === 'voice' && (
             <button
-              onClick={toggleAudio}
+              onClick={toggleMode}
               className={
                 "p-2 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed bg-white text-white relative z-10"
               }
@@ -167,10 +173,10 @@ const UnifiedChatPage = () => {
 
           {/* Avatar with unified integration */}
           <ChatAvatar
-            mode={audioEnabled ? "voice" : "text"}
+            mode={uiMode === 'voice' ? "voice" : "text"}
             agentMessage={currentAgentMessage}
             isUserSpeaking={
-              isUserSpeaking && !isMuted && isConnected && audioEnabled
+              isUserSpeaking && !isMuted && isConnected && uiMode === 'voice'
             }
             isAgentSpeaking={isAgentSpeaking}
             showLoadingDots={isSendingText && !agentMessage}
@@ -208,8 +214,8 @@ const UnifiedChatPage = () => {
           <div className="flex flex-col gap-3">
             {/* Audio Toggle Button */}
 
-            {/* Voice Controls (when audio enabled) */}
-            {audioEnabled && (
+            {/* Voice Controls (when in voice mode) */}
+            {uiMode === 'voice' && (
               <div className="flex justify-center gap-4">
                 <button
                   onClick={toggleMicrophone}
@@ -228,8 +234,8 @@ const UnifiedChatPage = () => {
               </div>
             )}
 
-            {/* Text Input (always available) */}
-            {!audioEnabled && (
+            {/* Text Input (when in chat mode) */}
+            {uiMode === 'chat' && (
               <form
                 onSubmit={handleSendText}
                 className="flex items-center gap-2"
@@ -240,11 +246,7 @@ const UnifiedChatPage = () => {
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder={
-                      audioEnabled
-                        ? getText("ui.voiceInputPlaceholder")
-                        : getText("ui.textInputPlaceholder")
-                    }
+                    placeholder={getText("ui.textInputPlaceholder")}
                     className={`w-full px-4 py-3 bg-white rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[${config.theme.primary.main}] transition duration-300 focus:border-transparent shadow-md disabled:bg-gray-100`}
                     disabled={!isConnected || isSendingText}
                     maxLength={500}
@@ -276,7 +278,7 @@ const UnifiedChatPage = () => {
                 </button>
 
                 <button
-                  onClick={toggleAudio}
+                  onClick={toggleMode}
                   disabled={!isConnected}
                   className={
                     `w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed bg-[${config.theme.secondary.main}] hover:bg-[${config.theme.secondary.dark}] text-white`
