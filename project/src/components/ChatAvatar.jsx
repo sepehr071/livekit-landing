@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useRive } from "../hooks/useRive";
 import { useCompanyConfig } from "../config/useCompanyConfig";
+import ImageSlider from "./ImageSlider";
 
 const ChatAvatar = ({
   isAgentSpeaking = false,
@@ -26,6 +27,7 @@ const ChatAvatar = ({
   // Product display states
   const [showProductContainer, setShowProductContainer] = useState(false);
   const [isExpanding, setIsExpanding] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Check if mobile device using config breakpoint
   const [isMobileDevice, setIsMobileDevice] = useState(false);
@@ -61,28 +63,36 @@ const ChatAvatar = ({
 
   // Handle image data changes
   useEffect(() => {
-    if (productImageData && productImageData.image_url) {
-      if (showProductContainer) {
-        // Instant content swap for existing container
-        setImageSource(productImageData.image_url);
-        setIsImageVisible(true);
-        setLinkData(null);
-        setIsLinkVisible(false);
-      } else {
-        // New container - start center-expand animation
-        setIsExpanding(true);
-        setIsImageVisible(true);
-        
-        setTimeout(() => {
-          setImageSource(productImageData.image_url);
-          setShowProductContainer(true);
-          setIsExpanding(false);
-        }, 600);
+    if (productImageData && productImageData.images) {
+      const images = productImageData.images;
+      const hasImages = images && images.length > 0 && images[0];
+      
+      if (hasImages) {
+        if (showProductContainer) {
+          // Instant content swap for existing container
+          setImageSource(images[0]);
+          setIsImageVisible(true);
+          setLinkData(null);
+          setIsLinkVisible(false);
+          setCurrentImageIndex(0);
+        } else {
+          // New container - start center-expand animation
+          setIsExpanding(true);
+          setIsImageVisible(true);
+          
+          setTimeout(() => {
+            setImageSource(images[0]);
+            setShowProductContainer(true);
+            setIsExpanding(false);
+            setCurrentImageIndex(0);
+          }, 600);
+        }
       }
     } else if (productImageData === null && !productLinkData) {
       // Clean dismissal - no extra animations
       setIsImageVisible(false);
       setImageSource("");
+      setCurrentImageIndex(0);
       if (!linkData) {
         setShowProductContainer(false);
       }
@@ -90,6 +100,7 @@ const ChatAvatar = ({
       // Keep container for link
       setIsImageVisible(false);
       setImageSource("");
+      setCurrentImageIndex(0);
     }
   }, [productImageData]);
 
@@ -220,7 +231,7 @@ const ChatAvatar = ({
           }}
         />
 
-        {/* Product Image Display - Organic Container Design */}
+        {/* Product Image Display - Enhanced with Multi-Image Support */}
         {imageSource && showProductContainer && (
           <div
             id="imageBox"
@@ -242,16 +253,50 @@ const ChatAvatar = ({
             {/* Product content overlaid directly on background */}
             <div className="flex flex-col items-center justify-center w-full max-w-[280px] sm:max-w-xs mx-auto relative px-3 sm:px-4">
               <div className="pt-4 sm:pt-6 md:pt-8 pb-3 sm:pb-4 text-center">
-                <img
-                  className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 mx-auto rounded-lg sm:rounded-xl object-cover mb-3 sm:mb-4 md:mb-6"
-                  src={imageSource}
-                  alt="product"
-                  onLoad={() => console.log('✅ Image loaded successfully:', imageSource)}
-                  onError={(e) => console.log('❌ Image failed to load:', imageSource, 'Error:', e)}
-                />
+                {/* Check if we have multiple images */}
+                {productImageData?.images && productImageData.images.length > 1 ? (
+                  /* Multi-image slider */
+                  <div className="w-full h-32 sm:h-36 md:h-40 mb-3 sm:mb-4 md:mb-6 rounded-lg overflow-hidden">
+                    <ImageSlider
+                      images={productImageData.images}
+                      title={productImageData.product_title || getText("ui.productFallback")}
+                      description={productImageData.description}
+                      currentIndex={currentImageIndex}
+                      onIndexChange={setCurrentImageIndex}
+                      onClose={() => {
+                        setShowProductContainer(false);
+                        setIsImageVisible(false);
+                        setImageSource("");
+                        setCurrentImageIndex(0);
+                      }}
+                    />
+                  </div>
+                ) : (
+                  /* Single image display (legacy support) */
+                  <img
+                    className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 mx-auto rounded-lg sm:rounded-xl object-cover mb-3 sm:mb-4 md:mb-6"
+                    src={imageSource}
+                    alt="product"
+                    onLoad={() => console.log('✅ Image loaded successfully:', imageSource)}
+                    onError={(e) => console.log('❌ Image failed to load:', imageSource, 'Error:', e)}
+                  />
+                )}
+                
                 <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 text-center mb-2 sm:mb-3 md:mb-4 leading-tight">
                   {productImageData?.product_title || getText("ui.productFallback")}
+                  {productImageData?.images && productImageData.images.length > 1 && (
+                    <span className="block text-xs text-gray-500 font-normal mt-1">
+                      {productImageData.images.length} images
+                    </span>
+                  )}
                 </h3>
+                
+                {productImageData?.description && (
+                  <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 text-center font-medium leading-relaxed">
+                    {productImageData.description}
+                  </p>
+                )}
+                
                 <div className="text-xs text-gray-500 font-medium text-center">
                   {getText("ui.productDismissText")}
                 </div>

@@ -1,6 +1,0 @@
-Flask
-Flask-CORS
-livekit
-livekit-api
-python-dotenv
-requests

@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { Conversation } from '@elevenlabs/client';
+import { fetchImagesFromFolder, processImageData, preloadImages } from '../utils/imageGallery';
 
 const AGENT_ID = 'agent_3301k3zz72edff3ap9qdpp52n0p6'; // TODO: Replace with your actual ElevenLabs agent ID
 
@@ -283,18 +284,64 @@ export const useElevenLabsConversation = () => {
 
   // Client tools implementation
   const clientTools = {
-    displayProductImage: ({ imageUrl, title, description }) => {
-      console.log('🎨 Displaying product image:', { imageUrl, title, description });
-      setProductImageData({ image_url: imageUrl, product_title: title });
-      setProductLinkData(null); // Mutual exclusion
-      return "Product image displayed successfully";
+    displayProductImage: async ({ imageFolder, title, description }) => {
+      console.log('🎨 Displaying product image(s) from folder:', { imageFolder, title, description });
+      
+      try {
+        if (!imageFolder) {
+          console.error('❌ No imageFolder provided');
+          return "imageFolder parameter is required";
+        }
+        
+        console.log('📁 Fetching images from folder:', imageFolder);
+        const images = await fetchImagesFromFolder(imageFolder);
+        
+        if (images.length === 0) {
+          console.warn('⚠️ No images found in folder:', imageFolder);
+          return `No images found in the specified folder: ${imageFolder}`;
+        }
+        
+        // Auto-detect single vs multiple images
+        const displayType = images.length === 1 ? 'single' : 'gallery';
+        
+        const imageData = {
+          images: images,
+          product_title: title || '',
+          description: description || '',
+          type: displayType,
+          folderPath: imageFolder
+        };
+        
+        console.log(`🖼️ Auto-detected ${displayType} mode: ${images.length} image(s) found`);
+        
+        // Preload images for better performance (especially for galleries)
+        if (images.length > 1) {
+          preloadImages(images).catch(err =>
+            console.warn('⚠️ Some images failed to preload:', err)
+          );
+        }
+        
+        setProductImageData(imageData);
+        setProductLinkData(null); // Mutual exclusion
+        
+        // Return appropriate success message
+        return images.length === 1
+          ? `Product image displayed successfully`
+          : `Product gallery with ${images.length} images displayed successfully`;
+          
+      } catch (error) {
+        console.error('❌ Error displaying product images:', error);
+        return `Error displaying images: ${error.message}`;
+      }
     },
+    
     displayProductLink: ({ linkUrl, title, description }) => {
       console.log('🔗 Displaying product link:', { linkUrl, title, description });
       setProductLinkData({ link_url: linkUrl, product_title: title, description });
       setProductImageData(null); // Mutual exclusion
       return "Product link displayed successfully";
     },
+    
     dismissOverlays: () => {
       console.log('🗑️ Dismissing product overlays');
       setProductImageData(null);

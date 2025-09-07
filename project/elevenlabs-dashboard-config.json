@@ -1,0 +1,125 @@
+{
+  "displayProductImage": {
+    "type": "client",
+    "name": "displayProductImage",
+    "description": "Display car images with title and description to the customer. Automatically detects single images or multiple images in the specified folder and displays them appropriately.",
+    "disable_interruptions": true,
+    "force_pre_tool_speech": "auto",
+    "assignments": [],
+    "expects_response": true,
+    "response_timeout_secs": 3,
+    "parameters": [
+      {
+        "id": "imageFolder",
+        "type": "string",
+        "value_type": "llm_prompt",
+        "description": "Path to folder containing car images (e.g., '/images/cars'). System will automatically detect if it contains a single image or multiple images and display accordingly.",
+        "dynamic_variable": "",
+        "constant_value": "",
+        "required": true
+      },
+      {
+        "id": "title",
+        "type": "string",
+        "value_type": "llm_prompt",
+        "description": "Car title or name (e.g., 'Volvo XC40 - Premium Compact SUV', 'Available Car Models')",
+        "dynamic_variable": "",
+        "constant_value": "",
+        "required": true
+      },
+      {
+        "id": "description",
+        "type": "string",
+        "value_type": "llm_prompt",
+        "description": "Brief car description, key features, or additional details about the car(s)",
+        "dynamic_variable": "",
+        "constant_value": "",
+        "required": false
+      }
+    ],
+    "dynamic_variables": {
+      "dynamic_variable_placeholders": {}
+    },
+    "usage_examples": [
+      {
+        "scenario": "Show specific car model (folder with single image)",
+        "parameters": {
+          "imageFolder": "/images/cars/volvo",
+          "title": "Volvo XC40 - Premium Compact SUV",
+          "description": "Swedish design meets urban versatility"
+        }
+      },
+      {
+        "scenario": "Show all available cars (folder with multiple images)",
+        "parameters": {
+          "imageFolder": "/images/cars",
+          "title": "Available Car Models",
+          "description": "Browse our complete selection of vehicles"
+        }
+      }
+    ],
+    "validation_rules": [
+      "imageFolder must be provided and should be a valid folder path",
+      "title is always required",
+      "System automatically detects single vs multiple images in the folder",
+      "Single image displays as traditional product view",
+      "Multiple images display as interactive gallery slider"
+    ]
+  },
+  "displayProductLink": {
+    "type": "client",
+    "name": "displayProductLink",
+    "description": "Display a clickable product link with title and description",
+    "disable_interruptions": true,
+    "force_pre_tool_speech": "auto",
+    "assignments": [],
+    "expects_response": true,
+    "response_timeout_secs": 1,
+    "parameters": [
+      {
+        "id": "linkUrl",
+        "type": "string",
+        "value_type": "llm_prompt",
+        "description": "URL to the product page or external link",
+        "dynamic_variable": "",
+        "constant_value": "",
+        "required": true
+      },
+      {
+        "id": "title",
+        "type": "string",
+        "value_type": "llm_prompt",
+        "description": "Link title or product name",
+        "dynamic_variable": "",
+        "constant_value": "",
+        "required": true
+      },
+      {
+        "id": "description",
+        "type": "string",
+        "value_type": "llm_prompt",
+        "description": "Brief description of what the link leads to",
+        "dynamic_variable": "",
+        "constant_value": "",
+        "required": false
+      }
+    ],
+    "dynamic_variables": {
+      "dynamic_variable_placeholders": {}
+    }
+  },
+  "dismissOverlays": {
+    "type": "client",
+    "name": "dismissOverlays",
+    "description": "Close and dismiss any currently displayed product images or links",
+    "disable_interruptions": false,
+    "force_pre_tool_speech": "auto",
+    "assignments": [],
+    "expects_response": true,
+    "response_timeout_secs": 1,
+    "parameters": [],
+    "dynamic_variables": {
+      "dynamic_variable_placeholders": {}
+    }
+  }
+}
