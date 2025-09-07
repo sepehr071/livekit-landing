@@ -14,88 +14,67 @@ export const fetchImagesFromFolder = async (folderPath) => {
     // Remove trailing slash if present
     const cleanPath = folderPath.replace(/\/$/, '');
     
-    // Common image extensions to look for
-    const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'];
+    // Define known image collections to avoid Vite directory fetch issues
+    const imageCollections = {
+      '/images/cars': [
+        'volvo-xc40-465570.webp',
+        'peugeot-5008-479956.webp',
+        'opel-astra-481456.webp'
+      ],
+      // Add more collections as needed
+      '/images/cars/volvo': ['volvo-xc40-465570.webp'],
+      '/images/cars/peugeot': ['peugeot-5008-479956.webp'],
+      '/images/cars/opel': ['opel-astra-481456.webp']
+    };
     
-    // Try to fetch images using different strategies
-    const imageUrls = [];
+    // Check if we have a known collection for this path
+    const knownImages = imageCollections[cleanPath];
     
-    // Strategy 1: Try common car image naming patterns
-    const commonPatterns = [
-      'volvo-xc40-465570.webp',
-      'peugeot-5008-479956.webp', 
-      'opel-astra-481456.webp'
-    ];
-    
-    // Check if folder path matches known car patterns
-    if (cleanPath.includes('cars') || cleanPath.includes('car')) {
-      for (const pattern of commonPatterns) {
-        const imageUrl = `/images/cars/${pattern}`;
+    if (knownImages) {
+      console.log(`📋 Using known image collection for: ${cleanPath}`);
+      const imageUrls = [];
+      
+      // Verify each known image exists
+      for (const imageName of knownImages) {
+        const imageUrl = cleanPath.includes('/cars/') ? `/images/cars/${imageName}` : `${cleanPath}/${imageName}`;
+        
         try {
           // Test if image exists by making a HEAD request
           const response = await fetch(imageUrl, { method: 'HEAD' });
           if (response.ok) {
             imageUrls.push(imageUrl);
-            console.log('✅ Found car image:', imageUrl);
+            console.log('✅ Verified image exists:', imageUrl);
+          } else {
+            console.log('⚠️ Image not accessible:', imageUrl);
           }
         } catch (error) {
-          console.log('❌ Image not found:', imageUrl);
+          console.log('❌ Image fetch failed:', imageUrl, error.message);
         }
       }
+      
+      console.log(`📊 Found ${imageUrls.length} verified images in folder:`, imageUrls);
+      return imageUrls;
     }
     
-    // Strategy 2: Try to fetch directory listing (if server supports it)
-    try {
-      const folderResponse = await fetch(cleanPath);
-      if (folderResponse.ok) {
-        const folderContent = await folderResponse.text();
-        
-        // Parse HTML to find image files (basic parsing)
-        const imageFiles = folderContent.match(/href="([^"]*\.(jpg|jpeg|png|webp|gif|svg))"/gi) || [];
-        
-        for (const match of imageFiles) {
-          const imageFile = match.replace(/href="/i, '').replace(/"$/i, '');
-          const fullImageUrl = cleanPath.endsWith('/') ? cleanPath + imageFile : cleanPath + '/' + imageFile;
-          
-          if (!imageUrls.includes(fullImageUrl)) {
-            imageUrls.push(fullImageUrl);
-            console.log('✅ Found image via directory listing:', fullImageUrl);
-          }
-        }
-      }
-    } catch (error) {
-      console.log('ℹ️ Directory listing not available or failed:', error.message);
-    }
+    // Fallback: Try common image patterns for unknown paths
+    const imageExtensions = ['webp', 'jpg', 'jpeg', 'png', 'gif', 'svg'];
+    const imageUrls = [];
     
-    // Strategy 3: Try numbered image patterns (e.g., image1.jpg, image2.jpg)
-    if (imageUrls.length === 0) {
-      for (let i = 1; i <= 10; i++) {
-        for (const ext of imageExtensions) {
-          const numberedImageUrl = `${cleanPath}/image${i}.${ext}`;
-          try {
-            const response = await fetch(numberedImageUrl, { method: 'HEAD' });
-            if (response.ok) {
-              imageUrls.push(numberedImageUrl);
-              console.log('✅ Found numbered image:', numberedImageUrl);
-              break; // Move to next number after finding one
-            }
-          } catch (error) {
-            // Continue trying other extensions
-          }
-        }
-      }
-    }
+    // Try common patterns
+    const commonPatterns = [
+      'image1', 'image2', 'image3', 'image4', 'image5',
+      'main', 'front', 'side', 'interior', 'detail',
+      '1', '2', '3', '4', '5'
+    ];
     
-    // Strategy 4: Try wildcard patterns if we have some context
-    if (imageUrls.length === 0 && cleanPath.includes('product')) {
-      const productPatterns = ['main.jpg', 'front.jpg', 'side.jpg', 'interior.jpg', 'detail.jpg'];
-      for (const pattern of productPatterns) {
-        const productImageUrl = `${cleanPath}/${pattern}`;
+    for (const pattern of commonPatterns) {
+      for (const ext of imageExtensions) {
+        const imageUrl = `${cleanPath}/${pattern}.${ext}`;
         try {
-          const response = await fetch(productImageUrl, { method: 'HEAD' });
+          const response = await fetch(imageUrl, { method: 'HEAD' });
           if (response.ok) {
-            imageUrls.push(productImageUrl);
-            console.log('✅ Found product image:', productImageUrl);
+            imageUrls.push(imageUrl);
+            console.log('✅ Found image via pattern:', imageUrl);
           }
         } catch (error) {
           // Continue with next pattern
@@ -103,7 +82,7 @@ export const fetchImagesFromFolder = async (folderPath) => {
       }
     }
     
-    console.log(`📊 Found ${imageUrls.length} images in folder:`, imageUrls);
+    console.log(`📊 Found ${imageUrls.length} images via pattern matching:`, imageUrls);
     return imageUrls;
     
   } catch (error) {

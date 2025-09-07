@@ -255,12 +255,12 @@ const ChatAvatar = ({
               <div className="pt-4 sm:pt-6 md:pt-8 pb-3 sm:pb-4 text-center">
                 {/* Check if we have multiple images */}
                 {productImageData?.images && productImageData.images.length > 1 ? (
-                  /* Multi-image slider */
-                  <div className="w-full h-32 sm:h-36 md:h-40 mb-3 sm:mb-4 md:mb-6 rounded-lg overflow-hidden">
+                  /* Multi-image slider - clean layout without extra text */
+                  <div className="w-full h-32 sm:h-36 md:h-40 mb-2 rounded-lg overflow-hidden">
                     <ImageSlider
                       images={productImageData.images}
-                      title={productImageData.product_title || getText("ui.productFallback")}
-                      description={productImageData.description}
+                      title=""
+                      description=""
                       currentIndex={currentImageIndex}
                       onIndexChange={setCurrentImageIndex}
                       onClose={() => {
@@ -272,7 +272,7 @@ const ChatAvatar = ({
                     />
                   </div>
                 ) : (
-                  /* Single image display (legacy support) */
+                  /* Single image display */
                   <img
                     className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 mx-auto rounded-lg sm:rounded-xl object-cover mb-3 sm:mb-4 md:mb-6"
                     src={imageSource}
@@ -282,20 +282,10 @@ const ChatAvatar = ({
                   />
                 )}
                 
+                {/* Only show title and description for single images or below gallery */}
                 <h3 className="text-base sm:text-lg md:text-xl font-bold text-gray-800 text-center mb-2 sm:mb-3 md:mb-4 leading-tight">
                   {productImageData?.product_title || getText("ui.productFallback")}
-                  {productImageData?.images && productImageData.images.length > 1 && (
-                    <span className="block text-xs text-gray-500 font-normal mt-1">
-                      {productImageData.images.length} images
-                    </span>
-                  )}
                 </h3>
-                
-                {productImageData?.description && (
-                  <p className="text-xs sm:text-sm text-gray-600 mb-2 sm:mb-3 text-center font-medium leading-relaxed">
-                    {productImageData.description}
-                  </p>
-                )}
                 
                 <div className="text-xs text-gray-500 font-medium text-center">
                   {getText("ui.productDismissText")}

@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { Conversation } from '@elevenlabs/client';
 import { fetchImagesFromFolder, processImageData, preloadImages } from '../utils/imageGallery';
 
-const AGENT_ID = 'agent_3301k3zz72edff3ap9qdpp52n0p6'; // TODO: Replace with your actual ElevenLabs agent ID
+const AGENT_ID = 'agent_7401k4hv3j1je1ms4esr4sjnms5t'; // TODO: Replace with your actual ElevenLabs agent ID
 
 // Helper function to request microphone permission
 const requestMicrophonePermission = async () => {

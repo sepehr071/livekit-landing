@@ -53,43 +53,26 @@ const ImageSlider = ({
   };
 
   return (
-    <div className="relative w-full h-full bg-white rounded-lg overflow-hidden">
-      {/* Header with title and close button */}
-      <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-black/50 to-transparent p-4">
-        <div className="flex justify-between items-start">
-          <div className="text-white">
-            <h3 className="text-lg font-bold">{title}</h3>
-            {description && (
-              <p className="text-sm opacity-90 mt-1">{description}</p>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
-            aria-label="Close"
-          >
-            <X size={20} className="text-white" />
-          </button>
+    <div className="relative w-full h-full bg-transparent rounded-lg overflow-hidden">
+      {/* Minimal image counter (only show for multiple images) */}
+      {images.length > 1 && (
+        <div className="absolute top-2 right-2 z-20 bg-black/50 text-white px-2 py-1 rounded-full text-xs">
+          {activeIndex + 1} / {images.length}
         </div>
-      </div>
+      )}
 
-      {/* Image counter */}
-      <div className="absolute top-20 right-4 z-20 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-        {activeIndex + 1} / {images.length}
-      </div>
-
-      {/* Main image display */}
-      <div className="relative w-full h-full flex items-center justify-center bg-gray-100">
+      {/* Main image display - clean, no overlays */}
+      <div className="relative w-full h-full flex items-center justify-center bg-transparent">
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-            <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100/50 rounded-lg">
+            <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
         
         <img
           src={images[activeIndex]}
-          alt={`${title} - Image ${activeIndex + 1}`}
-          className={`max-w-full max-h-full object-contain transition-opacity duration-300 ${
+          alt={`Car ${activeIndex + 1}`}
+          className={`w-full h-full object-cover rounded-lg transition-opacity duration-300 ${
             isLoading ? 'opacity-0' : 'opacity-100'
           }`}
           onLoad={() => handleImageLoad(activeIndex)}
@@ -97,39 +80,39 @@ const ImageSlider = ({
         />
 
         {imageErrors[activeIndex] && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-200">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
             <div className="text-center text-gray-500">
-              <div className="text-4xl mb-2">🚗</div>
-              <p className="text-sm">Image not available</p>
+              <div className="text-2xl mb-1">🚗</div>
+              <p className="text-xs">Image not available</p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Navigation arrows */}
+      {/* Navigation arrows - minimal design */}
       {images.length > 1 && (
         <>
           <button
             onClick={goToPrevious}
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 z-20 p-2 rounded-full bg-white/80 hover:bg-white shadow-lg transition-all"
+            className="absolute left-2 top-1/2 transform -translate-y-1/2 z-20 p-1.5 rounded-full bg-black/20 hover:bg-black/40 transition-all backdrop-blur-sm"
             aria-label="Previous image"
           >
-            <ChevronLeft size={24} className="text-gray-700" />
+            <ChevronLeft size={18} className="text-white" />
           </button>
           
           <button
             onClick={goToNext}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 z-20 p-2 rounded-full bg-white/80 hover:bg-white shadow-lg transition-all"
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 z-20 p-1.5 rounded-full bg-black/20 hover:bg-black/40 transition-all backdrop-blur-sm"
             aria-label="Next image"
           >
-            <ChevronRight size={24} className="text-gray-700" />
+            <ChevronRight size={18} className="text-white" />
           </button>
         </>
       )}
 
-      {/* Thumbnail navigation */}
+      {/* Thumbnail navigation - minimal dots */}
       {images.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
+        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 z-20 flex space-x-1.5">
           {images.map((_, index) => (
             <button
               key={index}
@@ -137,10 +120,10 @@ const ImageSlider = ({
                 setActiveIndex(index);
                 onIndexChange(index);
               }}
-              className={`w-3 h-3 rounded-full transition-all ${
-                index === activeIndex 
-                  ? 'bg-white shadow-lg' 
-                  : 'bg-white/50 hover:bg-white/70'
+              className={`w-2 h-2 rounded-full transition-all ${
+                index === activeIndex
+                  ? 'bg-white shadow-sm'
+                  : 'bg-white/60 hover:bg-white/80'
               }`}
               aria-label={`Go to image ${index + 1}`}
             />

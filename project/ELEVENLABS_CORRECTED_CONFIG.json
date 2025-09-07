@@ -1,0 +1,42 @@
+{
+  "type": "client",
+  "name": "displayProductImage",
+  "description": "Display car images with title and description to the customer. Automatically detects single images or multiple images in the specified folder and displays them appropriately.",
+  "disable_interruptions": true,
+  "force_pre_tool_speech": "auto",
+  "assignments": [],
+  "expects_response": true,
+  "response_timeout_secs": 3,
+  "parameters": [
+    {
+      "id": "imageFolder",
+      "type": "string",
+      "value_type": "llm_prompt",
+      "description": "Path to folder containing car images (e.g., '/images/cars'). System will automatically detect if it contains a single image or multiple images and display accordingly.",
+      "dynamic_variable": "",
+      "constant_value": "",
+      "required": true
+    },
+    {
+      "id": "title",
+      "type": "string",
+      "value_type": "llm_prompt",
+      "description": "Car title or name (e.g., 'Volvo XC40 - Premium Compact SUV', 'Available Car Models')",
+      "dynamic_variable": "",
+      "constant_value": "",
+      "required": true
+    },
+    {
+      "id": "description",
+      "type": "string",
+      "value_type": "llm_prompt",
+      "description": "Brief car description, key features, or additional details about the car(s)",
+      "dynamic_variable": "",
+      "constant_value": "",
+      "required": false
+    }
+  ],
+  "dynamic_variables": {
+    "dynamic_variable_placeholders": {}
+  }
+}
