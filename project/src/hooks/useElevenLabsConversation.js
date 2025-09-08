@@ -284,21 +284,24 @@ export const useElevenLabsConversation = () => {
 
   // Client tools implementation
   const clientTools = {
-    displayProductImage: async ({ imageFolder, title, description }) => {
-      console.log('🎨 Displaying product image(s) from folder:', { imageFolder, title, description });
+    displayProductImage: async ({ carName, category, title, description }) => {
+      console.log('🚗 Displaying car images:', { carName, category, title, description });
       
       try {
-        if (!imageFolder) {
-          console.error('❌ No imageFolder provided');
-          return "imageFolder parameter is required";
+        if (!carName) {
+          console.error('❌ No carName provided');
+          return "carName parameter is required. Please specify the full car folder name.";
         }
         
-        console.log('📁 Fetching images from folder:', imageFolder);
-        const images = await fetchImagesFromFolder(imageFolder);
+        // Default category to 'all' if not provided
+        const imageCategory = category || 'all';
+        console.log('🔍 Fetching images for car:', carName, 'Category:', imageCategory);
+        
+        const images = await fetchImagesFromFolder(carName, imageCategory);
         
         if (images.length === 0) {
-          console.warn('⚠️ No images found in folder:', imageFolder);
-          return `No images found in the specified folder: ${imageFolder}`;
+          console.warn('⚠️ No images found for car:', carName, 'Category:', imageCategory);
+          return `No images found for car "${carName}" in category "${imageCategory}". Please check the car name matches exactly.`;
         }
         
         // Auto-detect single vs multiple images
@@ -309,10 +312,11 @@ export const useElevenLabsConversation = () => {
           product_title: title || '',
           description: description || '',
           type: displayType,
-          folderPath: imageFolder
+          carName: carName,
+          category: imageCategory
         };
         
-        console.log(`🖼️ Auto-detected ${displayType} mode: ${images.length} image(s) found`);
+        console.log(`🖼️ Auto-detected ${displayType} mode: ${images.length} image(s) found for ${carName}/${imageCategory}`);
         
         // Preload images for better performance (especially for galleries)
         if (images.length > 1) {
@@ -324,14 +328,15 @@ export const useElevenLabsConversation = () => {
         setProductImageData(imageData);
         setProductLinkData(null); // Mutual exclusion
         
-        // Return appropriate success message
+        // Return appropriate success message with category info
+        const categoryInfo = imageCategory !== 'all' ? ` (${imageCategory} view)` : '';
         return images.length === 1
-          ? `Product image displayed successfully`
-          : `Product gallery with ${images.length} images displayed successfully`;
+          ? `${title || carName} image displayed successfully${categoryInfo}`
+          : `${title || carName} gallery with ${images.length} images displayed successfully${categoryInfo}`;
           
       } catch (error) {
-        console.error('❌ Error displaying product images:', error);
-        return `Error displaying images: ${error.message}`;
+        console.error('❌ Error displaying car images:', error);
+        return `Error displaying car images: ${error.message}`;
       }
     },
     

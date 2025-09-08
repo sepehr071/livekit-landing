@@ -1,7 +1,7 @@
 {
   "type": "client",
   "name": "displayProductImage",
-  "description": "Display car images with title and description to the customer. Automatically detects single images or multiple images in the specified folder and displays them appropriately.",
+  "description": "Display a specific car's images with auto-sliding gallery showing different views of ONE car. Images auto-advance every 2.5 seconds. Agent must provide the exact car folder name from the available cars list.",
   "disable_interruptions": true,
   "force_pre_tool_speech": "auto",
   "assignments": [],
@@ -9,19 +9,28 @@
   "response_timeout_secs": 3,
   "parameters": [
     {
-      "id": "imageFolder",
+      "id": "carName",
       "type": "string",
       "value_type": "llm_prompt",
-      "description": "Path to folder containing car images (e.g., '/images/cars'). System will automatically detect if it contains a single image or multiple images and display accordingly.",
+      "description": "Exact car folder name (must match exactly). Available cars: 'Jeep_Avenger_Elektro_Longitude_Navi_Technology_und_S_image', 'Kia_Stonic_Spirit_1.0_T-GDI_EU6d-T_Automatic_image', 'Mercedes-Benz_A_250_e_PROGRESSIVE_DISTRONIC_MEMORY_MULTIBEAM_image', 'Mercedes-Benz_CLA_180_PROGRESSIVE_PANORAMA_SPURASSIST_KAMERA_image', 'Mercedes-Benz_CLA_180_Shooting_Brake_EDITION_DISTRONIC_NAV_AHK_image', 'Mercedes-Benz_E_300_e_T_AVANTGARDE_DISTRONIC_KEYLESS_KAMERA_image', 'Mercedes-Benz_EQA_250+_AMG_SPURPAKET_KAMERA_PDC_LENKRADHEIZ_image', 'Mercedes-Benz_G_500_FINAL_EDITION_WHITE_AMG_LEDER_STANDHZG_AHK_image', 'Opel_Corsa_F_GS_1.2_Sitz.&Lenkradh_100KW_EU6d_image', 'Porsche_Boxster_718_STYLE_EDITION_LED_CHRONO_BOSE_MEMORY_image'",
       "dynamic_variable": "",
       "constant_value": "",
       "required": true
     },
     {
+      "id": "category",
+      "type": "string",
+      "value_type": "llm_prompt",
+      "description": "Car view category: 'exterior_front' (front view), 'exterior_back' (rear view), 'interior' (cabin/dashboard), or 'all' (complete view). Use 'interior' when user asks about car interior, 'exterior_front' for general appearance, 'all' for complete showcase.",
+      "dynamic_variable": "",
+      "constant_value": "",
+      "required": false
+    },
+    {
       "id": "title",
       "type": "string",
       "value_type": "llm_prompt",
-      "description": "Car title or name (e.g., 'Volvo XC40 - Premium Compact SUV', 'Available Car Models')",
+      "description": "Car model display title (e.g., 'Mercedes-Benz A 250e', 'Jeep Avenger Interior', 'Porsche Boxster')",
       "dynamic_variable": "",
       "constant_value": "",
       "required": true
@@ -30,7 +39,7 @@
       "id": "description",
       "type": "string",
       "value_type": "llm_prompt",
-      "description": "Brief car description, key features, or additional details about the car(s)",
+      "description": "Brief description of the car and the specific view/features being highlighted",
       "dynamic_variable": "",
       "constant_value": "",
       "required": false
