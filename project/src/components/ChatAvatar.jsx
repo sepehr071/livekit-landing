@@ -15,9 +15,18 @@ const ChatAvatar = ({
   // Get company configuration
   const { config, getText, getAsset, getAvatarSettings } = useCompanyConfig();
   
-  // Use configurable Rive animation file
-  const { canvasRef, setAnimationState, isLoaded, availableInputs, error } =
-    useRive(config.assets.riveAnimation);
+  // Use enhanced configurable Rive animation file with debugging
+  const {
+    canvasRef,
+    setAnimationState,
+    isLoaded,
+    availableInputs,
+    error,
+    isHealthy,
+    getAnimationDiagnostics,
+    currentAnimationStates,
+    debugLog
+  } = useRive(config.assets.riveAnimation, false); // Debug mode disabled
 
   const [isImageVisible, setIsImageVisible] = useState(false);
   const [imageSource, setImageSource] = useState("");
@@ -28,6 +37,10 @@ const ChatAvatar = ({
   const [showProductContainer, setShowProductContainer] = useState(false);
   const [isExpanding, setIsExpanding] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // Animation debug states
+  const [showAnimationDebug, setShowAnimationDebug] = useState(false);
+  const [animationDiagnostics, setAnimationDiagnostics] = useState(null);
 
   // Check if mobile device using config breakpoint
   const [isMobileDevice, setIsMobileDevice] = useState(false);
@@ -138,27 +151,56 @@ const ChatAvatar = ({
     }
   }, [productLinkData]);
 
-  // Update animation states based on mode
+  // Enhanced timeline animation control with cross-mode support - stable dependencies
   useEffect(() => {
-    if (isLoaded && !error) {
-      if (mode === "voice") {
-        // In voice mode: control animation based on speaking states
-        setAnimationState("isSpeaking", isAgentSpeaking);
-        setAnimationState("IsListening", isUserSpeaking);
-      } else {
-        // In chat mode: keep animation idle (no active states)
-        setAnimationState("isSpeaking", false);
-        setAnimationState("IsListening", false);
+    if (isLoaded && !error && isHealthy) {
+      // CROSS-MODE SUPPORT: Timeline animations work in both modes
+      // In chat mode: Visual animation feedback only (no audio)
+      // In voice mode: Visual animation + audio feedback
+      
+      // Control speaking animation in both modes
+      setAnimationState("isSpeaking", isAgentSpeaking);
+      
+      debugLog('Timeline animation updated', {
+        mode,
+        isSpeaking: isAgentSpeaking,
+        targetAnimation: isAgentSpeaking ? 'speaking abass' : 'idle abass'
+      });
+
+      // Update diagnostics for debugging
+      if (getAnimationDiagnostics) {
+        const diagnostics = getAnimationDiagnostics();
+        setAnimationDiagnostics(diagnostics);
       }
     }
   }, [
     isAgentSpeaking,
-    isUserSpeaking,
     isLoaded,
-    setAnimationState,
     error,
     mode,
-  ]);
+    isHealthy,
+    setAnimationState,
+    getAnimationDiagnostics,
+    debugLog
+  ]); // Functions are now stable with useCallback
+
+  // Essential error monitoring (reduced logging)
+  useEffect(() => {
+    if (error) {
+      console.error('Rive animation error:', error);
+    }
+  }, [error]);
+
+  // Debug key listener disabled for production (enable only when needed)
+  // useEffect(() => {
+  //   const handleKeyPress = (event) => {
+  //     if (event.ctrlKey && event.shiftKey && event.key === 'D') {
+  //       setShowAnimationDebug(prev => !prev);
+  //     }
+  //   };
+  //   window.addEventListener('keydown', handleKeyPress);
+  //   return () => window.removeEventListener('keydown', handleKeyPress);
+  // }, [showAnimationDebug]);
 
   return (
     <div className="flex flex-col items-center justify-center max-h-full py-2 overflow-y-auto h-[100%] drop-shadow-md">
@@ -350,7 +392,40 @@ const ChatAvatar = ({
           </div>
         )}
 
-        {/* Fallback UI when Rive fails to load */}
+        {/* Enhanced Animation Debug Overlay */}
+        {showAnimationDebug && (
+          <div className="absolute top-2 left-2 bg-black bg-opacity-80 text-white text-xs p-2 rounded z-50 max-w-xs">
+            <div className="font-bold mb-1">🎭 Animation Debug</div>
+            <div>Mode: {mode}</div>
+            <div>Loaded: {isLoaded ? '✅' : '❌'}</div>
+            <div>Healthy: {isHealthy ? '✅' : '⚠️'}</div>
+            <div>Error: {error || 'None'}</div>
+            <div>Agent Speaking: {isAgentSpeaking ? '🗣️' : '💤'}</div>
+            <div>User Speaking: {isUserSpeaking ? '🎤' : '🔇'}</div>
+            
+            {currentAnimationStates && (
+              <div className="mt-1">
+                <div className="font-semibold">Animation States:</div>
+                {Object.entries(currentAnimationStates).map(([key, value]) => (
+                  <div key={key} className="ml-2">
+                    {key}: {typeof value === 'boolean' ? (value ? '✅' : '❌') : value}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div className="mt-1">
+              <div className="font-semibold">Animation Mode:</div>
+              <div className="ml-2">Timeline Animations</div>
+            </div>
+            
+            <div className="mt-1 text-xs opacity-70">
+              Press Ctrl+Shift+D to toggle
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Fallback UI when Rive fails to load */}
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-400 to-pink-500 rounded">
             <div className="text-white text-center">
@@ -358,16 +433,28 @@ const ChatAvatar = ({
                 <span className="text-3xl">🤖</span>
               </div>
               <p className="text-sm font-medium">{getText("ui.avatarReady")}</p>
+              <p className="text-xs mt-1 opacity-75">{error}</p>
             </div>
           </div>
         )}
 
+        {/* Enhanced Loading UI with health status */}
         {!isLoaded && !error && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-gray-500 text-center">
               <div className="w-8 h-8 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
               <p className="text-sm font-medium">{getText("ui.loadingAvatar")}</p>
+              <div className="text-xs mt-1">
+                {isHealthy ? '🟢 System Ready' : '🟡 Initializing...'}
+              </div>
             </div>
+          </div>
+        )}
+
+        {/* Animation Health Warning */}
+        {isLoaded && !isHealthy && !error && (
+          <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
+            ⚠️ Animation Health Issue
           </div>
         )}
       </div>
