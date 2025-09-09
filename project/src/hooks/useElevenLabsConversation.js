@@ -25,11 +25,11 @@ export const useElevenLabsConversation = () => {
   
   // NEW: UI Mode management - always voice session but UI controls presentation
   const [uiMode, setUiMode] = useState('chat'); // 'chat' | 'voice'
-  const [audioOutputMuted, setAudioOutputMuted] = useState(true); // Start muted
+  const [audioOutputMuted, setAudioOutputMuted] = useState(false); // Audio enabled by default
   const [isMuted, setIsMuted] = useState(true); // Start microphone muted
   
   // DEPRECATED: Keep for backward compatibility, now computed from uiMode
-  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [audioEnabled, setAudioEnabled] = useState(true); // Audio always enabled
 
   // Messages state
   const [agentMessage, setAgentMessage] = useState('');
@@ -55,233 +55,8 @@ export const useElevenLabsConversation = () => {
   const originalHTMLAudioElementRef = useRef(null);
   const isAudioMutedRef = useRef(false);
 
-  // Enhanced audio control functions with multiple layers of protection
-  const muteAllAudio = useCallback(() => {
-    console.log('🔇 🔇 🔇 ENHANCED: Muting all audio elements for chat mode');
-    isAudioMutedRef.current = true;
-    
-    // LAYER 1: Mute all existing audio elements immediately
-    const muteExistingAudio = () => {
-      const audioElements = document.querySelectorAll('audio, video');
-      audioElements.forEach(audio => {
-        if (audio) {
-          audio.muted = true;
-          audio.volume = 0;
-          audio.pause();
-          audioElementsRef.current.add(audio);
-          
-          // Also add event listener to prevent future playback
-          const preventPlay = (e) => {
-            if (isAudioMutedRef.current) {
-              e.preventDefault();
-              e.stopImmediatePropagation();
-              audio.pause();
-              console.log('🛑 Prevented audio playback in chat mode');
-            }
-          };
-          
-          audio.addEventListener('play', preventPlay, true);
-          audio.addEventListener('playing', preventPlay, true);
-        }
-      });
-      console.log(`🔇 Muted ${audioElements.length} existing audio elements`);
-    };
-    
-    muteExistingAudio();
-    
-    // LAYER 2: Override Web Audio API at the global level
-    if (!originalAudioContextRef.current) {
-      originalAudioContextRef.current = window.AudioContext || window.webkitAudioContext;
-      
-      // Create a custom AudioContext that we can control
-      const EnhancedAudioContext = function(...args) {
-        const context = new originalAudioContextRef.current(...args);
-        const originalCreateGain = context.createGain.bind(context);
-        
-        // Override createGain to add our muting control
-        context.createGain = function() {
-          const gainNode = originalCreateGain();
-          const originalGainValue = gainNode.gain.value;
-          
-          // If we're in muted mode, set gain to 0
-          if (isAudioMutedRef.current) {
-            gainNode.gain.value = 0;
-            console.log('🔇 Web Audio API: Gain node muted for chat mode');
-          }
-          
-          // Store original for restoration
-          gainNode._originalGainValue = originalGainValue;
-          return gainNode;
-        };
-        
-        return context;
-      };
-      
-      // Copy static properties
-      Object.setPrototypeOf(EnhancedAudioContext, originalAudioContextRef.current);
-      Object.defineProperty(EnhancedAudioContext, 'prototype', {
-        value: originalAudioContextRef.current.prototype
-      });
-      
-      window.AudioContext = EnhancedAudioContext;
-      if (window.webkitAudioContext) {
-        window.webkitAudioContext = EnhancedAudioContext;
-      }
-    }
-    
-    // LAYER 3: Override HTMLAudioElement constructor
-    if (!originalHTMLAudioElementRef.current) {
-      originalHTMLAudioElementRef.current = window.HTMLAudioElement;
-      
-      const EnhancedHTMLAudioElement = function(...args) {
-        const audio = new originalHTMLAudioElementRef.current(...args);
-        
-        // Immediately mute if we're in chat mode
-        if (isAudioMutedRef.current) {
-          audio.muted = true;
-          audio.volume = 0;
-          console.log('🔇 HTMLAudioElement: New audio element auto-muted');
-        }
-        
-        audioElementsRef.current.add(audio);
-        return audio;
-      };
-      
-      Object.setPrototypeOf(EnhancedHTMLAudioElement, originalHTMLAudioElementRef.current);
-      Object.defineProperty(EnhancedHTMLAudioElement, 'prototype', {
-        value: originalHTMLAudioElementRef.current.prototype
-      });
-      
-      window.HTMLAudioElement = EnhancedHTMLAudioElement;
-      window.Audio = EnhancedHTMLAudioElement;
-    }
-    
-    // LAYER 4: Enhanced MutationObserver for dynamic elements
-    if (mutationObserverRef.current) {
-      mutationObserverRef.current.disconnect();
-    }
-    
-    mutationObserverRef.current = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-          if (node.tagName === 'AUDIO' || node.tagName === 'VIDEO') {
-            console.log('🔇 ENHANCED: New audio/video element detected, force muting');
-            node.muted = true;
-            node.volume = 0;
-            node.pause();
-            audioElementsRef.current.add(node);
-            
-            // Add prevention listeners
-            const preventPlay = (e) => {
-              if (isAudioMutedRef.current) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-                node.pause();
-                console.log('🛑 ENHANCED: Prevented new element playback');
-              }
-            };
-            
-            node.addEventListener('play', preventPlay, true);
-            node.addEventListener('playing', preventPlay, true);
-            node.addEventListener('canplay', preventPlay, true);
-          }
-          
-          // Check for nested audio/video elements
-          if (node.querySelectorAll) {
-            const nestedMedia = node.querySelectorAll('audio, video');
-            nestedMedia.forEach(media => {
-              console.log('🔇 ENHANCED: Nested media element detected, force muting');
-              media.muted = true;
-              media.volume = 0;
-              media.pause();
-              audioElementsRef.current.add(media);
-            });
-          }
-        });
-      });
-    });
-    
-    mutationObserverRef.current.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['src', 'volume', 'muted']
-    });
-    
-    // LAYER 5: Continuous monitoring with setInterval
-    if (audioIntervalRef.current) {
-      clearInterval(audioIntervalRef.current);
-    }
-    
-    audioIntervalRef.current = setInterval(() => {
-      if (isAudioMutedRef.current) {
-        const allMedia = document.querySelectorAll('audio, video');
-        allMedia.forEach(media => {
-          if (!media.muted || media.volume > 0) {
-            console.log('🔇 CONTINUOUS: Force muting detected unmuted element');
-            media.muted = true;
-            media.volume = 0;
-            media.pause();
-          }
-        });
-      }
-    }, 100); // Check every 100ms for any unmuted elements
-    
-    console.log('🔇 ✅ ENHANCED audio muting system fully activated');
-  }, []);
-
-  const unmuteAllAudio = useCallback(() => {
-    console.log('🔊 🔊 🔊 ENHANCED: Unmuting all audio elements for voice mode');
-    isAudioMutedRef.current = false;
-    
-    // LAYER 1: Unmute all tracked audio elements
-    audioElementsRef.current.forEach(audio => {
-      if (audio && audio.parentNode) {
-        audio.muted = false;
-        audio.volume = 1;
-        console.log('🔊 Unmuted tracked audio element');
-      }
-    });
-    
-    // LAYER 2: Restore Web Audio API if overridden
-    if (originalAudioContextRef.current) {
-      window.AudioContext = originalAudioContextRef.current;
-      if (window.webkitAudioContext && originalAudioContextRef.current) {
-        window.webkitAudioContext = originalAudioContextRef.current;
-      }
-      console.log('🔊 Web Audio API restored');
-    }
-    
-    // LAYER 3: Restore HTMLAudioElement constructor
-    if (originalHTMLAudioElementRef.current) {
-      window.HTMLAudioElement = originalHTMLAudioElementRef.current;
-      window.Audio = originalHTMLAudioElementRef.current;
-      console.log('🔊 HTMLAudioElement constructor restored');
-    }
-    
-    // LAYER 4: Stop mutation observer
-    if (mutationObserverRef.current) {
-      mutationObserverRef.current.disconnect();
-      mutationObserverRef.current = null;
-      console.log('🔊 MutationObserver stopped');
-    }
-    
-    // LAYER 5: Stop continuous monitoring
-    if (audioIntervalRef.current) {
-      clearInterval(audioIntervalRef.current);
-      audioIntervalRef.current = null;
-      console.log('🔊 Continuous monitoring stopped');
-    }
-    
-    // LAYER 6: Unmute all current elements on page
-    const allMedia = document.querySelectorAll('audio, video');
-    allMedia.forEach(media => {
-      media.muted = false;
-      media.volume = 1;
-    });
-    
-    console.log('🔊 ✅ ENHANCED audio unmuting completed - all audio restored');
-  }, []);
+  // Simplified audio control - no muting in chat mode
+  console.log('🔊 Audio always enabled for better user experience');
 
   // Client tools implementation
   const clientTools = {
@@ -366,7 +141,7 @@ export const useElevenLabsConversation = () => {
       console.log('🎯 Strategy: Always voice-capable, UI controls audio/mic');
       console.log('🔧 Configuration debug:', { agentId: AGENT_ID, uiMode });
 
-      // Extract dynamic variables from URL
+      // Extract dynamic variables from URL (JavaScript SDK approach)
       const dynamicVariables = createDynamicVariables();
       const carName = getCarNameFromURL();
       
@@ -390,35 +165,45 @@ export const useElevenLabsConversation = () => {
         dynamicVariables: dynamicVariables
       });
 
+      // JavaScript SDK: Simple session config (no dynamic_variables support)
       const sessionConfig = {
         agentId: AGENT_ID,
         clientTools,
-        // CRITICAL: Always pass dynamic_variables since ElevenLabs dashboard references them
-        // Car_name is always present (empty string if no URL param) to prevent "Missing required" error
-        dynamic_variables: dynamicVariables,
-        // REMOVED: textOnly configuration - always voice capable
-        // Audio muting handled at client level
 
         // Event handlers
-        onConnect: () => {
+        onConnect: async () => {
           console.log('✅ Connected to ElevenLabs unified voice session');
           console.log('🎯 Voice session ready, starting in chat mode (muted)');
+          
           setIsConnected(true);
           setIsConnecting(false);
           
-          // Start in chat mode - voice session but muted
+          // Start in chat mode with audio enabled
           setUiMode('chat');
-          setAudioOutputMuted(true);
-          setIsMuted(true);
-          setAudioEnabled(false); // For backward compatibility
+          setAudioOutputMuted(false); // Audio enabled by default
+          setIsMuted(true); // Microphone starts muted
+          setAudioEnabled(true); // Audio always enabled
           
-          // CRITICAL: Apply enhanced audio muting immediately for chat mode
-          // Apply multiple times to catch any timing issues with ElevenLabs
-          muteAllAudio(); // Immediate
-          setTimeout(() => muteAllAudio(), 50);   // 50ms delay
-          setTimeout(() => muteAllAudio(), 200);  // 200ms delay
-          setTimeout(() => muteAllAudio(), 500);  // 500ms delay
-          setTimeout(() => muteAllAudio(), 1000); // 1s delay to catch late-loading audio
+          console.log('🔊 Audio enabled for both chat and voice modes');
+          
+          // WORKAROUND: Send car context immediately after connection
+          if (carName) {
+            console.log(`🚗 Sending car context for: ${carName}`);
+            // Give ElevenLabs a moment to be ready for messages
+            setTimeout(async () => {
+              try {
+                const contextMessage = `I'm interested in the ${carName}. Can you tell me about this vehicle?`;
+                console.log('📤 Sending car context message:', contextMessage);
+                // Use the conversation instance stored in state
+                if (conversation) {
+                  await conversation.sendUserMessage(contextMessage);
+                  console.log('✅ Car context sent successfully');
+                }
+              } catch (err) {
+                console.warn('⚠️ Could not send initial car context:', err);
+              }
+            }, 1500);
+          }
         },
 
         onDisconnect: () => {
@@ -505,6 +290,19 @@ export const useElevenLabsConversation = () => {
       };
 
       console.log('🚀 Final unified session config:', sessionConfig);
+      
+      // ENHANCED DEBUG: Show exact override structure being sent
+      if (sessionConfig.conversation_config_override) {
+        console.log('🔧 DETAILED OVERRIDE STRUCTURE:');
+        console.log('  Agent first_message:', sessionConfig.conversation_config_override.agent.first_message);
+        console.log('  Agent prompt:', sessionConfig.conversation_config_override.agent.prompt.prompt);
+        console.log('🚨 TROUBLESHOOTING: If first message still not working:');
+        console.log('  1. Check ElevenLabs dashboard Security tab - overrides enabled?');
+        console.log('  2. Try refreshing ElevenLabs dashboard');
+        console.log('  3. Check agent ID is correct:', AGENT_ID);
+        console.log('  4. Check for ElevenLabs SDK version issues');
+      }
+      
       const conversationSession = await Conversation.startSession(sessionConfig);
       
       setConversation(conversationSession);
@@ -514,60 +312,33 @@ export const useElevenLabsConversation = () => {
         await conversationSession.setMicMuted(true);
         console.log('🔇 Microphone muted for initial chat mode');
       }
+      
+      // WORKAROUND: Send car context message immediately after session starts
+      if (carName && conversationSession) {
+        console.log(`🚗 Preparing to send car context for: ${carName}`);
+        // Give ElevenLabs a moment to be ready for messages
+        setTimeout(async () => {
+          try {
+            const contextMessage = `I'm interested in the ${carName}. Can you tell me about this vehicle?`;
+            console.log('📤 Sending car context message:', contextMessage);
+            await conversationSession.sendUserMessage(contextMessage);
+            console.log('✅ Car context sent successfully');
+          } catch (err) {
+            console.warn('⚠️ Could not send initial car context:', err);
+          }
+        }, 2000); // 2 second delay to ensure ElevenLabs is ready
+      }
 
     } catch (err) {
       console.error('❌ Failed to start unified conversation:', err);
       setError(err.message);
       setIsConnecting(false);
     }
-  }, [uiMode, muteAllAudio]);
+  }, [uiMode]);
 
   // Disconnect from conversation
   const disconnect = useCallback(async () => {
     console.log('🔌 Disconnecting from unified conversation...');
-    
-    // ENHANCED CLEANUP: Clean up all audio monitoring systems
-    console.log('🧹 Cleaning up enhanced audio muting system...');
-    
-    // Stop all monitoring systems
-    if (mutationObserverRef.current) {
-      mutationObserverRef.current.disconnect();
-      mutationObserverRef.current = null;
-    }
-    
-    if (audioIntervalRef.current) {
-      clearInterval(audioIntervalRef.current);
-      audioIntervalRef.current = null;
-    }
-    
-    // Restore original Web APIs
-    if (originalAudioContextRef.current) {
-      window.AudioContext = originalAudioContextRef.current;
-      if (window.webkitAudioContext) {
-        window.webkitAudioContext = originalAudioContextRef.current;
-      }
-      originalAudioContextRef.current = null;
-    }
-    
-    if (originalHTMLAudioElementRef.current) {
-      window.HTMLAudioElement = originalHTMLAudioElementRef.current;
-      window.Audio = originalHTMLAudioElementRef.current;
-      originalHTMLAudioElementRef.current = null;
-    }
-    
-    // Reset audio muted flag
-    isAudioMutedRef.current = false;
-    
-    // Unmute all audio elements on disconnect
-    audioElementsRef.current.forEach(audio => {
-      if (audio && audio.parentNode) {
-        audio.muted = false;
-        audio.volume = 1;
-      }
-    });
-    audioElementsRef.current.clear();
-    
-    console.log('✅ Enhanced audio system cleanup completed');
     
     if (conversation) {
       try {
@@ -583,9 +354,9 @@ export const useElevenLabsConversation = () => {
     setIsConnected(false);
     setIsConnecting(false);
     setUiMode('chat');
-    setAudioOutputMuted(true);
+    setAudioOutputMuted(false); // Keep audio enabled
     setIsMuted(true);
-    setAudioEnabled(false);
+    setAudioEnabled(true); // Keep audio enabled
     setAgentMessage('');
     setUserMessage('');
     setAgentInterimMessage('');
@@ -627,10 +398,7 @@ export const useElevenLabsConversation = () => {
         // Unmute microphone in ElevenLabs session
         await conversation.setMicMuted(false);
         
-        // CRITICAL: Unmute all audio for voice mode
-        unmuteAllAudio();
-        
-        console.log('🔊 Voice mode enabled - audio and microphone unmuted');
+        console.log('🔊 Voice mode enabled - microphone unmuted');
         
       } else {
         // Switching to chat mode - mute everything but keep session
@@ -644,13 +412,7 @@ export const useElevenLabsConversation = () => {
         // Mute microphone in ElevenLabs session
         await conversation.setMicMuted(true);
         
-        // CRITICAL: Apply enhanced audio muting for chat mode
-        // Apply multiple times to ensure it catches all ElevenLabs audio
-        muteAllAudio(); // Immediate
-        setTimeout(() => muteAllAudio(), 50);   // Quick follow-up
-        setTimeout(() => muteAllAudio(), 200);  // Medium delay
-        
-        console.log('🔇 Chat mode enabled - audio and microphone muted');
+        console.log('🔇 Chat mode enabled - microphone muted, audio still enabled');
       }
       
       console.log(`✔️ Successfully switched to ${newMode} mode without session restart`);
@@ -658,7 +420,7 @@ export const useElevenLabsConversation = () => {
       console.error('❌ Failed to toggle mode:', err);
       setError(`Failed to switch to ${newMode} mode: ${err.message}`);
     }
-  }, [conversation, uiMode, isConnected, muteAllAudio, unmuteAllAudio]);
+  }, [conversation, uiMode, isConnected]);
   
   // DEPRECATED: Keep for backward compatibility
   const toggleAudio = toggleMode;
@@ -712,14 +474,8 @@ export const useElevenLabsConversation = () => {
     const newMutedState = !audioOutputMuted;
     setAudioOutputMuted(newMutedState);
     
-    if (newMutedState) {
-      muteAllAudio();
-    } else {
-      unmuteAllAudio();
-    }
-    
-    console.log(`🔊 Audio output ${newMutedState ? 'muted' : 'unmuted'}`);
-  }, [audioOutputMuted, muteAllAudio, unmuteAllAudio]);
+    console.log(`🔊 Audio output ${newMutedState ? 'muted' : 'unmuted'} (simplified - no audio blocking)`);
+  }, [audioOutputMuted]);
 
   // Dismiss product overlays
   const dismissProductOverlays = useCallback(() => {

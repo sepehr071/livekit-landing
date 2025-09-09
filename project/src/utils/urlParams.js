@@ -55,40 +55,23 @@ export const getAllURLParams = () => {
 
 /**
  * Create dynamic variables object for ElevenLabs
- * ALWAYS returns car_name to prevent "Missing required dynamic variables" error
+ * ONLY returns car_name when URL parameter exists (prevents empty variable issues)
  * @returns {Object} Dynamic variables object
  */
 export const createDynamicVariables = () => {
   const carName = getCarNameFromURL();
-  const allParams = getAllURLParams();
   
-  // CRITICAL: Always provide car_name since ElevenLabs dashboard references it
-  // If no car parameter found, provide empty string (ElevenLabs can handle with conditional blocks)
-  const dynamicVars = {
-    car_name: carName || '',  // ALWAYS present - required by ElevenLabs
-    target_car: carName || '' // Alternative variable name - also always present
-  };
+  // SIMPLIFIED: Only return car_name when it has a value
+  // This prevents ElevenLabs from trying to replace empty variables
+  const dynamicVars = {};
   
-  // Add any other useful parameters
-  if (allParams.customer) {
-    dynamicVars.customer_name = allParams.customer.replace(/_/g, ' ');
-  }
-  
-  if (allParams.budget) {
-    dynamicVars.budget = allParams.budget;
-  }
-  
-  if (allParams.language || allParams.lang) {
-    dynamicVars.language = allParams.language || allParams.lang;
-  }
-  
-  console.log('🔧 Created dynamic variables for ElevenLabs (car_name always present):', dynamicVars);
-  
-  // Log specifically about car_name status
   if (carName) {
+    dynamicVars.car_name = carName;
+    console.log('🔧 Created dynamic variables for ElevenLabs:', dynamicVars);
     console.log(`🚗 Car focus: Agent will discuss ${carName}`);
   } else {
-    console.log('🚗 No car specified: Agent will use general car sales approach');
+    console.log('🔧 No car parameter found - no dynamic variables created');
+    console.log('🚗 Agent will use default behavior (no car focus)');
   }
   
   return dynamicVars;
