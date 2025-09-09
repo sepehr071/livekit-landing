@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { Conversation } from '@elevenlabs/client';
 import { fetchImagesFromFolder, processImageData, preloadImages } from '../utils/imageGallery';
+import { createDynamicVariables, getCarNameFromURL } from '../utils/urlParams';
 
 const AGENT_ID = 'agent_7401k4hv3j1je1ms4esr4sjnms5t'; // TODO: Replace with your actual ElevenLabs agent ID
 
@@ -365,6 +366,15 @@ export const useElevenLabsConversation = () => {
       console.log('🎯 Strategy: Always voice-capable, UI controls audio/mic');
       console.log('🔧 Configuration debug:', { agentId: AGENT_ID, uiMode });
 
+      // Extract dynamic variables from URL
+      const dynamicVariables = createDynamicVariables();
+      const carName = getCarNameFromURL();
+      
+      console.log('🚗 Dynamic variables extracted:', dynamicVariables);
+      if (carName) {
+        console.log(`🎯 Agent will focus on: ${carName}`);
+      }
+
       // ALWAYS request microphone permission upfront for voice session
       console.log('🎤 Requesting microphone permission for voice session...');
       const hasPermission = await requestMicrophonePermission();
@@ -376,12 +386,16 @@ export const useElevenLabsConversation = () => {
       console.log('🚀 Starting unified voice session with configuration:', {
         agentId: AGENT_ID,
         alwaysVoiceCapable: true,
-        hasClientTools: !!clientTools
+        hasClientTools: !!clientTools,
+        dynamicVariables: dynamicVariables
       });
 
       const sessionConfig = {
         agentId: AGENT_ID,
         clientTools,
+        // CRITICAL: Always pass dynamic_variables since ElevenLabs dashboard references them
+        // Car_name is always present (empty string if no URL param) to prevent "Missing required" error
+        dynamic_variables: dynamicVariables,
         // REMOVED: textOnly configuration - always voice capable
         // Audio muting handled at client level
 

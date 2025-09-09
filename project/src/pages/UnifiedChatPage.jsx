@@ -68,7 +68,9 @@ const UnifiedChatPage = () => {
     setIsHidden(true);
     disconnect();
     setTimeout(() => {
-      navigate("/");
+      // Preserve URL parameters when navigating back to home
+      const currentSearch = window.location.search;
+      navigate(`/${currentSearch}`);
     }, 700);
   };
 

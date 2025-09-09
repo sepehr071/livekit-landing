@@ -50,7 +50,9 @@ const RiveAvatarButton = ({
     setIsHidden(true);
     // Give a small delay for the animation to play before navigating
     setTimeout(() => {
-      navigate("/chat1");
+      // Preserve URL parameters when navigating to chat
+      const currentSearch = window.location.search;
+      navigate(`/chat1${currentSearch}`);
     }, 400); // Adjust delay as needed, should be less than or equal to CSS transition duration
   };
 
