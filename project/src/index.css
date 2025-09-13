@@ -186,3 +186,212 @@ body {
   transform: scale(1.15);
   border-color: #ea580c; /* Orange-500 on hover */
 }
+
+/* ========== MOBILE PERFORMANCE OPTIMIZATIONS ========== */
+@media (max-width: 768px) {
+  /* Hardware acceleration for all transforms */
+  .transform,
+  .transition-all,
+  [class*="transform"],
+  [class*="transition"],
+  .animate-bounce,
+  .animate-pulse,
+  .animate-spin {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+  
+  /* Reduce backdrop blur intensity for mobile performance */
+  .backdrop-blur-xl {
+    backdrop-filter: blur(6px) !important;
+  }
+  .backdrop-blur-lg {
+    backdrop-filter: blur(4px) !important;
+  }
+  .backdrop-blur-md {
+    backdrop-filter: blur(3px) !important;
+  }
+  .backdrop-blur-sm {
+    backdrop-filter: blur(2px) !important;
+  }
+  
+  /* Simplified shadows for better mobile performance */
+  .shadow-2xl {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+  }
+  .shadow-xl {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  }
+  .shadow-lg {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  }
+  .shadow-md {
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Faster transitions for mobile responsiveness */
+  .duration-1200 {
+    transition-duration: 400ms !important;
+  }
+  .duration-700 {
+    transition-duration: 350ms !important;
+  }
+  .duration-600 {
+    transition-duration: 300ms !important;
+  }
+  .duration-500 {
+    transition-duration: 250ms !important;
+  }
+  .duration-300 {
+    transition-duration: 200ms !important;
+  }
+  
+  /* Simplified gradients for mobile performance */
+  .bg-gradient-to-b,
+  .bg-gradient-to-r,
+  .bg-gradient-to-t,
+  .bg-gradient-to-l {
+    background: linear-gradient(to bottom, var(--tw-gradient-from), var(--tw-gradient-to)) !important;
+  }
+  
+  /* Disable hover effects on mobile (they don't work well on touch) */
+  .hover\:scale-105:hover,
+  .hover\:brightness-110:hover,
+  .hover\:-translate-y-1:hover,
+  .hover\:bg-opacity-20:hover,
+  .hover\:shadow-lg:hover {
+    transform: none !important;
+    filter: none !important;
+    background: inherit !important;
+    box-shadow: inherit !important;
+  }
+  
+  /* Optimize Rive canvas and images for mobile */
+  #riveCanvas,
+  canvas,
+  img {
+    image-rendering: optimizeSpeed;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: optimize-contrast;
+  }
+  
+  /* Reduce animation complexity */
+  .animate-bounce {
+    animation: bounce 1s ease-in-out;
+  }
+  
+  .animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+/* Low-end device optimizations (detected via JavaScript) */
+@media (max-width: 768px) and (max-device-memory: 4GB) {
+  /* Disable complex effects entirely on low-end devices */
+  .backdrop-blur-xl,
+  .backdrop-blur-lg,
+  .backdrop-blur-md,
+  .backdrop-blur-sm {
+    backdrop-filter: none !important;
+    background-color: rgba(255, 255, 255, 0.9) !important;
+  }
+  
+  /* Minimal shadows on low-end devices */
+  .shadow-2xl,
+  .shadow-xl,
+  .shadow-lg,
+  .shadow-md {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* No gradients on low-end devices */
+  .bg-gradient-to-b,
+  .bg-gradient-to-r,
+  .bg-gradient-to-t,
+  .bg-gradient-to-l {
+    background: #ffffff !important;
+  }
+  
+  /* Disable all animations on very low-end devices */
+  .animate-bounce,
+  .animate-pulse,
+  .animate-spin {
+    animation: none !important;
+  }
+}
+
+/* Performance utility classes */
+.mobile-optimized {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.no-blur {
+  backdrop-filter: none !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+.reduced-motion {
+  animation-duration: 0.1s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.1s !important;
+}
+
+.hardware-accelerated {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+/* Optimized scrollbar for mobile */
+@media (max-width: 768px) {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px; /* Thinner on mobile */
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+  }
+}
+
+/* Accessibility: Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-bounce,
+  .animate-pulse,
+  .animate-spin,
+  .transition-all,
+  [class*="transition"],
+  [class*="duration"] {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode optimizations */
+@media (prefers-contrast: high) {
+  .shadow-2xl,
+  .shadow-xl,
+  .shadow-lg {
+    box-shadow: 0 0 0 2px currentColor !important;
+  }
+  
+  .backdrop-blur-xl,
+  .backdrop-blur-lg,
+  .backdrop-blur-md,
+  .backdrop-blur-sm {
+    backdrop-filter: none !important;
+    background-color: rgba(255, 255, 255, 1) !important;
+    border: 2px solid currentColor !important;
+  }
+}

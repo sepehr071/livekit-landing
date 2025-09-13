@@ -4,17 +4,39 @@ import { Mic, MicOff, X, MessageSquare, Volume2, Loader2 } from "lucide-react";
 import ChatAvatar from "../components/ChatAvatar";
 import ProductImageOverlay from "../components/ProductImageOverlay";
 import ProductLinkBox from "../components/ProductLinkBox";
+import PerformanceDebug from "../components/PerformanceDebug";
 import { useElevenLabsConversation } from "../hooks/useElevenLabsConversation";
 import { useCompanyConfig } from "../config/useCompanyConfig";
+import { usePerformanceConfig } from "../config/usePerformanceConfig";
+import { useCSSOptimization } from "../utils/cssUtils";
 
 const UnifiedChatPage = () => {
   const navigate = useNavigate();
   const [isHidden, setIsHidden] = useState(true);
   const [textInput, setTextInput] = useState("");
   const [isSendingText, setIsSendingText] = useState(false);
+  const [showPerformanceDebug, setShowPerformanceDebug] = useState(false);
 
   // Get company configuration
   const { config, getText, getGradient, getAsset } = useCompanyConfig();
+  
+  // Get performance configuration for mobile optimization
+  const {
+    performanceConfig,
+    isMobile,
+    isLowEndDevice,
+    responsiveConfig
+  } = usePerformanceConfig();
+  
+  // Get CSS optimization utilities
+  const {
+    getOptimizedClasses,
+    getPerformanceClass,
+    getBackdropBlur,
+    getShadow,
+    getTransitionDuration,
+    shouldEnableHover
+  } = useCSSOptimization();
 
   const {
     connect,
@@ -63,6 +85,22 @@ const UnifiedChatPage = () => {
       disconnect();
     };
   }, []); // Remove dependencies to prevent double connection
+
+  // Performance debug toggle - Ctrl+Shift+P
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.ctrlKey && event.shiftKey && event.key === 'P') {
+        setShowPerformanceDebug(prev => {
+          const newState = !prev;
+          console.log(`📊 Performance debug ${newState ? 'enabled' : 'disabled'}`);
+          return newState;
+        });
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
 
   const handleClose = () => {
     setIsHidden(true);
@@ -126,22 +164,33 @@ const UnifiedChatPage = () => {
       {/* Main Chat Widget */}
       <div
         style={isHidden ? { transform: "translateX(30rem)" } : {}}
-        className={`fixed bg-gradient-to-b ${getGradient(uiMode === 'voice' ? 'voice' : 'text', 'primary')} backdrop-blur-xl ${config.theme.widget.position} ${config.theme.widget.size.width} ${config.theme.widget.size.height} max-h-[90vh] rounded-2xl shadow-2xl border ${
-          uiMode === 'voice' ? 'border-blue-200/40' : 'border-orange-200/40'
-        } flex flex-col overflow-hidden z-50 ${config.theme.widget.size.mobileWidth} ${config.theme.widget.animation.duration} max-w-[90%] transition-all opacity-100 blur-0`}
+        className={getOptimizedClasses(
+          `fixed bg-gradient-to-b ${getGradient(uiMode === 'voice' ? 'voice' : 'text', 'primary')} ${getBackdropBlur('xl')} ${config.theme.widget.position} ${config.theme.widget.size.width} ${config.theme.widget.size.height} max-h-[90vh] rounded-2xl ${getShadow('2xl')} border ${
+            uiMode === 'voice' ? 'border-blue-200/40' : 'border-orange-200/40'
+          } flex flex-col overflow-hidden z-50 ${config.theme.widget.size.mobileWidth} ${getTransitionDuration('700')} max-w-[90%] transition-all opacity-100 blur-0 ${getPerformanceClass('gpu-accelerated')}`,
+          `fixed bg-gradient-to-b ${getGradient(uiMode === 'voice' ? 'voice' : 'text', 'primary')} ${getBackdropBlur('sm')} ${config.theme.widget.position} ${config.theme.widget.size.width} ${config.theme.widget.size.height} max-h-[90vh] rounded-2xl ${getShadow('lg')} border ${
+            uiMode === 'voice' ? 'border-blue-200/40' : 'border-orange-200/40'
+          } flex flex-col overflow-hidden z-50 ${config.theme.widget.size.mobileWidth} ${getTransitionDuration('400')} max-w-[90%] transition-transform opacity-100 mobile-optimized`
+        )}
       >
-        {/* Header with close button */}
+        {/* Header with close button - Performance Optimized */}
         <div className="flex justify-between flex-row-reverse items-center p-4 relative">
-          {/* Smooth gradient background that fades into content */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#dbbe9b]/60 via-[#f5e6d3]/40 to-transparent backdrop-blur-md"></div>
+          {/* Smooth gradient background that fades into content - Mobile Optimized */}
+          <div className={getOptimizedClasses(
+            `absolute inset-0 bg-gradient-to-b from-[#dbbe9b]/60 via-[#f5e6d3]/40 to-transparent ${getBackdropBlur('md')}`,
+            `absolute inset-0 bg-gradient-to-b from-[#dbbe9b]/60 via-[#f5e6d3]/40 to-transparent ${performanceConfig.disableBlur ? 'bg-white/90' : getBackdropBlur('sm')}`
+          )}></div>
           {/* Additional fade layer for seamless blending */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#fcf4e7]/30 via-white/15 to-transparent pointer-events-none"></div>
           {/* Bottom fade to completely eliminate the line */}
           <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-b from-transparent to-white/20 pointer-events-none"></div>
-          {/* Close Button */}
+          {/* Close Button - Performance Optimized */}
           <button
             onClick={handleClose}
-            className="p-2 bg-gray-50 rounded-full shadow text-gray-600 hover:text-red-500 transition-all hover:scale-105 duration-200 relative z-10"
+            className={getOptimizedClasses(
+              `p-2 bg-gray-50 rounded-full ${getShadow('md')} text-gray-600 hover:text-red-500 transition-all ${shouldEnableHover() ? 'hover:scale-105' : ''} ${getTransitionDuration('200')} relative z-10`,
+              `p-2 bg-gray-50 rounded-full ${getShadow('sm')} text-gray-600 transition-colors ${getTransitionDuration('200')} relative z-10 mobile-optimized`
+            )}
           >
             <img src={getAsset("icons.close")} alt={getText("ui.close")} width={20} height={20} />
           </button>
@@ -149,9 +198,10 @@ const UnifiedChatPage = () => {
           {uiMode === 'voice' && (
             <button
               onClick={toggleMode}
-              className={
-                "p-2 rounded-full flex items-center justify-center shadow transition-all duration-300 hover:scale-105 disabled:cursor-not-allowed bg-white text-white relative z-10"
-              }
+              className={getOptimizedClasses(
+                `p-2 rounded-full flex items-center justify-center ${getShadow('md')} transition-all ${getTransitionDuration('300')} ${shouldEnableHover() ? 'hover:scale-105' : ''} disabled:cursor-not-allowed bg-white text-white relative z-10`,
+                `p-2 rounded-full flex items-center justify-center ${getShadow('sm')} transition-colors ${getTransitionDuration('200')} disabled:cursor-not-allowed bg-white text-white relative z-10 mobile-optimized`
+              )}
               title={getText("ui.switchToText")}
             >
               <img src={getAsset("icons.back")} alt={getText("ui.back")} width={22} />
@@ -169,8 +219,11 @@ const UnifiedChatPage = () => {
         </div>
       </div> */}
 
-        {/* Main content area */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 h-[80%] drop-shadow-md rounded-[50px]">
+        {/* Main content area - Performance Optimized */}
+        <div className={getOptimizedClasses(
+          "flex-1 overflow-y-auto overflow-x-hidden p-4 h-[80%] drop-shadow-md rounded-[50px]",
+          "flex-1 overflow-y-auto overflow-x-hidden p-4 h-[80%] drop-shadow-sm rounded-[50px] mobile-optimized"
+        )}>
           {/* User Speech Transcription Display - Removed for voice mode */}
 
           {/* Avatar with unified integration */}
@@ -209,24 +262,34 @@ const UnifiedChatPage = () => {
           )}
         </div>
 
-        {/* Bottom input/control area */}
-        <div className="relative bg-gradient-to-t from-orange-200/60 via-orange-100/40 to-white/10 p-4 py-6 backdrop-blur-md">
+        {/* Bottom input/control area - Performance Optimized */}
+        <div className={getOptimizedClasses(
+          `relative bg-gradient-to-t from-orange-200/60 via-orange-100/40 to-white/10 p-4 py-6 ${getBackdropBlur('md')}`,
+          `relative bg-gradient-to-t from-orange-200/60 via-orange-100/40 to-white/10 p-4 py-6 ${performanceConfig.disableBlur ? 'bg-white/90' : getBackdropBlur('sm')}`
+        )}>
           {/* Soft fade overlay for seamless blending */}
           <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/5 to-white/15 pointer-events-none"></div>
           <div className="flex flex-col gap-3">
             {/* Audio Toggle Button */}
 
-            {/* Voice Controls (when in voice mode) */}
+            {/* Voice Controls (when in voice mode) - Performance Optimized */}
             {uiMode === 'voice' && (
               <div className="flex justify-center gap-4">
                 <button
                   onClick={toggleMicrophone}
                   disabled={!isConnected}
-                  className={`w-16 h-16 text-white border-2 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed ${
-                    isMuted
-                      ? `border-red-500 bg-[${config.theme.status.error}] hover:bg-red-600`
-                      : `border-green-500 bg-green-500 hover:bg-green-600`
-                  }`}
+                  className={getOptimizedClasses(
+                    `w-16 h-16 text-white border-2 rounded-full flex items-center justify-center ${getShadow('lg')} transition-all ${getTransitionDuration('300')} ${shouldEnableHover() ? 'hover:-translate-y-1' : ''} disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isMuted
+                        ? `border-red-500 bg-[${config.theme.status.error}] ${shouldEnableHover() ? 'hover:bg-red-600' : ''}`
+                        : `border-green-500 bg-green-500 ${shouldEnableHover() ? 'hover:bg-green-600' : ''}`
+                    } ${getPerformanceClass('gpu-accelerated')}`,
+                    `w-16 h-16 text-white border-2 rounded-full flex items-center justify-center ${getShadow('md')} transition-colors ${getTransitionDuration('200')} disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isMuted
+                        ? `border-red-500 bg-[${config.theme.status.error}]`
+                        : `border-green-500 bg-green-500`
+                    } mobile-optimized`
+                  )}
                   title={
                     isMuted ? getText("ui.enableMicrophone") : getText("ui.disableMicrophone")
                   }
@@ -236,7 +299,7 @@ const UnifiedChatPage = () => {
               </div>
             )}
 
-            {/* Text Input (when in chat mode) */}
+            {/* Text Input (when in chat mode) - Performance Optimized */}
             {uiMode === 'chat' && (
               <form
                 onSubmit={handleSendText}
@@ -249,7 +312,10 @@ const UnifiedChatPage = () => {
                     onChange={(e) => setTextInput(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder={getText("ui.textInputPlaceholder")}
-                    className={`w-full px-4 py-3 bg-white rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[${config.theme.primary.main}] transition duration-300 focus:border-transparent shadow-md disabled:bg-gray-100`}
+                    className={getOptimizedClasses(
+                      `w-full px-4 py-3 bg-white rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[${config.theme.primary.main}] transition ${getTransitionDuration('300')} focus:border-transparent ${getShadow('md')} disabled:bg-gray-100`,
+                      `w-full px-4 py-3 bg-white rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[${config.theme.primary.main}] transition-colors ${getTransitionDuration('200')} focus:border-transparent ${getShadow('sm')} disabled:bg-gray-100 mobile-optimized`
+                    )}
                     disabled={!isConnected || isSendingText}
                     maxLength={500}
                   />
@@ -258,11 +324,18 @@ const UnifiedChatPage = () => {
                 <button
                   type="submit"
                   disabled={!textInput.trim() || !isConnected || isSendingText}
-                  className={`p-3 text-white rounded-full transition-colors duration-300 disabled:bg-orange-300 disabled:cursor-not-allowed shadow-md ${
-                    textInput.trim()
-                      ? 'hover:brightness-110'
-                      : 'bg-slate-700 hover:bg-slate-800'
-                  }`}
+                  className={getOptimizedClasses(
+                    `p-3 text-white rounded-full transition-colors ${getTransitionDuration('300')} disabled:bg-orange-300 disabled:cursor-not-allowed ${getShadow('md')} ${
+                      textInput.trim() && shouldEnableHover()
+                        ? 'hover:brightness-110'
+                        : 'bg-slate-700 hover:bg-slate-800'
+                    }`,
+                    `p-3 text-white rounded-full transition-colors ${getTransitionDuration('200')} disabled:bg-orange-300 disabled:cursor-not-allowed ${getShadow('sm')} ${
+                      textInput.trim()
+                        ? ''
+                        : 'bg-slate-700'
+                    } mobile-optimized`
+                  )}
                   style={textInput.trim() ? {
                     backgroundColor: config.theme.status.success
                   } : {}}
@@ -273,7 +346,7 @@ const UnifiedChatPage = () => {
                   }
                 >
                   {isSendingText ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
+                    <Loader2 className={`w-6 h-6 ${performanceConfig.reducedAnimations ? 'animate-pulse' : 'animate-spin'}`} />
                   ) : (
                     <img src={getAsset("icons.send")} alt={getText("ui.send")} width={25} />
                   )}
@@ -282,9 +355,10 @@ const UnifiedChatPage = () => {
                 <button
                   onClick={toggleMode}
                   disabled={!isConnected}
-                  className={
-                    `w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed bg-[${config.theme.secondary.main}] hover:bg-[${config.theme.secondary.dark}] text-white`
-                  }
+                  className={getOptimizedClasses(
+                    `w-12 h-12 rounded-full flex items-center justify-center ${getShadow('lg')} transition-all ${getTransitionDuration('300')} disabled:opacity-50 disabled:cursor-not-allowed bg-[${config.theme.secondary.main}] ${shouldEnableHover() ? `hover:bg-[${config.theme.secondary.dark}]` : ''} text-white`,
+                    `w-12 h-12 rounded-full flex items-center justify-center ${getShadow('md')} transition-colors ${getTransitionDuration('200')} disabled:opacity-50 disabled:cursor-not-allowed bg-[${config.theme.secondary.main}] text-white mobile-optimized`
+                  )}
                   title={getText("ui.activateVoice")}
                 >
                   <img src={getAsset("icons.voice")} alt={getText("ui.voice")} width={30} />
@@ -306,12 +380,15 @@ const UnifiedChatPage = () => {
        {/* <ProductImageOverlay
         productData={productImageData}
         onClose={dismissProductOverlays}
-      /> 
+      />
 
        <ProductLinkBox
         productData={productLinkData}
         onClose={dismissProductOverlays}
       />  */}
+
+      {/* Performance Debug Component - Toggle with Ctrl+Shift+P */}
+      <PerformanceDebug enabled={showPerformanceDebug} />
     </>
   );
 };

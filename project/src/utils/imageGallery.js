@@ -402,24 +402,57 @@ export const processImageData = (imageData) => {
 };
 
 /**
- * Preload images for better performance
+ * Performance-optimized image preloading for mobile devices
  */
 export const preloadImages = async (imageUrls) => {
-  const loadPromises = imageUrls.map(url => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve(url);
-      img.onerror = () => reject(url);
-      img.src = url;
-    });
-  });
+  // Check if we have access to performance config (might not be available in utils)
+  const isMobile = window.innerWidth <= 768;
+  const hardwareConcurrency = navigator.hardwareConcurrency || 4;
+  const isLowEndDevice = hardwareConcurrency <= 4;
   
-  try {
-    await Promise.allSettled(loadPromises);
-    console.log('✅ Image preloading completed');
-  } catch (error) {
-    console.log('⚠️ Some images failed to preload');
+  // Limit concurrent loads based on device capability
+  const concurrencyLimit = isLowEndDevice ? 1 : (isMobile ? 2 : 5);
+  const results = [];
+  
+  console.log(`📱 Preloading ${imageUrls.length} images with ${concurrencyLimit} concurrent limit`);
+  
+  for (let i = 0; i < imageUrls.length; i += concurrencyLimit) {
+    const batch = imageUrls.slice(i, i + concurrencyLimit);
+    
+    const batchPromises = batch.map(url => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        
+        // Configure for mobile performance
+        if (isMobile) {
+          img.decoding = 'async';
+          img.loading = 'lazy';
+        }
+        
+        img.onload = () => resolve(url);
+        img.onerror = () => reject(url);
+        img.src = url;
+      });
+    });
+    
+    try {
+      const batchResults = await Promise.allSettled(batchPromises);
+      results.push(...batchResults);
+      
+      // Add delay between batches on mobile to prevent overwhelming
+      if (isMobile && i + concurrencyLimit < imageUrls.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+    } catch (error) {
+      console.warn('Batch preload error:', error);
+    }
   }
+  
+  const successful = results.filter(result => result.status === 'fulfilled').length;
+  console.log(`✅ Image preloading completed: ${successful}/${imageUrls.length} successful`);
+  
+  return results;
 };
 
 /**

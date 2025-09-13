@@ -203,20 +203,91 @@ const CompanyConfig = {
       errorDisplayDuration: 3000,
       enableProductDisplay: true,
       responsiveBreakpoint: 768
+    },
+
+    // NEW: Performance settings for mobile optimization
+    performance: {
+      // Mobile optimizations
+      mobile: {
+        reducedAnimations: true,
+        healthCheckInterval: 5000, // vs 2000 on desktop
+        maxConcurrentAnimations: 1,
+        imagePreloadLimit: 3,
+        enableDebugMode: false,
+        simplifiedTransitions: true,
+        disableBlur: false,
+        reducedShadows: true,
+        simplifiedGradients: false,
+        minimalAnimations: false,
+        lazyLoadImages: true,
+        compressedAssets: false,
+        reducedImageQuality: false
+      },
+      
+      // Low-end device settings
+      lowEndDevice: {
+        disableBlur: true,
+        reducedShadows: true,
+        simplifiedGradients: true,
+        minimalAnimations: true,
+        healthCheckInterval: 8000,
+        maxConcurrentAnimations: 1,
+        imagePreloadLimit: 2,
+        enableDebugMode: false
+      },
+      
+      // Network-based optimizations
+      slowConnection: {
+        lazyLoadImages: true,
+        compressedAssets: true,
+        reducedImageQuality: true,
+        imagePreloadLimit: 1,
+        simplifiedTransitions: true
+      }
     }
   },
 
   // 📱 RESPONSIVE SETTINGS
   responsive: {
     mobile: {
-      // Avatar positioning when products are shown (mobile)
-      avatarTransform: "translate(180px, -110px) scale(0.80)",
-      avatarBorderRadius: "97%"
+      // Optimized avatar positioning for mobile performance
+      avatarTransform: "translate3d(160px, -100px, 0) scale(0.75)",
+      avatarBorderRadius: "96%",
+      
+      // Performance CSS classes for mobile
+      backdropBlur: "backdrop-blur-sm", // vs backdrop-blur-xl on desktop
+      shadowComplexity: "shadow-lg", // vs shadow-2xl on desktop
+      transitionDuration: "duration-300", // vs duration-1200 on desktop
+      
+      // Mobile-specific UI settings
+      enableHoverEffects: false,
+      enableParallax: false,
+      enableComplexTransitions: false,
+      useHardwareAcceleration: true,
+      
+      // Animation settings
+      reducedMotionPreference: true,
+      simplifiedAnimations: true
     },
     desktop: {
-      // Avatar positioning when products are shown (desktop)
+      // Desktop avatar positioning (full quality)
       avatarTransform: "translate(220px, -130px) scale(0.80)",
-      avatarBorderRadius: "50%"
+      avatarBorderRadius: "50%",
+      
+      // Full performance CSS classes for desktop
+      backdropBlur: "backdrop-blur-xl",
+      shadowComplexity: "shadow-2xl",
+      transitionDuration: "duration-1200",
+      
+      // Desktop UI settings
+      enableHoverEffects: true,
+      enableParallax: true,
+      enableComplexTransitions: true,
+      useHardwareAcceleration: false, // Not needed on desktop
+      
+      // Animation settings
+      reducedMotionPreference: false,
+      simplifiedAnimations: false
     }
   }
 };

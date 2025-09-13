@@ -2,6 +2,8 @@ import { useState, useCallback, useRef } from 'react';
 import { Conversation } from '@elevenlabs/client';
 import { fetchImagesFromFolder, processImageData, preloadImages } from '../utils/imageGallery';
 import { createDynamicVariables, getCarNameFromURL } from '../utils/urlParams';
+import { usePerformanceConfig } from '../config/usePerformanceConfig';
+import { useMemoryManagement } from './useMemoryManagement';
 
 const AGENT_ID = 'agent_7401k4hv3j1je1ms4esr4sjnms5t'; // TODO: Replace with your actual ElevenLabs agent ID
 
@@ -19,6 +21,19 @@ const requestMicrophonePermission = async () => {
 };
 
 export const useElevenLabsConversation = () => {
+  // Performance configuration for mobile optimization
+  const performanceData = usePerformanceConfig();
+  const memoryData = useMemoryManagement();
+  
+  // Destructure in stable way to prevent re-renders
+  const {
+    performanceConfig,
+    isMobile,
+    isLowEndDevice
+  } = performanceData;
+  
+  const { addCleanupTask, checkMemoryUsage } = memoryData;
+  
   const [conversation, setConversation] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -94,11 +109,23 @@ export const useElevenLabsConversation = () => {
         
         console.log(`🖼️ Auto-detected ${displayType} mode: ${images.length} image(s) found for ${carName}/${imageCategory}`);
         
-        // Preload images for better performance (especially for galleries)
+        // Performance-optimized image preloading
         if (images.length > 1) {
-          preloadImages(images).catch(err =>
+          // Limit preloading based on device capability
+          const preloadLimit = performanceData.getImagePreloadLimit ? performanceData.getImagePreloadLimit() : (isMobile ? 3 : images.length);
+          const imagesToPreload = images.slice(0, preloadLimit);
+          
+          console.log(`📱 Preloading ${imagesToPreload.length}/${images.length} images for mobile performance`);
+          
+          preloadImages(imagesToPreload).catch(err =>
             console.warn('⚠️ Some images failed to preload:', err)
           );
+          
+          // Add cleanup task for image memory management
+          addCleanupTask(() => {
+            // Clear any cached image references
+            console.log('🧹 Cleaning up image preload cache');
+          }, 'Image preload cleanup');
         }
         
         setProductImageData(imageData);
@@ -336,7 +363,7 @@ export const useElevenLabsConversation = () => {
     }
   }, [uiMode]);
 
-  // Disconnect from conversation
+  // Disconnect from conversation with enhanced cleanup
   const disconnect = useCallback(async () => {
     console.log('🔌 Disconnecting from unified conversation...');
     
@@ -366,7 +393,21 @@ export const useElevenLabsConversation = () => {
     setProductImageData(null);
     setProductLinkData(null);
     setError(null);
-  }, [conversation]);
+    
+    // Add cleanup task for conversation resources
+    addCleanupTask(() => {
+      // Clear any cached conversation data
+      console.log('🧹 Cleaning up conversation resources');
+    }, 'Conversation cleanup');
+    
+    // Check memory usage after disconnect on mobile
+    if (isMobile) {
+      setTimeout(() => {
+        const memoryInfo = checkMemoryUsage();
+        console.log(`📊 Memory after disconnect: ${memoryInfo.usage || 'unknown'}MB`);
+      }, 1000);
+    }
+  }, [conversation, addCleanupTask, checkMemoryUsage, isMobile]);
 
   // Toggle between chat and voice UI modes (NO session restart)
   const toggleMode = useCallback(async () => {

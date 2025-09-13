@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useRive } from "../hooks/useRive";
 import { useCompanyConfig } from "../config/useCompanyConfig";
+import { usePerformanceConfig } from "../config/usePerformanceConfig";
+import { useCSSOptimization } from "../utils/cssUtils";
 import ImageSlider from "./ImageSlider";
 
 const ChatAvatar = ({
@@ -15,7 +17,27 @@ const ChatAvatar = ({
   // Get company configuration
   const { config, getText, getAsset, getAvatarSettings } = useCompanyConfig();
   
-  // Use enhanced configurable Rive animation file with debugging
+  // Get performance configuration
+  const {
+    performanceConfig,
+    isMobile,
+    isLowEndDevice,
+    isDebugEnabled,
+    getHealthCheckInterval
+  } = usePerformanceConfig();
+  
+  // Get CSS optimization utilities
+  const {
+    getOptimizedClasses,
+    getPerformanceClass,
+    getBackdropBlur,
+    getShadow,
+    getTransitionDuration,
+    getAvatarTransform,
+    shouldEnableHover
+  } = useCSSOptimization();
+  
+  // Use enhanced configurable Rive animation file with performance-aware debugging
   const {
     canvasRef,
     setAnimationState,
@@ -26,7 +48,7 @@ const ChatAvatar = ({
     getAnimationDiagnostics,
     currentAnimationStates,
     debugLog
-  } = useRive(config.assets.riveAnimation, false); // Debug mode disabled
+  } = useRive(config.assets.riveAnimation, isDebugEnabled()); // Performance-aware debug mode
 
   const [isImageVisible, setIsImageVisible] = useState(false);
   const [imageSource, setImageSource] = useState("");
@@ -40,36 +62,36 @@ const ChatAvatar = ({
 
   // Animation debug states
   const [showAnimationDebug, setShowAnimationDebug] = useState(false);
-  const [animationDiagnostics, setAnimationDiagnostics] = useState(null);
 
-  // Check if mobile device using config breakpoint
-  const [isMobileDevice, setIsMobileDevice] = useState(false);
-
-  useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobileDevice(window.innerWidth <= config.behavior.ui.responsiveBreakpoint);
-    };
-    
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-    
-    return () => window.removeEventListener('resize', checkIsMobile);
-  }, [config.behavior.ui.responsiveBreakpoint]);
-
-  // Get avatar settings based on device type with error handling
+  // Performance-optimized avatar settings using the new system
   const avatarSettings = useMemo(() => {
     try {
-      return getAvatarSettings(isMobileDevice);
+      const settings = getAvatarSettings(isMobile);
+      const optimizedTransform = getAvatarTransform();
+      
+      // Merge company config with performance optimizations
+      return {
+        ...settings,
+        ...optimizedTransform,
+        // Add performance classes
+        performanceClass: getPerformanceClass(''),
+        enableHover: shouldEnableHover(),
+        transitionDuration: getTransitionDuration('1200')
+      };
     } catch (error) {
       console.error('Error getting avatar settings:', error);
-      // Fallback settings
+      // Performance-aware fallback settings
       return {
-        translate: { x: 210, y: -110 },
-        scale: 0.9,
-        borderRadius: "50%"
+        translate: isMobile ? { x: '160px', y: '-100px', z: '0' } : { x: 210, y: -110 },
+        scale: isMobile ? 0.75 : 0.9,
+        borderRadius: isMobile ? "96%" : "50%",
+        transform: isMobile ? "translate3d(160px, -100px, 0) scale(0.75)" : "translate(210px, -110px) scale(0.9)",
+        performanceClass: getPerformanceClass('mobile-optimized'),
+        enableHover: !isMobile,
+        transitionDuration: getTransitionDuration('300')
       };
     }
-  }, [isMobileDevice, getAvatarSettings]);
+  }, [isMobile, getAvatarSettings, getAvatarTransform, getPerformanceClass, shouldEnableHover, getTransitionDuration]);
   
   // Set default message if not provided
   const displayMessage = agentMessage || getText("defaultGreeting.text");
@@ -166,12 +188,6 @@ const ChatAvatar = ({
         isSpeaking: isAgentSpeaking,
         targetAnimation: isAgentSpeaking ? 'speaking abass' : 'idle abass'
       });
-
-      // Update diagnostics for debugging
-      if (getAnimationDiagnostics) {
-        const diagnostics = getAnimationDiagnostics();
-        setAnimationDiagnostics(diagnostics);
-      }
     }
   }, [
     isAgentSpeaking,
@@ -180,9 +196,8 @@ const ChatAvatar = ({
     mode,
     isHealthy,
     setAnimationState,
-    getAnimationDiagnostics,
     debugLog
-  ]); // Functions are now stable with useCallback
+  ]); // Removed getAnimationDiagnostics to prevent infinite loop
 
   // Essential error monitoring (reduced logging)
   useEffect(() => {
@@ -204,9 +219,12 @@ const ChatAvatar = ({
 
   return (
     <div className="flex flex-col items-center justify-center max-h-full py-2 overflow-y-auto h-[100%] drop-shadow-md">
-      {/* Speech Bubble */}
+      {/* Speech Bubble - Performance Optimized */}
       <div
-        className="relative bg-white p-4 rounded-xl shadow-lg border border-gray-200/50 mb-4 max-w-xs sm:max-w-sm md:max-w-md max-h-[35%] overflow-y-auto custom-scrollbar backdrop-blur-sm"
+        className={getOptimizedClasses(
+          "relative bg-white p-4 rounded-xl shadow-lg border border-gray-200/50 mb-4 max-w-xs sm:max-w-sm md:max-w-md max-h-[35%] overflow-y-auto custom-scrollbar backdrop-blur-sm",
+          "relative bg-white p-4 rounded-xl shadow-md border border-gray-200/50 mb-4 max-w-xs sm:max-w-sm md:max-w-md max-h-[35%] overflow-y-auto custom-scrollbar"
+        )}
         id="agentSpeechBubble"
       >
         <div className="flex items-start">
@@ -249,14 +267,21 @@ const ChatAvatar = ({
           />
         )}
         
-        {/* Main canvas with smooth transition animation */}
+        {/* Main canvas with performance-optimized transitions */}
         <canvas
           ref={canvasRef}
-          className={`relative z-10 bg-transparent transition-all duration-[1200ms] ease-out ${
-            showProductContainer
-              ? 'absolute rounded-full shadow-lg border-2 border-white'
-              : 'rounded-lg'
-          }`}
+          className={getOptimizedClasses(
+            `relative z-10 bg-transparent transition-all ${getTransitionDuration('1200')} ease-out ${
+              showProductContainer
+                ? `absolute rounded-full ${getShadow('lg')} border-2 border-white ${getPerformanceClass('gpu-accelerated')}`
+                : 'rounded-lg'
+            }`,
+            `relative z-10 bg-transparent transition-transform ${getTransitionDuration('400')} ease-out ${
+              showProductContainer
+                ? `absolute rounded-full ${getShadow('md')} border-2 border-white mobile-optimized`
+                : 'rounded-lg'
+            }`
+          )}
           style={{
             zIndex: showProductContainer ? 30 : 10,
             marginBottom: !showProductContainer ? "1px" : "0",
@@ -264,12 +289,14 @@ const ChatAvatar = ({
             width: showProductContainer ? "120px" : "100%",
             height: showProductContainer ? "120px" : "100%",
             transform: showProductContainer
-              ? `translate(${avatarSettings.translate.x}px, ${avatarSettings.translate.y}px) scale(${avatarSettings.scale})`
-              : 'translate(0, 0) scale(1)',
+              ? avatarSettings.transform || `translate(${avatarSettings.translate?.x || 0}px, ${avatarSettings.translate?.y || 0}px) scale(${avatarSettings.scale || 1})`
+              : 'translate3d(0, 0, 0) scale(1)',
             transformOrigin: 'center center',
-            transition: 'all 1200ms cubic-bezier(0.4, 0, 0.2, 1)',
-            // Ensure perfect circle in product mode - different radius for mobile
-            borderRadius: showProductContainer ? avatarSettings.borderRadius : undefined
+            transition: `all ${performanceConfig.simplifiedTransitions ? '400ms' : '1200ms'} cubic-bezier(0.4, 0, 0.2, 1)`,
+            // Ensure perfect circle in product mode with performance-aware radius
+            borderRadius: showProductContainer ? avatarSettings.borderRadius : undefined,
+            // Add hardware acceleration hint for mobile
+            willChange: showProductContainer ? 'transform' : 'auto'
           }}
         />
 
@@ -277,19 +304,28 @@ const ChatAvatar = ({
         {imageSource && showProductContainer && (
           <div
             id="imageBox"
-            className={`flex items-center justify-center p-3 sm:p-4 md:p-6 relative w-full h-full transition-all duration-600 ease-out ${
-              isExpanding ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
-            }`}
+            className={getOptimizedClasses(
+              `flex items-center justify-center p-3 sm:p-4 md:p-6 relative w-full h-full transition-all ${getTransitionDuration('600')} ease-out ${
+                isExpanding ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
+              } ${getPerformanceClass('gpu-accelerated')}`,
+              `flex items-center justify-center p-3 sm:p-4 md:p-6 relative w-full h-full transition-opacity ${getTransitionDuration('400')} ease-out ${
+                isExpanding ? 'opacity-0' : 'opacity-100'
+              } mobile-optimized`
+            )}
             style={{
               backgroundImage: `url('${getAsset("images.productContainer")}')`,
               backgroundSize: "contain",
               backgroundRepeat: "no-repeat",
               backgroundPosition: "center center",
-              minHeight: "280px",
-              maxHeight: "450px",
-              marginRight: "-95px",
-              right: "107px",
-              top: "20px"
+              minHeight: isMobile ? "240px" : "280px",
+              maxHeight: isMobile ? "380px" : "450px",
+              marginRight: isMobile ? "-75px" : "-95px",
+              right: isMobile ? "87px" : "107px",
+              top: isMobile ? "15px" : "20px",
+              // Performance optimization
+              willChange: isExpanding ? 'opacity, transform' : 'auto',
+              // Use optimized transform for mobile
+              transform: isExpanding && !isMobile ? 'scale(0.75)' : 'none'
             }}
           >
             {/* Product content overlaid directly on background */}
@@ -341,19 +377,27 @@ const ChatAvatar = ({
         {linkData && showProductContainer && (
           <div
             id="linkBox"
-            className={`flex items-center justify-center p-3 sm:p-4 md:p-6 relative w-full h-full transition-all duration-600 ease-out ${
-              isExpanding ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
-            }`}
+            className={getOptimizedClasses(
+              `flex items-center justify-center p-3 sm:p-4 md:p-6 relative w-full h-full transition-all ${getTransitionDuration('600')} ease-out ${
+                isExpanding ? 'opacity-0 scale-75' : 'opacity-100 scale-100'
+              } ${getPerformanceClass('gpu-accelerated')}`,
+              `flex items-center justify-center p-3 sm:p-4 md:p-6 relative w-full h-full transition-opacity ${getTransitionDuration('400')} ease-out ${
+                isExpanding ? 'opacity-0' : 'opacity-100'
+              } mobile-optimized`
+            )}
             style={{
               backgroundImage: `url('${getAsset("images.productContainer")}')`,
               backgroundSize: "contain",
               backgroundRepeat: "no-repeat",
               backgroundPosition: "center",
-              minHeight: "280px",
-              maxHeight: "450px",
-              marginRight: "-68px",
-              right: "92px",
-              top: "34px"
+              minHeight: isMobile ? "240px" : "280px",
+              maxHeight: isMobile ? "380px" : "450px",
+              marginRight: isMobile ? "-58px" : "-68px",
+              right: isMobile ? "82px" : "92px",
+              top: isMobile ? "24px" : "34px",
+              // Performance optimization
+              willChange: isExpanding ? 'opacity, transform' : 'auto',
+              transform: isExpanding && !isMobile ? 'scale(0.75)' : 'none'
             }}
           >
             {/* Link content overlaid directly on background */}

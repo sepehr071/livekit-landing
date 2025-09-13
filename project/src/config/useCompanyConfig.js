@@ -3,9 +3,10 @@ import CompanyConfig from './company.config.js';
 
 /**
  * 🎯 Custom hook to consume company configuration
- * 
+ *
  * This hook provides easy access to all configuration settings
  * and includes helper functions for common operations.
+ * Enhanced with mobile performance awareness.
  */
 export const useCompanyConfig = () => {
   const config = useMemo(() => CompanyConfig, []);
@@ -43,30 +44,60 @@ export const useCompanyConfig = () => {
       return width <= config.behavior.ui.responsiveBreakpoint;
     },
 
-    // Get responsive avatar settings
+    // Enhanced avatar settings with performance awareness
     getAvatarSettings: (isMobile) => {
       const settings = isMobile ? config.responsive.mobile : config.responsive.desktop;
       
-      // Parse the transform string to extract individual values
-      // Format: "translate(180px, -80px) scale(0.9)"
-      const transformMatch = settings.avatarTransform.match(/translate\((-?\d+)px,\s*(-?\d+)px\)\s*scale\(([0-9.]+)\)/);
+      // Handle both old and new transform formats
+      let transformData = {};
       
-      if (transformMatch) {
-        return {
-          translate: {
-            x: parseInt(transformMatch[1]),
-            y: parseInt(transformMatch[2])
-          },
-          scale: parseFloat(transformMatch[3]),
-          borderRadius: settings.avatarBorderRadius
-        };
+      // New format: translate3d
+      if (settings.avatarTransform.includes('translate3d')) {
+        const transformMatch = settings.avatarTransform.match(/translate3d\(([^)]+)\)/);
+        if (transformMatch) {
+          const [x, y, z] = transformMatch[1].split(',').map(s => s.trim());
+          const scaleMatch = settings.avatarTransform.match(/scale\(([^)]+)\)/);
+          const scale = scaleMatch ? scaleMatch[1] : '1';
+          
+          transformData = {
+            translate: { x, y, z },
+            scale: parseFloat(scale),
+            transform: settings.avatarTransform,
+            borderRadius: settings.avatarBorderRadius,
+            useHardwareAcceleration: true
+          };
+        }
+      } else {
+        // Legacy format: translate
+        const transformMatch = settings.avatarTransform.match(/translate\((-?\d+)px,\s*(-?\d+)px\)\s*scale\(([0-9.]+)\)/);
+        
+        if (transformMatch) {
+          transformData = {
+            translate: {
+              x: parseInt(transformMatch[1]),
+              y: parseInt(transformMatch[2])
+            },
+            scale: parseFloat(transformMatch[3]),
+            transform: settings.avatarTransform,
+            borderRadius: settings.avatarBorderRadius,
+            useHardwareAcceleration: false
+          };
+        }
       }
       
-      // Fallback if parsing fails
+      // Add additional performance settings
       return {
-        translate: { x: 210, y: -110 },
-        scale: 0.9,
-        borderRadius: "50%"
+        ...transformData,
+        // Performance-aware settings
+        enableHoverEffects: settings.enableHoverEffects !== undefined ? settings.enableHoverEffects : !isMobile,
+        enableParallax: settings.enableParallax !== undefined ? settings.enableParallax : !isMobile,
+        enableComplexTransitions: settings.enableComplexTransitions !== undefined ? settings.enableComplexTransitions : !isMobile,
+        // CSS class optimizations
+        backdropBlur: settings.backdropBlur || (isMobile ? 'backdrop-blur-sm' : 'backdrop-blur-xl'),
+        shadowComplexity: settings.shadowComplexity || (isMobile ? 'shadow-lg' : 'shadow-2xl'),
+        transitionDuration: settings.transitionDuration || (isMobile ? 'duration-300' : 'duration-1200'),
+        // Fallback values
+        borderRadius: settings.avatarBorderRadius || (isMobile ? "96%" : "50%")
       };
     },
 
@@ -74,6 +105,27 @@ export const useCompanyConfig = () => {
     getGradient: (mode, section) => {
       const key = mode === 'voice' ? 'voiceMode' : 'textMode';
       return config.theme.backgrounds[key][section];
+    },
+
+    // NEW: Get performance settings
+    getPerformanceSettings: (deviceType = 'mobile') => {
+      const performanceConfig = config.behavior?.performance || {};
+      
+      switch (deviceType) {
+        case 'mobile':
+          return performanceConfig.mobile || {};
+        case 'lowEndDevice':
+          return performanceConfig.lowEndDevice || {};
+        case 'slowConnection':
+          return performanceConfig.slowConnection || {};
+        default:
+          return {};
+      }
+    },
+
+    // NEW: Get responsive configuration
+    getResponsiveConfig: (isMobile) => {
+      return isMobile ? config.responsive.mobile : config.responsive.desktop;
     }
   }), [config]);
 
