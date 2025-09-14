@@ -24,7 +24,9 @@ const ImageSlider = ({
   const {
     getOptimizedClasses,
     getPerformanceClass,
-    getTransitionDuration
+    getTransitionDuration,
+    getShadow,
+    getBackdropBlur
   } = useCSSOptimization();
   
   // Memory management for image cleanup
@@ -147,7 +149,7 @@ const ImageSlider = ({
     };
 
     preloadImages();
-  }, [images, performanceConfig.imagePreloadLimit, isMobile, isLowEndDevice, preloadedImages]);
+  }, [images, performanceConfig.imagePreloadLimit, isMobile, isLowEndDevice]);
 
   // Cleanup on unmount
   useEffect(() => {

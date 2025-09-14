@@ -356,16 +356,87 @@ export const useRive = (src = '/danak.riv', enableDebug = false) => {
       });
       
       try {
-        // Play the target animation
-        currentRive.play(targetAnimation);
+        // Get current animation info before switching
+        const currentAnimation = currentRive.activeAnimationName || 'unknown';
+        const isCurrentlyPlaying = currentRive.isPlaying;
         
-        // Update refs directly to prevent re-renders - NO setState calls
-        animationStatesRef.current = {
+        const availableAnimations = currentRive.animationNames;
+        
+        debugLog(`🎬 [Animation Sync] About to play animation: ${targetAnimation}`, {
+          currentAnimation,
+          isCurrentlyPlaying,
+          speaking: value,
+          availableAnimations,
+          availableAnimationsList: Array.isArray(availableAnimations) ? availableAnimations : 'Not an array'
+        });
+        
+        // DEBUGGING: Check if the animation name exists
+        if (!availableAnimations.includes(targetAnimation)) {
+          console.error(`❌ [Animation Sync] Animation "${targetAnimation}" not found! Available:`, availableAnimations);
+          // Try to find a similar animation name
+          const similarAnimation = availableAnimations.find(name =>
+            name.toLowerCase().includes(value ? 'speak' : 'idle')
+          );
+          if (similarAnimation) {
+            console.log(`🔄 [Animation Sync] Trying similar animation: ${similarAnimation}`);
+            currentRive.play(similarAnimation);
+          }
+          return;
+        }
+        
+        // FIXED: Use reset() API to switch timeline animations properly
+        try {
+          console.log(`🔄 [Animation Sync] Using reset() to switch to: ${targetAnimation}`);
+          
+          // Use Rive's reset() API to switch timeline animations
+          currentRive.reset({
+            animations: targetAnimation,
+            autoplay: true
+          });
+          
+          console.log(`✅ [Animation Sync] Successfully reset to animation: ${targetAnimation}`);
+          
+        } catch (resetError) {
+          console.error(`❌ [Animation Sync] Error using reset() for "${targetAnimation}":`, resetError);
+          
+          // Fallback: Try stop current + play new
+          try {
+            console.log(`🔄 [Animation Sync] Trying fallback: stop current + play new`);
+            currentRive.stop(); // Stop all current animations
+            currentRive.play(targetAnimation); // Play the target animation
+            console.log(`✅ [Animation Sync] Fallback successful for "${targetAnimation}"`);
+          } catch (fallbackError) {
+            console.error(`❌ [Animation Sync] Fallback also failed:`, fallbackError);
+          }
+        }
+        
+        // Verify the animation actually started
+        setTimeout(() => {
+          const newCurrentAnimation = currentRive.activeAnimationName || 'unknown';
+          const newIsPlaying = currentRive.isPlaying;
+          
+          debugLog(`🎯 [Animation Sync] Animation play result:`, {
+            requestedAnimation: targetAnimation,
+            actualAnimation: newCurrentAnimation,
+            isPlaying: newIsPlaying,
+            success: newCurrentAnimation === targetAnimation || newIsPlaying
+          });
+          
+          if (newCurrentAnimation !== targetAnimation) {
+            console.warn(`⚠️ [Animation Sync] Animation mismatch! Requested: ${targetAnimation}, Actually playing: ${newCurrentAnimation}`);
+          }
+        }, 100);
+        
+        // Update both refs and React state for proper re-rendering
+        const newStates = {
           ...animationStatesRef.current,
           isSpeaking: value,
           isIdle: !value,
           currentAnimation: targetAnimation
         };
+        
+        animationStatesRef.current = newStates;
+        setAnimationStates(newStates); // CRITICAL: Update React state so components re-render
         
         // Only track history on desktop to save memory on mobile
         if (!isMobile || optimizedDebug) {

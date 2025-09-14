@@ -20,6 +20,14 @@ const requestMicrophonePermission = async () => {
   }
 };
 
+// Speaking detection timeout constants
+const SPEAKING_TIMEOUTS = {
+  afterAudio: 500,        // Timeout after last audio chunk (ms)
+  afterResponse: 2000,    // Timeout after agent_response without audio (ms)
+  maxSpeaking: 30000,     // Maximum speaking duration safety timeout (ms)
+  gracePeriod: 200        // Grace period before marking as stopped (ms)
+};
+
 export const useElevenLabsConversation = () => {
   // Performance configuration for mobile optimization
   const performanceData = usePerformanceConfig();
@@ -61,6 +69,16 @@ export const useElevenLabsConversation = () => {
   const [productLinkData, setProductLinkData] = useState(null);
   const [error, setError] = useState(null);
 
+  // Enhanced debug state for animation synchronization
+  const [animationDebugInfo, setAnimationDebugInfo] = useState({
+    totalAudioEvents: 0,
+    lastAudioTime: null,
+    lastResponseTime: null,
+    speakingDuration: 0,
+    timeoutActive: false,
+    speakingState: 'idle'
+  });
+
   // Refs for cleanup and audio control
   const mountedRef = useRef(true);
   const mutationObserverRef = useRef(null);
@@ -69,6 +87,13 @@ export const useElevenLabsConversation = () => {
   const originalAudioContextRef = useRef(null);
   const originalHTMLAudioElementRef = useRef(null);
   const isAudioMutedRef = useRef(false);
+
+  // Enhanced speaking state management refs
+  const audioTimeoutRef = useRef(null);
+  const speakingStateRef = useRef('idle');
+  const lastAudioTimeRef = useRef(null);
+  const audioEventCountRef = useRef(0);
+  const agentResponseTimeRef = useRef(null);
 
   // Simplified audio control - no muting in chat mode
   console.log('🔊 Audio always enabled for better user experience');
@@ -157,6 +182,97 @@ export const useElevenLabsConversation = () => {
       return "Overlays dismissed successfully";
     }
   };
+
+  // Enhanced audio event handler with timeout management
+  const handleAudioEvent = useCallback((audioEvent) => {
+    audioEventCountRef.current++;
+    lastAudioTimeRef.current = Date.now();
+    
+    console.log('🔊 [Animation Sync] Audio event received:', {
+      eventId: audioEvent.event_id,
+      totalAudioEvents: audioEventCountRef.current,
+      currentSpeakingState: isAgentSpeaking,
+      timestamp: new Date().toISOString(),
+      uiMode
+    });
+    
+    // Start speaking if not already speaking
+    if (!isAgentSpeaking) {
+      console.log('🎤 [Animation Sync] Agent started speaking (audio detected)');
+      setIsAgentSpeaking(true);
+      speakingStateRef.current = 'speaking';
+    }
+    
+    // Clear any existing timeout
+    if (audioTimeoutRef.current) {
+      clearTimeout(audioTimeoutRef.current);
+    }
+    
+    // Set new timeout for when audio stops
+    audioTimeoutRef.current = setTimeout(() => {
+      const timeSinceLastAudio = Date.now() - lastAudioTimeRef.current;
+      console.log('🔇 [Animation Sync] Audio timeout triggered:', {
+        timeSinceLastAudio,
+        totalAudioEvents: audioEventCountRef.current,
+        wasAgentSpeaking: isAgentSpeaking
+      });
+      
+      if (isAgentSpeaking) {
+        console.log('🏁 [Animation Sync] Agent stopped speaking (audio timeout)');
+        setIsAgentSpeaking(false);
+        speakingStateRef.current = 'idle';
+        audioEventCountRef.current = 0;
+      }
+    }, SPEAKING_TIMEOUTS.afterAudio);
+    
+  }, [isAgentSpeaking, uiMode]);
+
+  // Enhanced agent response handler for backup speaking detection
+  const handleAgentResponse = useCallback((agentResponseEvent) => {
+    agentResponseTimeRef.current = Date.now();
+    
+    console.log('🤖 [Animation Sync] Agent response received:', {
+      response: agentResponseEvent.agent_response?.substring(0, 50) + '...',
+      currentSpeakingState: isAgentSpeaking,
+      hasAudioEvents: audioEventCountRef.current > 0,
+      timestamp: new Date().toISOString()
+    });
+    
+    // If not already speaking and no recent audio events, start speaking
+    if (!isAgentSpeaking && audioEventCountRef.current === 0) {
+      console.log('🎤 [Animation Sync] Agent started speaking (response detected, no audio yet)');
+      setIsAgentSpeaking(true);
+      speakingStateRef.current = 'speaking';
+      
+      // Set a longer timeout for agent response without audio
+      if (audioTimeoutRef.current) {
+        clearTimeout(audioTimeoutRef.current);
+      }
+      
+      audioTimeoutRef.current = setTimeout(() => {
+        console.log('🔇 [Animation Sync] Agent response timeout (no audio received)');
+        if (isAgentSpeaking && audioEventCountRef.current === 0) {
+          setIsAgentSpeaking(false);
+          speakingStateRef.current = 'idle';
+        }
+      }, SPEAKING_TIMEOUTS.afterResponse);
+    }
+  }, [isAgentSpeaking]);
+
+  // Update debug information
+  const updateDebugInfo = useCallback(() => {
+    setAnimationDebugInfo(prev => ({
+      ...prev,
+      totalAudioEvents: audioEventCountRef.current,
+      lastAudioTime: lastAudioTimeRef.current,
+      lastResponseTime: agentResponseTimeRef.current,
+      timeoutActive: !!audioTimeoutRef.current,
+      speakingState: speakingStateRef.current,
+      speakingDuration: lastAudioTimeRef.current && agentResponseTimeRef.current
+        ? lastAudioTimeRef.current - agentResponseTimeRef.current
+        : 0
+    }));
+  }, []);
 
   // Connect to ElevenLabs agent - ALWAYS with voice capability
   const connect = useCallback(async () => {
@@ -247,7 +363,13 @@ export const useElevenLabsConversation = () => {
         },
 
         onMessage: (message) => {
-          console.log('💬 Message received:', message);
+          console.log('💬 [Animation Sync] Message received:', {
+            type: message.type,
+            source: message.source,
+            hasAudioEvent: !!(message.type === 'audio' && message.audio_event),
+            hasAgentResponse: !!(message.type === 'agent_response'),
+            timestamp: new Date().toISOString()
+          });
 
           // Handle the actual ElevenLabs message structure
           if (message.source && message.message) {
@@ -270,11 +392,17 @@ export const useElevenLabsConversation = () => {
                 break;
             }
           } else if (message.type) {
-            // Handle other ElevenLabs event types (audio, etc.)
-            console.log('📨 Event type:', message.type, message);
+            // Handle other ElevenLabs event types with enhanced audio detection
+            console.log('📨 Event type:', message.type, {
+              hasAudioEvent: !!(message.audio_event),
+              hasAgentResponse: !!(message.agent_response_event)
+            });
             
-            // Handle audio events - play only if in voice mode and audio not muted
+            // ENHANCED: Handle audio events for precise speaking detection
             if (message.type === 'audio' && message.audio_event) {
+              handleAudioEvent(message.audio_event);
+              
+              // Play audio only if in voice mode and audio not muted
               if (uiMode === 'voice' && !audioOutputMuted) {
                 console.log('🔊 Playing audio in voice mode');
                 // Audio is automatically handled by the ElevenLabs SDK
@@ -282,6 +410,12 @@ export const useElevenLabsConversation = () => {
                 console.log('🔇 Audio received but muted (chat mode or audio disabled)');
               }
             }
+            
+            // ENHANCED: Handle agent response events for backup speaking detection
+            if (message.type === 'agent_response' && message.agent_response_event) {
+              handleAgentResponse(message.agent_response_event);
+            }
+            
           } else {
             // Handle any other message formats
             console.log('📨 Other message format:', message);
@@ -289,30 +423,63 @@ export const useElevenLabsConversation = () => {
         },
 
         onModeChange: (modeData) => {
-          console.log('🔄 ElevenLabs mode changed:', modeData);
+          console.log('🔄 [Animation Sync] ElevenLabs mode changed:', modeData);
 
           // Handle the actual mode structure from ElevenLabs
           const mode = modeData.mode || modeData;
           
           if (mode === 'speaking') {
-            console.log('🤖 Agent is speaking');
+            console.log('🤖 [Animation Sync] Agent started speaking (mode change)');
             setIsAgentSpeaking(true);
             setIsUserSpeaking(false);
+            speakingStateRef.current = 'speaking';
+            
+            // Clear any existing timeout since we're now officially speaking
+            if (audioTimeoutRef.current) {
+              clearTimeout(audioTimeoutRef.current);
+            }
+            
           } else if (mode === 'listening') {
-            console.log('👤 Agent is listening');
+            console.log('👤 [Animation Sync] Agent stopped speaking, now listening (mode change)');
+            
+            // FIXED: Always stop agent speaking when mode changes to listening
+            setIsAgentSpeaking(false);
+            speakingStateRef.current = 'idle';
+            
+            // Clear any existing timeout
+            if (audioTimeoutRef.current) {
+              clearTimeout(audioTimeoutRef.current);
+              audioTimeoutRef.current = null;
+            }
+            
+            // Reset audio event counter
+            audioEventCountRef.current = 0;
+            
             // Only show user speaking if we're in voice UI mode
             if (uiMode === 'voice') {
               setIsUserSpeaking(true);
+            } else {
+              setIsUserSpeaking(false);
             }
-            setIsAgentSpeaking(false);
+            
           } else {
-            console.log('💬 Mode:', mode);
+            console.log('💬 [Animation Sync] Mode changed to:', mode);
             setIsUserSpeaking(false);
             setIsAgentSpeaking(false);
+            speakingStateRef.current = 'idle';
+            
+            // Clear any existing timeout
+            if (audioTimeoutRef.current) {
+              clearTimeout(audioTimeoutRef.current);
+              audioTimeoutRef.current = null;
+            }
           }
 
           // Always maintain voice capability, UI mode controls presentation
           setAudioEnabled(true); // For backward compatibility
+          
+          // Update debug info
+          updateDebugInfo();
         }
       };
 
@@ -361,7 +528,7 @@ export const useElevenLabsConversation = () => {
       setError(err.message);
       setIsConnecting(false);
     }
-  }, [uiMode]);
+  }, [uiMode, handleAudioEvent, handleAgentResponse]);
 
   // Disconnect from conversation with enhanced cleanup
   const disconnect = useCallback(async () => {
@@ -393,6 +560,18 @@ export const useElevenLabsConversation = () => {
     setProductImageData(null);
     setProductLinkData(null);
     setError(null);
+
+    // Enhanced cleanup for speaking state management
+    if (audioTimeoutRef.current) {
+      clearTimeout(audioTimeoutRef.current);
+      audioTimeoutRef.current = null;
+    }
+    speakingStateRef.current = 'idle';
+    lastAudioTimeRef.current = null;
+    audioEventCountRef.current = 0;
+    agentResponseTimeRef.current = null;
+
+    console.log('🧹 [Animation Sync] Speaking state management cleaned up');
     
     // Add cleanup task for conversation resources
     addCleanupTask(() => {
@@ -563,6 +742,20 @@ export const useElevenLabsConversation = () => {
     // Product display
     productImageData,
     productLinkData,
-    dismissProductOverlays
+    dismissProductOverlays,
+
+    // Enhanced debug information for animation synchronization
+    animationDebugInfo,
+    updateDebugInfo,
+
+    // Speaking state management info
+    getSpeakingDebugInfo: () => ({
+      isAgentSpeaking,
+      speakingState: speakingStateRef.current,
+      audioEventCount: audioEventCountRef.current,
+      lastAudioTime: lastAudioTimeRef.current,
+      timeoutActive: !!audioTimeoutRef.current,
+      timeSinceLastAudio: lastAudioTimeRef.current ? Date.now() - lastAudioTimeRef.current : null
+    })
   };
 };

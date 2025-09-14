@@ -13,6 +13,9 @@ const ChatAvatar = ({
   mode = "chat", // 'chat' or 'voice',
   productImageData = { image_url: "" },
   productLinkData = null,
+  // Enhanced debug information for animation synchronization
+  animationDebugInfo = null,
+  getSpeakingDebugInfo = null,
 }) => {
   // Get company configuration
   const { config, getText, getAsset, getAvatarSettings } = useCompanyConfig();
@@ -175,10 +178,24 @@ const ChatAvatar = ({
 
   // Enhanced timeline animation control with cross-mode support - stable dependencies
   useEffect(() => {
+    console.log('🎭 [Animation Sync] ChatAvatar received props update:', {
+      isAgentSpeaking,
+      isLoaded,
+      error,
+      isHealthy,
+      mode
+    });
+
     if (isLoaded && !error && isHealthy) {
       // CROSS-MODE SUPPORT: Timeline animations work in both modes
       // In chat mode: Visual animation feedback only (no audio)
       // In voice mode: Visual animation + audio feedback
+      
+      console.log('🎬 [Animation Sync] Setting animation state:', {
+        stateName: 'isSpeaking',
+        value: isAgentSpeaking,
+        targetAnimation: isAgentSpeaking ? 'speaking abass' : 'idle abass'
+      });
       
       // Control speaking animation in both modes
       setAnimationState("isSpeaking", isAgentSpeaking);
@@ -187,6 +204,12 @@ const ChatAvatar = ({
         mode,
         isSpeaking: isAgentSpeaking,
         targetAnimation: isAgentSpeaking ? 'speaking abass' : 'idle abass'
+      });
+    } else {
+      console.log('🚫 [Animation Sync] Animation not ready:', {
+        isLoaded,
+        error: !!error,
+        isHealthy
       });
     }
   }, [
@@ -206,16 +229,20 @@ const ChatAvatar = ({
     }
   }, [error]);
 
-  // Debug key listener disabled for production (enable only when needed)
-  // useEffect(() => {
-  //   const handleKeyPress = (event) => {
-  //     if (event.ctrlKey && event.shiftKey && event.key === 'D') {
-  //       setShowAnimationDebug(prev => !prev);
-  //     }
-  //   };
-  //   window.addEventListener('keydown', handleKeyPress);
-  //   return () => window.removeEventListener('keydown', handleKeyPress);
-  // }, [showAnimationDebug]);
+  // Enhanced debug key listener for animation synchronization debugging
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.ctrlKey && event.shiftKey && event.key === 'D') {
+        setShowAnimationDebug(prev => {
+          const newState = !prev;
+          console.log(`🎭 [Animation Sync] Debug overlay ${newState ? 'enabled' : 'disabled'}`);
+          return newState;
+        });
+      }
+    };
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center max-h-full py-2 overflow-y-auto h-[100%] drop-shadow-md">
@@ -438,32 +465,51 @@ const ChatAvatar = ({
 
         {/* Enhanced Animation Debug Overlay */}
         {showAnimationDebug && (
-          <div className="absolute top-2 left-2 bg-black bg-opacity-80 text-white text-xs p-2 rounded z-50 max-w-xs">
-            <div className="font-bold mb-1">🎭 Animation Debug</div>
-            <div>Mode: {mode}</div>
-            <div>Loaded: {isLoaded ? '✅' : '❌'}</div>
-            <div>Healthy: {isHealthy ? '✅' : '⚠️'}</div>
-            <div>Error: {error || 'None'}</div>
-            <div>Agent Speaking: {isAgentSpeaking ? '🗣️' : '💤'}</div>
-            <div>User Speaking: {isUserSpeaking ? '🎤' : '🔇'}</div>
+          <div className="absolute top-2 left-2 bg-black bg-opacity-90 text-white text-xs p-3 rounded-lg z-50 max-w-sm">
+            <div className="font-bold mb-2 text-yellow-300">🎭 Animation Sync Debug</div>
             
+            {/* Basic State Info */}
+            <div className="mb-2 border-b border-gray-600 pb-2">
+              <div>Mode: <span className="text-blue-300">{mode}</span></div>
+              <div>Loaded: {isLoaded ? '✅' : '❌'}</div>
+              <div>Healthy: {isHealthy ? '✅' : '⚠️'}</div>
+              <div>Error: {error || 'None'}</div>
+            </div>
+            
+            {/* Speaking State Info */}
+            <div className="mb-2 border-b border-gray-600 pb-2">
+              <div>Agent Speaking: {isAgentSpeaking ? '🗣️ YES' : '💤 NO'}</div>
+              <div>Animation State: {currentAnimationStates?.isSpeaking ? '🎬 SPEAKING' : '😴 IDLE'}</div>
+              <div>Target Animation: <span className="text-green-300">{isAgentSpeaking ? 'speaking abass' : 'idle abass'}</span></div>
+            </div>
+            
+            {/* Audio Event Info */}
+            {getSpeakingDebugInfo && (
+              <div className="mb-2 border-b border-gray-600 pb-2">
+                <div>Audio Events: <span className="text-purple-300">{getSpeakingDebugInfo().audioEventCount}</span></div>
+                <div>Last Audio: <span className="text-purple-300">{
+                  getSpeakingDebugInfo().lastAudioTime
+                    ? `${Math.round((Date.now() - getSpeakingDebugInfo().lastAudioTime) / 1000)}s ago`
+                    : 'None'
+                }</span></div>
+                <div>Timeout Active: {getSpeakingDebugInfo().timeoutActive ? '⏰ YES' : '❌ NO'}</div>
+                <div>Speaking State: <span className="text-yellow-300">{getSpeakingDebugInfo().speakingState}</span></div>
+              </div>
+            )}
+            
+            {/* Animation States */}
             {currentAnimationStates && (
-              <div className="mt-1">
-                <div className="font-semibold">Animation States:</div>
+              <div className="mb-2">
+                <div className="font-semibold text-cyan-300">Animation States:</div>
                 {Object.entries(currentAnimationStates).map(([key, value]) => (
-                  <div key={key} className="ml-2">
+                  <div key={key} className="ml-2 text-xs">
                     {key}: {typeof value === 'boolean' ? (value ? '✅' : '❌') : value}
                   </div>
                 ))}
               </div>
             )}
             
-            <div className="mt-1">
-              <div className="font-semibold">Animation Mode:</div>
-              <div className="ml-2">Timeline Animations</div>
-            </div>
-            
-            <div className="mt-1 text-xs opacity-70">
+            <div className="mt-2 text-xs opacity-70 border-t border-gray-600 pt-2">
               Press Ctrl+Shift+D to toggle
             </div>
           </div>

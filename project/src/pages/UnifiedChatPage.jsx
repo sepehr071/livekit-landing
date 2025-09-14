@@ -64,6 +64,9 @@ const UnifiedChatPage = () => {
     productImageData,
     productLinkData,
     dismissProductOverlays,
+    // Enhanced debug information for animation synchronization
+    animationDebugInfo,
+    getSpeakingDebugInfo,
   } = useElevenLabsConversation();
 
   // Auto-connect and show widget on mount
@@ -237,6 +240,9 @@ const UnifiedChatPage = () => {
             showLoadingDots={isSendingText && !agentMessage}
             productImageData={productImageData}
             productLinkData={productLinkData}
+            // Enhanced debug information for animation synchronization
+            animationDebugInfo={animationDebugInfo}
+            getSpeakingDebugInfo={getSpeakingDebugInfo}
           />
 
           {/* Error Display */}
