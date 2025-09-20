@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mic, MicOff, X, MessageSquare, Volume2, Loader2 } from "lucide-react";
+import { Mic, MicOff,   Loader2 } from "lucide-react";
 import ChatAvatar from "../components/ChatAvatar";
-import ProductImageOverlay from "../components/ProductImageOverlay";
-import ProductLinkBox from "../components/ProductLinkBox";
+ 
 import PerformanceDebug from "../components/PerformanceDebug";
 import { useElevenLabsConversation } from "../hooks/useElevenLabsConversation";
 import { useCompanyConfig } from "../config/useCompanyConfig";
@@ -382,16 +381,7 @@ const UnifiedChatPage = () => {
         </div>
       </div>
 
-      
-       {/* <ProductImageOverlay
-        productData={productImageData}
-        onClose={dismissProductOverlays}
-      />
-
-       <ProductLinkBox
-        productData={productLinkData}
-        onClose={dismissProductOverlays}
-      />  */}
+     
 
       {/* Performance Debug Component - Toggle with Ctrl+Shift+P */}
       <PerformanceDebug enabled={showPerformanceDebug} />

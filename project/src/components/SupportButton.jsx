@@ -153,11 +153,7 @@ const SupportButton = () => {
   
   return (
     <RiveAvatarButton
-      className={`animated-border fixed bottom-6 right-6 w-28 h-28 text-white rounded-full shadow-lg flex items-center justify-center transition-all duration-[400ms] z-50`}
-      style={{
-        backgroundColor: config.theme.primary.main,
-        '&:hover': { backgroundColor: config.theme.primary.dark }
-      }}
+   
     />
   );
 };
